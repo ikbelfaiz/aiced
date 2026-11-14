@@ -45,12 +45,13 @@ SPECTACULAR_SETTINGS = {
 
 from django.core.exceptions import ImproperlyConfigured
 
-if os.environ.get("AICED_CONSUMER_MIGRATION") != "1" and (
-    IAM_CONSUMER_KEY_ID not in AICED_INTERNAL_KEYS
-    or any(
-        key["service"] != "client_crm"
-        or not set(key["audiences"]) <= {"iam", "audit", "integration"}
-        for key in AICED_INTERNAL_KEYS.values()
-    )
-):
-    raise ImproperlyConfigured("Consumer requires only its own signing identities")
+if os.environ.get("AICED_CONSUMER_MIGRATION") != "1":
+    from .trust import validate
+    validate(AICED_INTERNAL_KEYS, IAM_CONSUMER_KEY_ID)
+
+COMMERCIAL_REMOTE = os.environ.get("AICED_COMMERCIAL_REMOTE") == "1"
+COMMERCIAL_AUDIT_URL = os.environ.get("AICED_COMMERCIAL_URL", "")
+COMMERCIAL_AUDIT_KEY_ID = os.environ.get("AICED_COMMERCIAL_AUDIT_KEY_ID", "client-commercial-v1")
+
+# Request-scoped connections bound idle sockets in the multi-service HTTP deployment.
+DATABASES["default"]["CONN_MAX_AGE"] = 0

@@ -1,5 +1,8 @@
 # Architecture AICED — état actuel et cible par services
 
+> Current architecture: **S6b verified locally**. IAM, Client & CRM, Commercial and Data Integration run separately with restricted data ownership. All 38 routes are preserved; actual post-write rollback/forward, browser workflows and restore were verified. See [S6b report](migration/s6b-commercial.md). Container execution and production readiness remain unverified. Earlier phase status paragraphs below are historical.
+
+
 **Current status: S5 (2026-11-14).** IAM and Data Integration are independently running in the local synthetic deployment with separate restricted schemas/credentials. All 38 public routes are preserved. Post-write rollback, forward cutover, restore and independent IAM restart were verified. Client/CRM and Commercial remain in the compatibility backend. See [S5 results, startup and rollback](migration/s5-iam.md) and [actual ownership](migration/s5-inventory.json). Docker and production deployment are not verified. Earlier status statements below are historical.
 
 Statut après S2 : [contrats privés signés, barrière transactionnelle de révocation et audit/outbox vérifiés](migration/s2-authorization-audit.md). Les quatre services métier restent la cible ; aucun service extrait ni changement des 38 routes. Trois tables techniques additives, deux migrations et le listener interne distinct sont en place ; le runtime public reste transitoirement le backend existant.

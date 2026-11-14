@@ -1,0 +1,850 @@
+{
+  "stage": "S6 preparation only",
+  "database_inspection": "read-only live S5 restricted Client credential",
+  "ownership_changed": false,
+  "opportunity_count": 17,
+  "client_models": [
+    {
+      "model": "Party",
+      "table": "clients_party",
+      "target_owner": "client_crm",
+      "relations": [
+        {
+          "field": "organization",
+          "target": "iam_consumer.OrganizationRef"
+        },
+        {
+          "field": "assigned_to",
+          "target": "iam_consumer.MembershipRef"
+        }
+      ]
+    },
+    {
+      "model": "Prospect",
+      "table": "clients_prospect",
+      "target_owner": "client_crm",
+      "relations": [
+        {
+          "field": "party",
+          "target": "clients.Party"
+        }
+      ]
+    },
+    {
+      "model": "PhysicalPerson",
+      "table": "clients_physicalperson",
+      "target_owner": "client_crm",
+      "relations": [
+        {
+          "field": "party",
+          "target": "clients.Party"
+        }
+      ]
+    },
+    {
+      "model": "LegalEntity",
+      "table": "clients_legalentity",
+      "target_owner": "client_crm",
+      "relations": [
+        {
+          "field": "party",
+          "target": "clients.Party"
+        }
+      ]
+    },
+    {
+      "model": "CRMProfile",
+      "table": "clients_crmprofile",
+      "target_owner": "client_crm",
+      "relations": [
+        {
+          "field": "party",
+          "target": "clients.Party"
+        },
+        {
+          "field": "updated_by",
+          "target": "iam_consumer.ActorRef"
+        }
+      ]
+    },
+    {
+      "model": "ExternalIdentity",
+      "table": "clients_externalidentity",
+      "target_owner": "client_crm",
+      "relations": [
+        {
+          "field": "party",
+          "target": "clients.Party"
+        }
+      ]
+    },
+    {
+      "model": "FinancialAccount",
+      "table": "clients_financialaccount",
+      "target_owner": "client_crm",
+      "relations": [
+        {
+          "field": "party",
+          "target": "clients.Party"
+        }
+      ]
+    },
+    {
+      "model": "Interaction",
+      "table": "clients_interaction",
+      "target_owner": "client_crm",
+      "relations": [
+        {
+          "field": "party",
+          "target": "clients.Party"
+        },
+        {
+          "field": "author",
+          "target": "iam_consumer.ActorRef"
+        }
+      ]
+    },
+    {
+      "model": "Opportunity",
+      "table": "clients_opportunity",
+      "target_owner": "commercial",
+      "relations": [
+        {
+          "field": "party",
+          "target": "clients.Party"
+        },
+        {
+          "field": "author",
+          "target": "iam_consumer.ActorRef"
+        }
+      ]
+    }
+  ],
+  "current_business_tables": [
+    {
+      "table": "audit_auditevent",
+      "current_owner_role": "aiced"
+    },
+    {
+      "table": "audit_auditoutbox",
+      "current_owner_role": "aiced"
+    },
+    {
+      "table": "audit_auditreceipt",
+      "current_owner_role": "aiced"
+    },
+    {
+      "table": "clients_crmprofile",
+      "current_owner_role": "aiced"
+    },
+    {
+      "table": "clients_externalidentity",
+      "current_owner_role": "aiced"
+    },
+    {
+      "table": "clients_financialaccount",
+      "current_owner_role": "aiced"
+    },
+    {
+      "table": "clients_interaction",
+      "current_owner_role": "aiced"
+    },
+    {
+      "table": "clients_legalentity",
+      "current_owner_role": "aiced"
+    },
+    {
+      "table": "clients_opportunity",
+      "current_owner_role": "aiced"
+    },
+    {
+      "table": "clients_party",
+      "current_owner_role": "aiced"
+    },
+    {
+      "table": "clients_physicalperson",
+      "current_owner_role": "aiced"
+    },
+    {
+      "table": "clients_prospect",
+      "current_owner_role": "aiced"
+    },
+    {
+      "table": "iam_consumer_actorref",
+      "current_owner_role": "aiced"
+    },
+    {
+      "table": "iam_consumer_iamjournalref",
+      "current_owner_role": "aiced"
+    },
+    {
+      "table": "iam_consumer_internalnonce",
+      "current_owner_role": "aiced"
+    },
+    {
+      "table": "iam_consumer_membershipref",
+      "current_owner_role": "aiced"
+    },
+    {
+      "table": "iam_consumer_organizationref",
+      "current_owner_role": "aiced"
+    }
+  ],
+  "foreign_keys": [
+    {
+      "schema": "public",
+      "table": "clients_crmprofile",
+      "constraint": "clients_crmprofile_party_id_6fd52529_fk_clients_party_id",
+      "definition": "FOREIGN KEY (party_id) REFERENCES clients_party(id) DEFERRABLE INITIALLY DEFERRED"
+    },
+    {
+      "schema": "public",
+      "table": "clients_crmprofile",
+      "constraint": "clients_crmprofile_updated_by_id_cf1d89c5_fk_iam_consu",
+      "definition": "FOREIGN KEY (updated_by_id) REFERENCES iam_consumer_actorref(id) DEFERRABLE INITIALLY DEFERRED"
+    },
+    {
+      "schema": "public",
+      "table": "clients_externalidentity",
+      "constraint": "clients_externalidentity_party_id_ec17e618_fk_clients_party_id",
+      "definition": "FOREIGN KEY (party_id) REFERENCES clients_party(id) DEFERRABLE INITIALLY DEFERRED"
+    },
+    {
+      "schema": "public",
+      "table": "clients_financialaccount",
+      "constraint": "clients_financialaccount_party_id_5a9440b3_fk_clients_party_id",
+      "definition": "FOREIGN KEY (party_id) REFERENCES clients_party(id) DEFERRABLE INITIALLY DEFERRED"
+    },
+    {
+      "schema": "public",
+      "table": "clients_interaction",
+      "constraint": "clients_interaction_author_id_10a29177_fk_iam_consu",
+      "definition": "FOREIGN KEY (author_id) REFERENCES iam_consumer_actorref(id) DEFERRABLE INITIALLY DEFERRED"
+    },
+    {
+      "schema": "public",
+      "table": "clients_interaction",
+      "constraint": "clients_interaction_party_id_85a915f9_fk_clients_party_id",
+      "definition": "FOREIGN KEY (party_id) REFERENCES clients_party(id) DEFERRABLE INITIALLY DEFERRED"
+    },
+    {
+      "schema": "public",
+      "table": "clients_legalentity",
+      "constraint": "clients_legalentity_party_id_baba11b3_fk_clients_party_id",
+      "definition": "FOREIGN KEY (party_id) REFERENCES clients_party(id) DEFERRABLE INITIALLY DEFERRED"
+    },
+    {
+      "schema": "public",
+      "table": "clients_opportunity",
+      "constraint": "clients_opportunity_author_id_4ff37db2_fk_iam_consu",
+      "definition": "FOREIGN KEY (author_id) REFERENCES iam_consumer_actorref(id) DEFERRABLE INITIALLY DEFERRED"
+    },
+    {
+      "schema": "public",
+      "table": "clients_opportunity",
+      "constraint": "clients_opportunity_party_id_69f324e4_fk_clients_party_id",
+      "definition": "FOREIGN KEY (party_id) REFERENCES clients_party(id) DEFERRABLE INITIALLY DEFERRED"
+    },
+    {
+      "schema": "public",
+      "table": "clients_party",
+      "constraint": "clients_party_assigned_to_id_1fd3837d_fk_iam_consu",
+      "definition": "FOREIGN KEY (assigned_to_id) REFERENCES iam_consumer_membershipref(id) DEFERRABLE INITIALLY DEFERRED"
+    },
+    {
+      "schema": "public",
+      "table": "clients_party",
+      "constraint": "clients_party_organization_id_17029e3a_fk_iam_consu",
+      "definition": "FOREIGN KEY (organization_id) REFERENCES iam_consumer_organizationref(id) DEFERRABLE INITIALLY DEFERRED"
+    },
+    {
+      "schema": "public",
+      "table": "clients_party",
+      "constraint": "party_assignment_same_org",
+      "definition": "FOREIGN KEY (assigned_to_id, organization_id) REFERENCES iam_consumer_membershipref(id, organization_id) DEFERRABLE"
+    },
+    {
+      "schema": "public",
+      "table": "clients_physicalperson",
+      "constraint": "clients_physicalperson_party_id_fb00ee5a_fk_clients_party_id",
+      "definition": "FOREIGN KEY (party_id) REFERENCES clients_party(id) DEFERRABLE INITIALLY DEFERRED"
+    },
+    {
+      "schema": "public",
+      "table": "clients_prospect",
+      "constraint": "clients_prospect_party_id_ec9277c9_fk_clients_party_id",
+      "definition": "FOREIGN KEY (party_id) REFERENCES clients_party(id) DEFERRABLE INITIALLY DEFERRED"
+    }
+  ],
+  "public_routes": [
+    {
+      "path": "/api/prospects/",
+      "target_owner": "unchanged",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/prospects/context/",
+      "target_owner": "unchanged",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/prospects/<uuid:party_id>/",
+      "target_owner": "unchanged",
+      "methods": [
+        "GET",
+        "PATCH"
+      ]
+    },
+    {
+      "path": "/api/imports/context/",
+      "target_owner": "unchanged",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/batches/",
+      "target_owner": "unchanged",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/upload/",
+      "target_owner": "unchanged",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/batches/<uuid:batch_id>/",
+      "target_owner": "unchanged",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/batches/<uuid:batch_id>/rejections/",
+      "target_owner": "unchanged",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/batches/<uuid:batch_id>/publish/",
+      "target_owner": "unchanged",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/policies/",
+      "target_owner": "unchanged",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/policies/<uuid:policy_id>/approve/",
+      "target_owner": "unchanged",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/policies/<uuid:policy_id>/revoke/",
+      "target_owner": "unchanged",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/health/",
+      "target_owner": "unchanged",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/session/",
+      "target_owner": "unchanged",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/schema/",
+      "target_owner": "unchanged",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/auth/csrf/",
+      "target_owner": "unchanged",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/auth/login/",
+      "target_owner": "unchanged",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/auth/logout/",
+      "target_owner": "unchanged",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/auth/access/",
+      "target_owner": "unchanged",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/clients/",
+      "target_owner": "unchanged",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/clients/create/",
+      "target_owner": "unchanged",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/clients/context/",
+      "target_owner": "unchanged",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/workspace/",
+      "target_owner": "unchanged",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/identity/",
+      "target_owner": "unchanged",
+      "methods": [
+        "PATCH"
+      ]
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/profile/",
+      "target_owner": "unchanged",
+      "methods": [
+        "PATCH"
+      ]
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/interactions/",
+      "target_owner": "unchanged",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/interactions/<uuid:activity_id>/",
+      "target_owner": "unchanged",
+      "methods": [
+        "GET",
+        "PATCH"
+      ]
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/opportunities/",
+      "target_owner": "commercial",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/opportunities/<uuid:activity_id>/",
+      "target_owner": "commercial",
+      "methods": [
+        "GET",
+        "PATCH"
+      ]
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/",
+      "target_owner": "unchanged",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/crm/",
+      "target_owner": "unchanged",
+      "methods": [
+        "PATCH"
+      ]
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/accounts/",
+      "target_owner": "unchanged",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/organizations/<uuid:organization_id>/users/",
+      "target_owner": "unchanged",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/organizations/<uuid:organization_id>/memberships/<uuid:membership_id>/",
+      "target_owner": "unchanged",
+      "methods": [
+        "PATCH"
+      ]
+    },
+    {
+      "path": "/api/organizations/<uuid:organization_id>/role-assignments/",
+      "target_owner": "unchanged",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/organizations/<uuid:organization_id>/role-assignments/<uuid:assignment_id>/",
+      "target_owner": "unchanged",
+      "methods": [
+        "DELETE"
+      ]
+    },
+    {
+      "path": "/api/organizations/<uuid:organization_id>/roles/",
+      "target_owner": "unchanged",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/audit/",
+      "target_owner": "unchanged",
+      "methods": [
+        "GET"
+      ]
+    }
+  ],
+  "independent_commercial_service": false,
+  "opportunity_constraints": [
+    [
+      "clients_opportunity_author_id_4ff37db2_fk_iam_consu",
+      "FOREIGN KEY (author_id) REFERENCES iam_consumer_actorref(id) DEFERRABLE INITIALLY DEFERRED",
+      true
+    ],
+    [
+      "clients_opportunity_party_id_69f324e4_fk_clients_party_id",
+      "FOREIGN KEY (party_id) REFERENCES clients_party(id) DEFERRABLE INITIALLY DEFERRED",
+      true
+    ],
+    [
+      "clients_opportunity_pkey",
+      "PRIMARY KEY (id)",
+      true
+    ],
+    [
+      "clients_opportunity_version_check",
+      "CHECK ((version >= 0))",
+      true
+    ],
+    [
+      "opportunity_amount_nonnegative",
+      "CHECK (((amount >= (0)::numeric) OR (amount IS NULL)))",
+      true
+    ],
+    [
+      "opportunity_currency_tnd",
+      "CHECK (((currency)::text = 'TND'::text))",
+      true
+    ],
+    [
+      "opportunity_status_valid",
+      "CHECK (((status)::text = ANY ((ARRAY['open'::character varying, 'won'::character varying, 'lost'::character varying])::text[])))",
+      true
+    ]
+  ],
+  "opportunity_indexes": [
+    [
+      "clients_opportunity_author_id_4ff37db2",
+      "CREATE INDEX clients_opportunity_author_id_4ff37db2 ON public.clients_opportunity USING btree (author_id)"
+    ],
+    [
+      "clients_opportunity_party_id_69f324e4",
+      "CREATE INDEX clients_opportunity_party_id_69f324e4 ON public.clients_opportunity USING btree (party_id)"
+    ],
+    [
+      "clients_opportunity_pkey",
+      "CREATE UNIQUE INDEX clients_opportunity_pkey ON public.clients_opportunity USING btree (id)"
+    ]
+  ],
+  "opportunity_triggers": [],
+  "applied_business_migrations": [
+    [
+      "audit",
+      "0001_initial"
+    ],
+    [
+      "audit",
+      "0002_append_only"
+    ],
+    [
+      "audit",
+      "0003_auditevent_context"
+    ],
+    [
+      "audit",
+      "0004_audit_outbox"
+    ],
+    [
+      "audit",
+      "0005_alter_auditevent_actor_alter_auditevent_organization"
+    ],
+    [
+      "clients",
+      "0001_initial"
+    ],
+    [
+      "clients",
+      "0002_scope_and_subtype_integrity"
+    ],
+    [
+      "clients",
+      "0003_subtype_identity_immutable"
+    ],
+    [
+      "clients",
+      "0004_crmprofile_crm_notes_length"
+    ],
+    [
+      "clients",
+      "0005_crmprofile_email_crmprofile_phone_and_more"
+    ],
+    [
+      "clients",
+      "0006_prospect"
+    ],
+    [
+      "clients",
+      "0007_alter_crmprofile_updated_by_alter_interaction_author_and_more"
+    ],
+    [
+      "iam_consumer",
+      "0001_initial"
+    ],
+    [
+      "iam_consumer",
+      "0002_iamjournalref"
+    ]
+  ],
+  "business_migration_dependencies": [
+    {
+      "app": "audit",
+      "name": "0001_initial",
+      "dependencies": [
+        [
+          "identity",
+          "0002_capability_loginbucket_organization_membership_role_and_more"
+        ],
+        [
+          "identity",
+          "__first__"
+        ]
+      ]
+    },
+    {
+      "app": "audit",
+      "name": "0002_append_only",
+      "dependencies": [
+        [
+          "audit",
+          "0001_initial"
+        ]
+      ]
+    },
+    {
+      "app": "audit",
+      "name": "0003_auditevent_context",
+      "dependencies": [
+        [
+          "audit",
+          "0002_append_only"
+        ]
+      ]
+    },
+    {
+      "app": "audit",
+      "name": "0004_audit_outbox",
+      "dependencies": [
+        [
+          "audit",
+          "0003_auditevent_context"
+        ]
+      ]
+    },
+    {
+      "app": "audit",
+      "name": "0005_alter_auditevent_actor_alter_auditevent_organization",
+      "dependencies": [
+        [
+          "audit",
+          "0004_audit_outbox"
+        ],
+        [
+          "iam_consumer",
+          "0002_iamjournalref"
+        ]
+      ]
+    },
+    {
+      "app": "clients",
+      "name": "0001_initial",
+      "dependencies": [
+        [
+          "identity",
+          "0002_capability_loginbucket_organization_membership_role_and_more"
+        ],
+        [
+          "identity",
+          "__first__"
+        ]
+      ]
+    },
+    {
+      "app": "clients",
+      "name": "0002_scope_and_subtype_integrity",
+      "dependencies": [
+        [
+          "clients",
+          "0001_initial"
+        ]
+      ]
+    },
+    {
+      "app": "clients",
+      "name": "0003_subtype_identity_immutable",
+      "dependencies": [
+        [
+          "clients",
+          "0002_scope_and_subtype_integrity"
+        ]
+      ]
+    },
+    {
+      "app": "clients",
+      "name": "0004_crmprofile_crm_notes_length",
+      "dependencies": [
+        [
+          "clients",
+          "0003_subtype_identity_immutable"
+        ],
+        [
+          "identity",
+          "__first__"
+        ]
+      ]
+    },
+    {
+      "app": "clients",
+      "name": "0005_crmprofile_email_crmprofile_phone_and_more",
+      "dependencies": [
+        [
+          "clients",
+          "0004_crmprofile_crm_notes_length"
+        ],
+        [
+          "identity",
+          "__first__"
+        ]
+      ]
+    },
+    {
+      "app": "clients",
+      "name": "0006_prospect",
+      "dependencies": [
+        [
+          "clients",
+          "0005_crmprofile_email_crmprofile_phone_and_more"
+        ]
+      ]
+    },
+    {
+      "app": "clients",
+      "name": "0007_alter_crmprofile_updated_by_alter_interaction_author_and_more",
+      "dependencies": [
+        [
+          "clients",
+          "0006_prospect"
+        ],
+        [
+          "iam_consumer",
+          "0002_iamjournalref"
+        ]
+      ]
+    },
+    {
+      "app": "iam_consumer",
+      "name": "0001_initial",
+      "dependencies": []
+    },
+    {
+      "app": "iam_consumer",
+      "name": "0002_iamjournalref",
+      "dependencies": [
+        [
+          "iam_consumer",
+          "0001_initial"
+        ]
+      ]
+    }
+  ],
+  "verification": {
+    "backend_tests_passed": 129,
+    "gateway_tests_passed": 10,
+    "browser_dev_initial": {
+      "passed": 10,
+      "failed": 1,
+      "failure": "30-second overall workflow timeout"
+    },
+    "browser_retry": {
+      "passed_dev": 11,
+      "passed_bundle": 6,
+      "workflow_timeout_ms": 60000,
+      "assertions_unchanged": true,
+      "active_public_schema_unchanged": true,
+      "scratch_removed": true
+    },
+    "full_openapi_unchanged": true,
+    "model_changes_detected": false,
+    "ownership_transfer_rehearsed": false,
+    "independent_commercial_verified": false,
+    "container_deployment_verified": false
+  }
+}

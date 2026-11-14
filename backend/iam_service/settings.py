@@ -36,3 +36,6 @@ if _role:
     DATABASES["default"]["OPTIONS"]["options"] += f" -c role={_role}"
 IAM_OWNED = True
 INTEGRATION_AUDIT_URL = ""
+
+# Request-scoped connections bound idle sockets in the multi-service HTTP deployment.
+DATABASES["default"]["CONN_MAX_AGE"] = 0

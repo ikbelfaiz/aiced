@@ -1,5 +1,8 @@
 # Roadmap AICED — migration par services et suite métier
 
+> Current architecture: **S6b verified locally**. IAM, Client & CRM, Commercial and Data Integration run separately with restricted data ownership. All 38 routes are preserved; actual post-write rollback/forward, browser workflows and restore were verified. See [S6b report](migration/s6b-commercial.md). Container execution and production readiness remain unverified. Earlier phase status paragraphs below are historical.
+
+
 **Current status: S5 (2026-11-14).** IAM and Data Integration are independently running in the local synthetic deployment with separate restricted schemas/credentials. All 38 public routes are preserved. Post-write rollback, forward cutover, restore and independent IAM restart were verified. Client/CRM and Commercial remain in the compatibility backend. See [S5 results, startup and rollback](migration/s5-iam.md) and [actual ownership](migration/s5-inventory.json). Docker and production deployment are not verified. Earlier status statements below are historical.
 
 **S2 livré et vérifié** : [autorisation interne, coordination de révocation, audit transactionnel et gates S3](migration/s2-authorization-audit.md). Prochaine extraction : Data Integration candidat synthétique, uniquement après ses migrations/settings/credentials et adaptateurs HTTP propres. Aucun service métier encore extrait ; S2 a ajouté trois tables techniques et deux migrations, sans transfert métier.

@@ -64,7 +64,7 @@ for _key_id, _key in AICED_INTERNAL_KEYS.items():
             or _key.get('secret') in _internal_secrets
             or _key.get('service') not in ('iam','client_crm','commercial','integration')
             or not isinstance(_key.get('audiences'), list)
-            or not set(_key['audiences']) <= {'iam','client','audit','integration'}):
+            or not set(_key['audiences']) <= {'iam','client','audit','integration','commercial'}):
         raise ImproperlyConfigured('Invalid AICED_INTERNAL_KEYS configuration.')
     _internal_secrets.add(_key['secret'])
 INTEGRATION_AUDIT_URL = os.environ.get('AICED_INTEGRATION_AUDIT_URL', '')

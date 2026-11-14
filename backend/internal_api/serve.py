@@ -16,6 +16,12 @@ from django.core.wsgi import get_wsgi_application
 class ThreadedServer(ThreadingMixIn, WSGIServer):
     daemon_threads = True
 
+    def close_request(self, request):
+        from django.db import connections
+        connections.close_all()
+        super().close_request(request)
+
+
 
 class TLSHandler(WSGIRequestHandler):
     def get_environ(self):

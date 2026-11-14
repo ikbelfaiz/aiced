@@ -11,6 +11,7 @@ http {
     proxy_temp_path temp/proxy;
     map $http_upgrade $connection_upgrade { default upgrade; '' close; }
     # Default Integration upstream is the legacy backend. Candidate deployment is opt-in.
+    upstream commercial_backend { server ${COMMERCIAL_UPSTREAM}; }
     upstream legacy_backend { server ${BACKEND_UPSTREAM}; }
     upstream iam_backend { server ${IAM_UPSTREAM}; }
     upstream integration_backend { server ${INTEGRATION_UPSTREAM}; }
@@ -19,6 +20,7 @@ http {
         ~^/api/organizations/ iam_backend;
         /api/session/ iam_backend;
         ~^/api/imports/ integration_backend;
+        ~^/api/clients/[0-9a-fA-F-]+/opportunities/ commercial_backend;
         default legacy_backend;
     }
     server {

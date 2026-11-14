@@ -1,5 +1,8 @@
 # S5 - Independent Identity & Access Management
 
+> Later status: [S6b is now verified locally](s6b-commercial.md). This document preserves the earlier phase and its evidence.
+
+
 ## Scope and verified deployment
 
 S5 extracts IAM from the existing Django/DRF implementation. It does not extract

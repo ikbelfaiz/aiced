@@ -1,5 +1,11 @@
 # AICED — décomposition en services larges et première tranche S1
 
+> Current architecture: **S6b verified locally**. IAM, Client & CRM, Commercial and Data Integration run separately with restricted data ownership. All 38 routes are preserved; actual post-write rollback/forward, browser workflows and restore were verified. See [S6b report](s6b-commercial.md). Container execution and production readiness remain unverified. Earlier phase status paragraphs below are historical.
+
+
+> S6 update: [Commercial preparation](s6-commercial.md) is implemented before extraction. No new independently deployed service or table transfer is claimed; S5 ownership remains active.
+
+
 **Current status: S5 (2026-11-14).** IAM and Data Integration are independently running in the local synthetic deployment with separate restricted schemas/credentials. All 38 public routes are preserved. Post-write rollback, forward cutover, restore and independent IAM restart were verified. Client/CRM and Commercial remain in the compatibility backend. See [S5 results, startup and rollback](s5-iam.md) and [actual ownership](s5-inventory.json). Docker and production deployment are not verified. Earlier status statements below are historical.
 
 Avancement courant : **S2 implémenté**, voir [contrats, cohérence, audit, migrations et limites](s2-authorization-audit.md). Le corps S1 ci-dessous reste historique : inventaire initial de 30 tables/25 modèles/16 migrations ; l'inventaire machine est actualisé en S2 à 33 tables/28 modèles/18 migrations. Aucun service métier indépendant encore livré. La barrière S2 est globale à la base (plus conservative que la proposition par organisation ci-dessous).

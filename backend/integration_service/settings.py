@@ -55,3 +55,6 @@ DATABASES["default"]["OPTIONS"] = {
     + (f" -c role={_role}" if _role else "")
 }
 SPECTACULAR_SETTINGS = {"TITLE": "AICED Data Integration", "VERSION": "1"}
+
+# Request-scoped connections bound idle sockets in the multi-service HTTP deployment.
+DATABASES["default"]["CONN_MAX_AGE"] = 0

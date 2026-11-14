@@ -10,21 +10,10 @@ from rest_framework.permissions import AllowAny
 from core.serializers import StrictSerializer
 from identity.policies import grants
 from .security import authenticate
+from .contracts import Credentials, PrincipalInput
+from .base import PrivateView
 
 
-class Credentials(StrictSerializer):
-    session_key = serializers.RegexField(r"^[a-z0-9]{32}$")
-    method = serializers.ChoiceField(
-        choices=["GET", "HEAD", "OPTIONS", "POST", "PATCH", "DELETE"]
-    )
-    csrf_cookie = serializers.CharField(
-        max_length=128, required=False, allow_blank=True
-    )
-    csrf_token = serializers.CharField(max_length=128, required=False, allow_blank=True)
-    origin = serializers.CharField(max_length=300, required=False, allow_blank=True)
-    referer = serializers.CharField(max_length=1000, required=False, allow_blank=True)
-    host = serializers.CharField(max_length=255)
-    scheme = serializers.ChoiceField(choices=["http", "https"])
 
 
 class CheckInput(StrictSerializer):
@@ -35,8 +24,6 @@ class CheckInput(StrictSerializer):
     )
 
 
-class PrincipalInput(StrictSerializer):
-    credentials = Credentials()
 
 
 class ClientInput(StrictSerializer):
@@ -50,7 +37,7 @@ class ClientInput(StrictSerializer):
 def resolve(data):
     if getattr(settings, 'IAM_REMOTE', False):
         from iam_consumer.access import read_principal
-        return read_principal(data)
+        return read_principal(data, persist=False)
     from identity.coordination import session_user
     actor = session_user(data["session_key"])
     if data["method"] not in ("GET", "HEAD", "OPTIONS"):
@@ -90,19 +77,6 @@ def permitted(service, capability):
     )
 
 
-class PrivateView(APIView):
-    authentication_classes = []
-    permission_classes = [AllowAny]  # HMAC mandatory in initial(), no session fallback.
-    audience = "iam"
-
-    def initial(self, request, *args, **kwargs):
-        self.service = authenticate(request, self.audience)
-        super().initial(request, *args, **kwargs)
-
-    def validated(self, schema, request):
-        serializer = schema(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        return serializer.validated_data
 
 
 class PrincipalView(PrivateView):

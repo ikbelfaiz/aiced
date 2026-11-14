@@ -56,6 +56,7 @@ def stop(directory):
             "integration_port",
             "frontend_port",
             "gateway_port",
+            *(["commercial_port"] if config.get("commercial_port") else []),
         ]:
             try:
                 with socket.create_connection(("127.0.0.1", config[name]), timeout=0.1):
@@ -120,6 +121,9 @@ def main():
         )
     if args.rollback and args.forward:
         raise ValueError("Choose only one direction")
+    s6state = directory / "s6-state.json"
+    if s6state.exists() and json.loads(s6state.read_text()).get("writer") == "service":
+        raise ValueError("Roll back S6 Commercial before changing S5 IAM ownership")
     originalfile = directory / "s5-legacy-backend-env.json"
     env = json.loads(
         (

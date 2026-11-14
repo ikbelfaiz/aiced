@@ -45,3 +45,7 @@ class InternalNonce(models.Model):
 
 class IAMJournalRef(models.Model):
     event_id = models.UUIDField(primary_key=True)
+
+
+class CommercialJournalRef(models.Model):
+    event_id = models.UUIDField(primary_key=True)

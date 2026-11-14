@@ -29,7 +29,7 @@ class GrantSnapshotView(PrivateView):
         prefixes = (
             ("clients.", "prospects.", "interactions.", "opportunities.", "audit.")
             if self.service == "client_crm"
-            else ("opportunities.",)
+            else ("opportunities.", "audit.")
         )
         rows = []
         orgs = {}

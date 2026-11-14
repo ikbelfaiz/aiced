@@ -52,8 +52,13 @@ def snapshot(credentials):
     return data
 
 
-def read_principal(credentials):
+def read_principal(credentials, *, persist=True):
     data = snapshot(credentials)
+    if not persist:
+        actor = ActorRef(pk=data["actor_id"], username=data["username"])
+        actor.credentials = credentials
+        actor._iam_grants = data["grants"]
+        return actor
     actor, _ = ActorRef.objects.update_or_create(
         pk=data["actor_id"], defaults={"username": data["username"]}
     )
@@ -62,6 +67,7 @@ def read_principal(credentials):
             pk=row["id"], defaults={"name": row["name"], "is_active": True}
         )
     actor.credentials = credentials
+    actor._iam_grants = data["grants"]
     return actor
 
 
@@ -77,6 +83,10 @@ class DelegatedSession(BaseAuthentication):
 def rows(actor):
     if not actor or not getattr(actor, "credentials", None):
         raise PermissionDenied("Session deleguee obligatoire.")
+    # The actor is newly created by authentication for this HTTP request only.
+    # Write admission always replaces this snapshot AFTER acquiring the fences.
+    if hasattr(actor, "_iam_grants"):
+        return actor._iam_grants
     data = snapshot(actor.credentials)
     if str(actor.pk) != data["actor_id"]:
         raise PermissionDenied("Identite incoherente.")

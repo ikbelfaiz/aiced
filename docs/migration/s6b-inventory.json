@@ -1,0 +1,1434 @@
+{
+  "phase": "S6b",
+  "environment": "verified local synthetic deployment; production unverified",
+  "active_commercial_writer": "service",
+  "status": "active_verified",
+  "public_routes": [
+    {
+      "path": "/api/prospects/",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "owner": "client_crm"
+    },
+    {
+      "path": "/api/prospects/context/",
+      "methods": [
+        "GET"
+      ],
+      "owner": "client_crm"
+    },
+    {
+      "path": "/api/prospects/<uuid:party_id>/",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "owner": "client_crm"
+    },
+    {
+      "path": "/api/imports/context/",
+      "methods": [
+        "GET"
+      ],
+      "owner": "integration"
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/batches/",
+      "methods": [
+        "GET"
+      ],
+      "owner": "integration"
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/upload/",
+      "methods": [
+        "POST"
+      ],
+      "owner": "integration"
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/batches/<uuid:batch_id>/",
+      "methods": [
+        "GET"
+      ],
+      "owner": "integration"
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/batches/<uuid:batch_id>/rejections/",
+      "methods": [
+        "GET"
+      ],
+      "owner": "integration"
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/batches/<uuid:batch_id>/publish/",
+      "methods": [
+        "POST"
+      ],
+      "owner": "integration"
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/policies/",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "owner": "integration"
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/policies/<uuid:policy_id>/approve/",
+      "methods": [
+        "POST"
+      ],
+      "owner": "integration"
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/policies/<uuid:policy_id>/revoke/",
+      "methods": [
+        "POST"
+      ],
+      "owner": "integration"
+    },
+    {
+      "path": "/api/health/",
+      "methods": [
+        "GET"
+      ],
+      "owner": "client_crm"
+    },
+    {
+      "path": "/api/session/",
+      "methods": [
+        "GET"
+      ],
+      "owner": "iam"
+    },
+    {
+      "path": "/api/schema/",
+      "methods": [
+        "GET"
+      ],
+      "owner": "client_crm"
+    },
+    {
+      "path": "/api/auth/csrf/",
+      "methods": [
+        "GET"
+      ],
+      "owner": "iam"
+    },
+    {
+      "path": "/api/auth/login/",
+      "methods": [
+        "POST"
+      ],
+      "owner": "iam"
+    },
+    {
+      "path": "/api/auth/logout/",
+      "methods": [
+        "POST"
+      ],
+      "owner": "iam"
+    },
+    {
+      "path": "/api/auth/access/",
+      "methods": [
+        "GET"
+      ],
+      "owner": "iam"
+    },
+    {
+      "path": "/api/clients/",
+      "methods": [
+        "GET"
+      ],
+      "owner": "client_crm"
+    },
+    {
+      "path": "/api/clients/create/",
+      "methods": [
+        "POST"
+      ],
+      "owner": "client_crm"
+    },
+    {
+      "path": "/api/clients/context/",
+      "methods": [
+        "GET"
+      ],
+      "owner": "client_crm"
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/workspace/",
+      "methods": [
+        "GET"
+      ],
+      "owner": "client_crm"
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/identity/",
+      "methods": [
+        "PATCH"
+      ],
+      "owner": "client_crm"
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/profile/",
+      "methods": [
+        "PATCH"
+      ],
+      "owner": "client_crm"
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/interactions/",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "owner": "client_crm"
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/interactions/<uuid:activity_id>/",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "owner": "client_crm"
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/opportunities/",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "owner": "commercial"
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/opportunities/<uuid:activity_id>/",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "owner": "commercial"
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/",
+      "methods": [
+        "GET"
+      ],
+      "owner": "client_crm"
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/crm/",
+      "methods": [
+        "PATCH"
+      ],
+      "owner": "client_crm"
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/accounts/",
+      "methods": [
+        "GET"
+      ],
+      "owner": "client_crm"
+    },
+    {
+      "path": "/api/organizations/<uuid:organization_id>/users/",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "owner": "iam"
+    },
+    {
+      "path": "/api/organizations/<uuid:organization_id>/memberships/<uuid:membership_id>/",
+      "methods": [
+        "PATCH"
+      ],
+      "owner": "iam"
+    },
+    {
+      "path": "/api/organizations/<uuid:organization_id>/role-assignments/",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "owner": "iam"
+    },
+    {
+      "path": "/api/organizations/<uuid:organization_id>/role-assignments/<uuid:assignment_id>/",
+      "methods": [
+        "DELETE"
+      ],
+      "owner": "iam"
+    },
+    {
+      "path": "/api/organizations/<uuid:organization_id>/roles/",
+      "methods": [
+        "GET"
+      ],
+      "owner": "iam"
+    },
+    {
+      "path": "/api/audit/",
+      "methods": [
+        "GET"
+      ],
+      "owner": "client_crm"
+    }
+  ],
+  "route_patterns": 38,
+  "method_path_pairs": 47,
+  "tables": [
+    {
+      "schema": "aiced_commercial",
+      "table": "clients_opportunity",
+      "owner_role": "s6_33fbbc8f2739457f828747f10c6ed461_o",
+      "logical_owner": "commercial",
+      "count": 19
+    },
+    {
+      "schema": "aiced_commercial",
+      "table": "commercial_store_actorref",
+      "owner_role": "s6_33fbbc8f2739457f828747f10c6ed461_o",
+      "logical_owner": "commercial",
+      "count": 3
+    },
+    {
+      "schema": "aiced_commercial",
+      "table": "commercial_store_internalnonce",
+      "owner_role": "s6_33fbbc8f2739457f828747f10c6ed461_o",
+      "logical_owner": "commercial",
+      "count": 2
+    },
+    {
+      "schema": "aiced_commercial",
+      "table": "commercial_store_journal",
+      "owner_role": "s6_33fbbc8f2739457f828747f10c6ed461_o",
+      "logical_owner": "commercial",
+      "count": 40
+    },
+    {
+      "schema": "aiced_commercial",
+      "table": "commercial_store_outbox",
+      "owner_role": "s6_33fbbc8f2739457f828747f10c6ed461_o",
+      "logical_owner": "commercial",
+      "count": 9
+    },
+    {
+      "schema": "aiced_commercial",
+      "table": "commercial_store_partyref",
+      "owner_role": "s6_33fbbc8f2739457f828747f10c6ed461_o",
+      "logical_owner": "commercial",
+      "count": 17
+    },
+    {
+      "schema": "aiced_commercial",
+      "table": "commercial_store_runtimestate",
+      "owner_role": "s6_33fbbc8f2739457f828747f10c6ed461_o",
+      "logical_owner": "commercial",
+      "count": 1
+    },
+    {
+      "schema": "aiced_commercial",
+      "table": "django_migrations",
+      "owner_role": "s6_33fbbc8f2739457f828747f10c6ed461_o",
+      "logical_owner": "commercial",
+      "count": 2
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "audit_auditevent",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_o",
+      "logical_owner": "iam",
+      "count": 296
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "audit_auditoutbox",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_o",
+      "logical_owner": "iam",
+      "count": 77
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "audit_auditreceipt",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_o",
+      "logical_owner": "iam",
+      "count": 12
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "auth_group",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_o",
+      "logical_owner": "iam",
+      "count": 0
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "auth_group_permissions",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_o",
+      "logical_owner": "iam",
+      "count": 0
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "auth_permission",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_o",
+      "logical_owner": "iam",
+      "count": 136
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "django_content_type",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_o",
+      "logical_owner": "iam",
+      "count": 34
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "django_migrations",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_o",
+      "logical_owner": "iam",
+      "count": 21
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "django_session",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_o",
+      "logical_owner": "iam",
+      "count": 198
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "iam_control_runtimestate",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_o",
+      "logical_owner": "iam",
+      "count": 1
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "identity_capability",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_o",
+      "logical_owner": "iam",
+      "count": 20
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "identity_internalnonce",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_o",
+      "logical_owner": "iam",
+      "count": 344
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "identity_loginbucket",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_o",
+      "logical_owner": "iam",
+      "count": 10
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "identity_membership",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_o",
+      "logical_owner": "iam",
+      "count": 11
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "identity_organization",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_o",
+      "logical_owner": "iam",
+      "count": 2
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "identity_role",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_o",
+      "logical_owner": "iam",
+      "count": 6
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "identity_role_permissions",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_o",
+      "logical_owner": "iam",
+      "count": 26
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "identity_roleassignment",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_o",
+      "logical_owner": "iam",
+      "count": 10
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "identity_user",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_o",
+      "logical_owner": "iam",
+      "count": 11
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "identity_user_groups",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_o",
+      "logical_owner": "iam",
+      "count": 0
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "identity_user_user_permissions",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_o",
+      "logical_owner": "iam",
+      "count": 0
+    },
+    {
+      "schema": "aiced_integration",
+      "table": "django_migrations",
+      "owner_role": "s3_b1cb997fda7f49a4a6331979c656bfb6_o",
+      "logical_owner": "integration",
+      "count": 4
+    },
+    {
+      "schema": "aiced_integration",
+      "table": "ingestion_importbatch",
+      "owner_role": "s3_b1cb997fda7f49a4a6331979c656bfb6_o",
+      "logical_owner": "integration",
+      "count": 24
+    },
+    {
+      "schema": "aiced_integration",
+      "table": "ingestion_importpolicy",
+      "owner_role": "s3_b1cb997fda7f49a4a6331979c656bfb6_o",
+      "logical_owner": "integration",
+      "count": 16
+    },
+    {
+      "schema": "aiced_integration",
+      "table": "ingestion_sourcesnapshot",
+      "owner_role": "s3_b1cb997fda7f49a4a6331979c656bfb6_o",
+      "logical_owner": "integration",
+      "count": 16
+    },
+    {
+      "schema": "aiced_integration",
+      "table": "ingestion_stagingrow",
+      "owner_role": "s3_b1cb997fda7f49a4a6331979c656bfb6_o",
+      "logical_owner": "integration",
+      "count": 648
+    },
+    {
+      "schema": "aiced_integration",
+      "table": "integration_store_actorref",
+      "owner_role": "s3_b1cb997fda7f49a4a6331979c656bfb6_o",
+      "logical_owner": "integration",
+      "count": 2
+    },
+    {
+      "schema": "aiced_integration",
+      "table": "integration_store_internalnonce",
+      "owner_role": "s3_b1cb997fda7f49a4a6331979c656bfb6_o",
+      "logical_owner": "integration",
+      "count": 12
+    },
+    {
+      "schema": "aiced_integration",
+      "table": "integration_store_journal",
+      "owner_role": "s3_b1cb997fda7f49a4a6331979c656bfb6_o",
+      "logical_owner": "integration",
+      "count": 115
+    },
+    {
+      "schema": "aiced_integration",
+      "table": "integration_store_organizationref",
+      "owner_role": "s3_b1cb997fda7f49a4a6331979c656bfb6_o",
+      "logical_owner": "integration",
+      "count": 1
+    },
+    {
+      "schema": "aiced_integration",
+      "table": "integration_store_outbox",
+      "owner_role": "s3_b1cb997fda7f49a4a6331979c656bfb6_o",
+      "logical_owner": "integration",
+      "count": 23
+    },
+    {
+      "schema": "aiced_integration",
+      "table": "integration_store_runtimestate",
+      "owner_role": "s3_b1cb997fda7f49a4a6331979c656bfb6_o",
+      "logical_owner": "integration",
+      "count": 1
+    },
+    {
+      "schema": "public",
+      "table": "audit_auditevent",
+      "owner_role": "aiced",
+      "logical_owner": "client_crm",
+      "count": 934
+    },
+    {
+      "schema": "public",
+      "table": "audit_auditoutbox",
+      "owner_role": "aiced",
+      "logical_owner": "client_crm",
+      "count": 89
+    },
+    {
+      "schema": "public",
+      "table": "audit_auditreceipt",
+      "owner_role": "aiced",
+      "logical_owner": "iam_archive",
+      "count": 12
+    },
+    {
+      "schema": "public",
+      "table": "auth_group",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_a",
+      "logical_owner": "iam_archive",
+      "count": 0
+    },
+    {
+      "schema": "public",
+      "table": "auth_group_permissions",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_a",
+      "logical_owner": "iam_archive",
+      "count": 0
+    },
+    {
+      "schema": "public",
+      "table": "auth_permission",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_a",
+      "logical_owner": "iam_archive",
+      "count": 140
+    },
+    {
+      "schema": "public",
+      "table": "clients_crmprofile",
+      "owner_role": "aiced",
+      "logical_owner": "client_crm",
+      "count": 23
+    },
+    {
+      "schema": "public",
+      "table": "clients_externalidentity",
+      "owner_role": "aiced",
+      "logical_owner": "client_crm",
+      "count": 0
+    },
+    {
+      "schema": "public",
+      "table": "clients_financialaccount",
+      "owner_role": "aiced",
+      "logical_owner": "client_crm",
+      "count": 2
+    },
+    {
+      "schema": "public",
+      "table": "clients_interaction",
+      "owner_role": "aiced",
+      "logical_owner": "client_crm",
+      "count": 18
+    },
+    {
+      "schema": "public",
+      "table": "clients_legalentity",
+      "owner_role": "aiced",
+      "logical_owner": "client_crm",
+      "count": 2
+    },
+    {
+      "schema": "public",
+      "table": "clients_opportunity",
+      "owner_role": "s6_33fbbc8f2739457f828747f10c6ed461_a",
+      "logical_owner": "commercial_archive",
+      "count": 19
+    },
+    {
+      "schema": "public",
+      "table": "clients_party",
+      "owner_role": "aiced",
+      "logical_owner": "client_crm",
+      "count": 23
+    },
+    {
+      "schema": "public",
+      "table": "clients_physicalperson",
+      "owner_role": "aiced",
+      "logical_owner": "client_crm",
+      "count": 21
+    },
+    {
+      "schema": "public",
+      "table": "clients_prospect",
+      "owner_role": "aiced",
+      "logical_owner": "client_crm",
+      "count": 6
+    },
+    {
+      "schema": "public",
+      "table": "django_content_type",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_a",
+      "logical_owner": "iam_archive",
+      "count": 35
+    },
+    {
+      "schema": "public",
+      "table": "django_migrations",
+      "owner_role": "aiced",
+      "logical_owner": "legacy_migration_recorder",
+      "count": 41
+    },
+    {
+      "schema": "public",
+      "table": "django_session",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_a",
+      "logical_owner": "iam_archive",
+      "count": 174
+    },
+    {
+      "schema": "public",
+      "table": "iam_consumer_actorref",
+      "owner_role": "aiced",
+      "logical_owner": "client_crm",
+      "count": 11
+    },
+    {
+      "schema": "public",
+      "table": "iam_consumer_commercialjournalref",
+      "owner_role": "aiced_owner",
+      "logical_owner": "client_crm",
+      "count": 37
+    },
+    {
+      "schema": "public",
+      "table": "iam_consumer_iamjournalref",
+      "owner_role": "aiced",
+      "logical_owner": "client_crm",
+      "count": 257
+    },
+    {
+      "schema": "public",
+      "table": "iam_consumer_internalnonce",
+      "owner_role": "aiced",
+      "logical_owner": "client_crm",
+      "count": 10
+    },
+    {
+      "schema": "public",
+      "table": "iam_consumer_membershipref",
+      "owner_role": "aiced",
+      "logical_owner": "client_crm",
+      "count": 11
+    },
+    {
+      "schema": "public",
+      "table": "iam_consumer_organizationref",
+      "owner_role": "aiced",
+      "logical_owner": "client_crm",
+      "count": 2
+    },
+    {
+      "schema": "public",
+      "table": "identity_capability",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_a",
+      "logical_owner": "iam_archive",
+      "count": 20
+    },
+    {
+      "schema": "public",
+      "table": "identity_internalnonce",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_a",
+      "logical_owner": "iam_archive",
+      "count": 140
+    },
+    {
+      "schema": "public",
+      "table": "identity_loginbucket",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_a",
+      "logical_owner": "iam_archive",
+      "count": 8
+    },
+    {
+      "schema": "public",
+      "table": "identity_membership",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_a",
+      "logical_owner": "iam_archive",
+      "count": 11
+    },
+    {
+      "schema": "public",
+      "table": "identity_organization",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_a",
+      "logical_owner": "iam_archive",
+      "count": 2
+    },
+    {
+      "schema": "public",
+      "table": "identity_role",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_a",
+      "logical_owner": "iam_archive",
+      "count": 6
+    },
+    {
+      "schema": "public",
+      "table": "identity_role_permissions",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_a",
+      "logical_owner": "iam_archive",
+      "count": 26
+    },
+    {
+      "schema": "public",
+      "table": "identity_roleassignment",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_a",
+      "logical_owner": "iam_archive",
+      "count": 10
+    },
+    {
+      "schema": "public",
+      "table": "identity_user",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_a",
+      "logical_owner": "iam_archive",
+      "count": 11
+    },
+    {
+      "schema": "public",
+      "table": "identity_user_groups",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_a",
+      "logical_owner": "iam_archive",
+      "count": 0
+    },
+    {
+      "schema": "public",
+      "table": "identity_user_user_permissions",
+      "owner_role": "s5_45d2796356a64260a271e79ecbdcad55_a",
+      "logical_owner": "iam_archive",
+      "count": 0
+    },
+    {
+      "schema": "public",
+      "table": "ingestion_importbatch",
+      "owner_role": "s3_b1cb997fda7f49a4a6331979c656bfb6_a",
+      "logical_owner": "integration_compatibility_archive",
+      "count": 19
+    },
+    {
+      "schema": "public",
+      "table": "ingestion_importpolicy",
+      "owner_role": "s3_b1cb997fda7f49a4a6331979c656bfb6_a",
+      "logical_owner": "integration_compatibility_archive",
+      "count": 16
+    },
+    {
+      "schema": "public",
+      "table": "ingestion_runtimestate",
+      "owner_role": "s3_b1cb997fda7f49a4a6331979c656bfb6_a",
+      "logical_owner": "integration_compatibility_archive",
+      "count": 1
+    },
+    {
+      "schema": "public",
+      "table": "ingestion_sourcesnapshot",
+      "owner_role": "s3_b1cb997fda7f49a4a6331979c656bfb6_a",
+      "logical_owner": "integration_compatibility_archive",
+      "count": 16
+    },
+    {
+      "schema": "public",
+      "table": "ingestion_stagingrow",
+      "owner_role": "s3_b1cb997fda7f49a4a6331979c656bfb6_a",
+      "logical_owner": "integration_compatibility_archive",
+      "count": 153
+    }
+  ],
+  "foreign_keys": [
+    {
+      "schema": "aiced_commercial",
+      "table": "clients_opportunity",
+      "constraint": "clients_opportunity_author_id_4ff37db2_fk_commercia",
+      "target_schema": "aiced_commercial",
+      "target_table": "commercial_store_actorref"
+    },
+    {
+      "schema": "aiced_commercial",
+      "table": "clients_opportunity",
+      "constraint": "clients_opportunity_party_id_69f324e4_fk_commercia",
+      "target_schema": "aiced_commercial",
+      "target_table": "commercial_store_partyref"
+    },
+    {
+      "schema": "aiced_commercial",
+      "table": "commercial_store_outbox",
+      "constraint": "commercial_store_out_event_id_8e2b3571_fk_commercia",
+      "target_schema": "aiced_commercial",
+      "target_table": "commercial_store_journal"
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "audit_auditevent",
+      "constraint": "audit_auditevent_actor_id_270bb4b7_fk_identity_user_id",
+      "target_schema": "aiced_iam",
+      "target_table": "identity_user"
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "audit_auditevent",
+      "constraint": "audit_auditevent_organization_id_4b1fe3b9_fk_identity_",
+      "target_schema": "aiced_iam",
+      "target_table": "identity_organization"
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "audit_auditoutbox",
+      "constraint": "audit_auditoutbox_event_id_3cb1eddd_fk_audit_auditevent_id",
+      "target_schema": "aiced_iam",
+      "target_table": "audit_auditevent"
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "auth_group_permissions",
+      "constraint": "auth_group_permissio_permission_id_84c5c92e_fk_auth_perm",
+      "target_schema": "aiced_iam",
+      "target_table": "auth_permission"
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "auth_group_permissions",
+      "constraint": "auth_group_permissions_group_id_b120cbf9_fk_auth_group_id",
+      "target_schema": "aiced_iam",
+      "target_table": "auth_group"
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "auth_permission",
+      "constraint": "auth_permission_content_type_id_2f476e4b_fk_django_co",
+      "target_schema": "aiced_iam",
+      "target_table": "django_content_type"
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "identity_membership",
+      "constraint": "identity_membership_organization_id_d79ac337_fk_identity_",
+      "target_schema": "aiced_iam",
+      "target_table": "identity_organization"
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "identity_membership",
+      "constraint": "identity_membership_user_id_91967c9a_fk_identity_user_id",
+      "target_schema": "aiced_iam",
+      "target_table": "identity_user"
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "identity_organization",
+      "constraint": "identity_organizatio_parent_id_faa13782_fk_identity_",
+      "target_schema": "aiced_iam",
+      "target_table": "identity_organization"
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "identity_role_permissions",
+      "constraint": "identity_role_permis_capability_id_b2ba1f4b_fk_identity_",
+      "target_schema": "aiced_iam",
+      "target_table": "identity_capability"
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "identity_role_permissions",
+      "constraint": "identity_role_permissions_role_id_72263001_fk_identity_role_id",
+      "target_schema": "aiced_iam",
+      "target_table": "identity_role"
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "identity_roleassignment",
+      "constraint": "identity_roleassignm_membership_id_edf209da_fk_identity_",
+      "target_schema": "aiced_iam",
+      "target_table": "identity_membership"
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "identity_roleassignment",
+      "constraint": "identity_roleassignment_role_id_e656d59b_fk_identity_role_id",
+      "target_schema": "aiced_iam",
+      "target_table": "identity_role"
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "identity_user_groups",
+      "constraint": "identity_user_groups_group_id_cdb422da_fk_auth_group_id",
+      "target_schema": "aiced_iam",
+      "target_table": "auth_group"
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "identity_user_groups",
+      "constraint": "identity_user_groups_user_id_f69e0c80_fk_identity_user_id",
+      "target_schema": "aiced_iam",
+      "target_table": "identity_user"
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "identity_user_user_permissions",
+      "constraint": "identity_user_user_p_permission_id_c8f2cf2f_fk_auth_perm",
+      "target_schema": "aiced_iam",
+      "target_table": "auth_permission"
+    },
+    {
+      "schema": "aiced_iam",
+      "table": "identity_user_user_permissions",
+      "constraint": "identity_user_user_p_user_id_a626cb1f_fk_identity_",
+      "target_schema": "aiced_iam",
+      "target_table": "identity_user"
+    },
+    {
+      "schema": "aiced_integration",
+      "table": "ingestion_importbatch",
+      "constraint": "ingestion_importbatc_organization_id_f611b523_fk_integrati",
+      "target_schema": "aiced_integration",
+      "target_table": "integration_store_organizationref"
+    },
+    {
+      "schema": "aiced_integration",
+      "table": "ingestion_importbatch",
+      "constraint": "ingestion_importbatc_policy_id_f3adfa61_fk_ingestion",
+      "target_schema": "aiced_integration",
+      "target_table": "ingestion_importpolicy"
+    },
+    {
+      "schema": "aiced_integration",
+      "table": "ingestion_importbatch",
+      "constraint": "ingestion_importbatc_published_by_id_58009dad_fk_integrati",
+      "target_schema": "aiced_integration",
+      "target_table": "integration_store_actorref"
+    },
+    {
+      "schema": "aiced_integration",
+      "table": "ingestion_importbatch",
+      "constraint": "ingestion_importbatc_uploaded_by_id_fd8ada10_fk_integrati",
+      "target_schema": "aiced_integration",
+      "target_table": "integration_store_actorref"
+    },
+    {
+      "schema": "aiced_integration",
+      "table": "ingestion_importbatch",
+      "constraint": "integration_policy_same_org",
+      "target_schema": "aiced_integration",
+      "target_table": "ingestion_importpolicy"
+    },
+    {
+      "schema": "aiced_integration",
+      "table": "ingestion_importpolicy",
+      "constraint": "ingestion_importpoli_approved_by_id_95cf4714_fk_integrati",
+      "target_schema": "aiced_integration",
+      "target_table": "integration_store_actorref"
+    },
+    {
+      "schema": "aiced_integration",
+      "table": "ingestion_importpolicy",
+      "constraint": "ingestion_importpoli_created_by_id_11159760_fk_integrati",
+      "target_schema": "aiced_integration",
+      "target_table": "integration_store_actorref"
+    },
+    {
+      "schema": "aiced_integration",
+      "table": "ingestion_importpolicy",
+      "constraint": "ingestion_importpoli_organization_id_d45391bb_fk_integrati",
+      "target_schema": "aiced_integration",
+      "target_table": "integration_store_organizationref"
+    },
+    {
+      "schema": "aiced_integration",
+      "table": "ingestion_sourcesnapshot",
+      "constraint": "ingestion_sourcesnap_row_id_aaa97fef_fk_ingestion",
+      "target_schema": "aiced_integration",
+      "target_table": "ingestion_stagingrow"
+    },
+    {
+      "schema": "aiced_integration",
+      "table": "ingestion_stagingrow",
+      "constraint": "ingestion_stagingrow_batch_id_05009aa3_fk_ingestion",
+      "target_schema": "aiced_integration",
+      "target_table": "ingestion_importbatch"
+    },
+    {
+      "schema": "aiced_integration",
+      "table": "integration_store_outbox",
+      "constraint": "integration_store_ou_event_id_af64daee_fk_integrati",
+      "target_schema": "aiced_integration",
+      "target_table": "integration_store_journal"
+    },
+    {
+      "schema": "public",
+      "table": "audit_auditevent",
+      "constraint": "audit_auditevent_actor_id_270bb4b7_fk_iam_consumer_actorref_id",
+      "target_schema": "public",
+      "target_table": "iam_consumer_actorref"
+    },
+    {
+      "schema": "public",
+      "table": "audit_auditevent",
+      "constraint": "audit_auditevent_organization_id_4b1fe3b9_fk_iam_consu",
+      "target_schema": "public",
+      "target_table": "iam_consumer_organizationref"
+    },
+    {
+      "schema": "public",
+      "table": "audit_auditoutbox",
+      "constraint": "audit_auditoutbox_event_id_3cb1eddd_fk_audit_auditevent_id",
+      "target_schema": "public",
+      "target_table": "audit_auditevent"
+    },
+    {
+      "schema": "public",
+      "table": "auth_group_permissions",
+      "constraint": "auth_group_permissio_permission_id_84c5c92e_fk_auth_perm",
+      "target_schema": "public",
+      "target_table": "auth_permission"
+    },
+    {
+      "schema": "public",
+      "table": "auth_group_permissions",
+      "constraint": "auth_group_permissions_group_id_b120cbf9_fk_auth_group_id",
+      "target_schema": "public",
+      "target_table": "auth_group"
+    },
+    {
+      "schema": "public",
+      "table": "auth_permission",
+      "constraint": "auth_permission_content_type_id_2f476e4b_fk_django_co",
+      "target_schema": "public",
+      "target_table": "django_content_type"
+    },
+    {
+      "schema": "public",
+      "table": "clients_crmprofile",
+      "constraint": "clients_crmprofile_party_id_6fd52529_fk_clients_party_id",
+      "target_schema": "public",
+      "target_table": "clients_party"
+    },
+    {
+      "schema": "public",
+      "table": "clients_crmprofile",
+      "constraint": "clients_crmprofile_updated_by_id_cf1d89c5_fk_iam_consu",
+      "target_schema": "public",
+      "target_table": "iam_consumer_actorref"
+    },
+    {
+      "schema": "public",
+      "table": "clients_externalidentity",
+      "constraint": "clients_externalidentity_party_id_ec17e618_fk_clients_party_id",
+      "target_schema": "public",
+      "target_table": "clients_party"
+    },
+    {
+      "schema": "public",
+      "table": "clients_financialaccount",
+      "constraint": "clients_financialaccount_party_id_5a9440b3_fk_clients_party_id",
+      "target_schema": "public",
+      "target_table": "clients_party"
+    },
+    {
+      "schema": "public",
+      "table": "clients_interaction",
+      "constraint": "clients_interaction_author_id_10a29177_fk_iam_consu",
+      "target_schema": "public",
+      "target_table": "iam_consumer_actorref"
+    },
+    {
+      "schema": "public",
+      "table": "clients_interaction",
+      "constraint": "clients_interaction_party_id_85a915f9_fk_clients_party_id",
+      "target_schema": "public",
+      "target_table": "clients_party"
+    },
+    {
+      "schema": "public",
+      "table": "clients_legalentity",
+      "constraint": "clients_legalentity_party_id_baba11b3_fk_clients_party_id",
+      "target_schema": "public",
+      "target_table": "clients_party"
+    },
+    {
+      "schema": "public",
+      "table": "clients_opportunity",
+      "constraint": "clients_opportunity_author_id_4ff37db2_fk_iam_consu",
+      "target_schema": "public",
+      "target_table": "iam_consumer_actorref"
+    },
+    {
+      "schema": "public",
+      "table": "clients_opportunity",
+      "constraint": "clients_opportunity_party_id_69f324e4_fk_clients_party_id",
+      "target_schema": "public",
+      "target_table": "clients_party"
+    },
+    {
+      "schema": "public",
+      "table": "clients_party",
+      "constraint": "clients_party_assigned_to_id_1fd3837d_fk_iam_consu",
+      "target_schema": "public",
+      "target_table": "iam_consumer_membershipref"
+    },
+    {
+      "schema": "public",
+      "table": "clients_party",
+      "constraint": "clients_party_organization_id_17029e3a_fk_iam_consu",
+      "target_schema": "public",
+      "target_table": "iam_consumer_organizationref"
+    },
+    {
+      "schema": "public",
+      "table": "clients_party",
+      "constraint": "party_assignment_same_org",
+      "target_schema": "public",
+      "target_table": "iam_consumer_membershipref"
+    },
+    {
+      "schema": "public",
+      "table": "clients_physicalperson",
+      "constraint": "clients_physicalperson_party_id_fb00ee5a_fk_clients_party_id",
+      "target_schema": "public",
+      "target_table": "clients_party"
+    },
+    {
+      "schema": "public",
+      "table": "clients_prospect",
+      "constraint": "clients_prospect_party_id_ec9277c9_fk_clients_party_id",
+      "target_schema": "public",
+      "target_table": "clients_party"
+    },
+    {
+      "schema": "public",
+      "table": "iam_consumer_membershipref",
+      "constraint": "iam_consumer_members_organization_id_c57b04c6_fk_iam_consu",
+      "target_schema": "public",
+      "target_table": "iam_consumer_organizationref"
+    },
+    {
+      "schema": "public",
+      "table": "iam_consumer_membershipref",
+      "constraint": "iam_consumer_members_user_id_a7c9c248_fk_iam_consu",
+      "target_schema": "public",
+      "target_table": "iam_consumer_actorref"
+    },
+    {
+      "schema": "public",
+      "table": "identity_membership",
+      "constraint": "identity_membership_organization_id_d79ac337_fk_identity_",
+      "target_schema": "public",
+      "target_table": "identity_organization"
+    },
+    {
+      "schema": "public",
+      "table": "identity_membership",
+      "constraint": "identity_membership_user_id_91967c9a_fk_identity_user_id",
+      "target_schema": "public",
+      "target_table": "identity_user"
+    },
+    {
+      "schema": "public",
+      "table": "identity_organization",
+      "constraint": "identity_organizatio_parent_id_faa13782_fk_identity_",
+      "target_schema": "public",
+      "target_table": "identity_organization"
+    },
+    {
+      "schema": "public",
+      "table": "identity_role_permissions",
+      "constraint": "identity_role_permis_capability_id_b2ba1f4b_fk_identity_",
+      "target_schema": "public",
+      "target_table": "identity_capability"
+    },
+    {
+      "schema": "public",
+      "table": "identity_role_permissions",
+      "constraint": "identity_role_permissions_role_id_72263001_fk_identity_role_id",
+      "target_schema": "public",
+      "target_table": "identity_role"
+    },
+    {
+      "schema": "public",
+      "table": "identity_roleassignment",
+      "constraint": "identity_roleassignm_membership_id_edf209da_fk_identity_",
+      "target_schema": "public",
+      "target_table": "identity_membership"
+    },
+    {
+      "schema": "public",
+      "table": "identity_roleassignment",
+      "constraint": "identity_roleassignment_role_id_e656d59b_fk_identity_role_id",
+      "target_schema": "public",
+      "target_table": "identity_role"
+    },
+    {
+      "schema": "public",
+      "table": "identity_user_groups",
+      "constraint": "identity_user_groups_group_id_cdb422da_fk_auth_group_id",
+      "target_schema": "public",
+      "target_table": "auth_group"
+    },
+    {
+      "schema": "public",
+      "table": "identity_user_groups",
+      "constraint": "identity_user_groups_user_id_f69e0c80_fk_identity_user_id",
+      "target_schema": "public",
+      "target_table": "identity_user"
+    },
+    {
+      "schema": "public",
+      "table": "identity_user_user_permissions",
+      "constraint": "identity_user_user_p_permission_id_c8f2cf2f_fk_auth_perm",
+      "target_schema": "public",
+      "target_table": "auth_permission"
+    },
+    {
+      "schema": "public",
+      "table": "identity_user_user_permissions",
+      "constraint": "identity_user_user_p_user_id_a626cb1f_fk_identity_",
+      "target_schema": "public",
+      "target_table": "identity_user"
+    },
+    {
+      "schema": "public",
+      "table": "ingestion_importbatch",
+      "constraint": "ingestion_importbatc_organization_id_f611b523_fk_identity_",
+      "target_schema": "public",
+      "target_table": "identity_organization"
+    },
+    {
+      "schema": "public",
+      "table": "ingestion_importbatch",
+      "constraint": "ingestion_importbatc_policy_id_f3adfa61_fk_ingestion",
+      "target_schema": "public",
+      "target_table": "ingestion_importpolicy"
+    },
+    {
+      "schema": "public",
+      "table": "ingestion_importbatch",
+      "constraint": "ingestion_importbatc_published_by_id_58009dad_fk_identity_",
+      "target_schema": "public",
+      "target_table": "identity_user"
+    },
+    {
+      "schema": "public",
+      "table": "ingestion_importbatch",
+      "constraint": "ingestion_importbatc_uploaded_by_id_fd8ada10_fk_identity_",
+      "target_schema": "public",
+      "target_table": "identity_user"
+    },
+    {
+      "schema": "public",
+      "table": "ingestion_importpolicy",
+      "constraint": "ingestion_importpoli_approved_by_id_95cf4714_fk_identity_",
+      "target_schema": "public",
+      "target_table": "identity_user"
+    },
+    {
+      "schema": "public",
+      "table": "ingestion_importpolicy",
+      "constraint": "ingestion_importpoli_created_by_id_11159760_fk_identity_",
+      "target_schema": "public",
+      "target_table": "identity_user"
+    },
+    {
+      "schema": "public",
+      "table": "ingestion_importpolicy",
+      "constraint": "ingestion_importpoli_organization_id_d45391bb_fk_identity_",
+      "target_schema": "public",
+      "target_table": "identity_organization"
+    },
+    {
+      "schema": "public",
+      "table": "ingestion_sourcesnapshot",
+      "constraint": "ingestion_sourcesnap_row_id_aaa97fef_fk_ingestion",
+      "target_schema": "public",
+      "target_table": "ingestion_stagingrow"
+    },
+    {
+      "schema": "public",
+      "table": "ingestion_stagingrow",
+      "constraint": "ingestion_stagingrow_batch_id_05009aa3_fk_ingestion",
+      "target_schema": "public",
+      "target_table": "ingestion_importbatch"
+    }
+  ],
+  "runtime_roles": {
+    "client_crm": {
+      "role": "s5_45d2796356a64260a271e79ecbdcad55_c",
+      "login": true,
+      "inherit": false,
+      "superuser": false,
+      "createdb": false,
+      "createrole": false,
+      "replication": false,
+      "bypassrls": false,
+      "memberships": false
+    },
+    "iam": {
+      "role": "s5_45d2796356a64260a271e79ecbdcad55_r",
+      "login": true,
+      "inherit": false,
+      "superuser": false,
+      "createdb": false,
+      "createrole": false,
+      "replication": false,
+      "bypassrls": false,
+      "memberships": false
+    },
+    "integration": {
+      "role": "s3_b1cb997fda7f49a4a6331979c656bfb6_r",
+      "login": true,
+      "inherit": false,
+      "superuser": false,
+      "createdb": false,
+      "createrole": false,
+      "replication": false,
+      "bypassrls": false,
+      "memberships": false
+    },
+    "commercial": {
+      "role": "s6_33fbbc8f2739457f828747f10c6ed461_r",
+      "login": true,
+      "inherit": false,
+      "superuser": false,
+      "createdb": false,
+      "createrole": false,
+      "replication": false,
+      "bypassrls": false,
+      "memberships": false
+    }
+  },
+  "independently_running_processes": {
+    "backend": {
+      "pid": 14816,
+      "running": true
+    },
+    "iam": {
+      "pid": 33560,
+      "running": true
+    },
+    "integration": {
+      "pid": 32072,
+      "running": true
+    },
+    "commercial": {
+      "pid": 18392,
+      "running": true
+    }
+  },
+  "preservation": {
+    "passed": true,
+    "client_integration_business_tables_unchanged": 12,
+    "existing_opportunities_preserved_exactly": 17
+  },
+  "restored_rehearsal": "C:\\Users\\moham\\OneDrive\\Desktop\\aiced\\.local\\s6b-rehearsal\\9c45a9c496cb4434b58361993a0a752f\\report.json",
+  "actual_post_write_rollback_and_forward": true,
+  "commercial_only_restart_verified": true,
+  "docker_engine_verified": false,
+  "compose_configuration_validated": true
+}

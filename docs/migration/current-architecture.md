@@ -1,5 +1,11 @@
 # Audit de l'architecture actuelle
 
+> Current architecture: **S6b verified locally**. IAM, Client & CRM, Commercial and Data Integration run separately with restricted data ownership. All 38 routes are preserved; actual post-write rollback/forward, browser workflows and restore were verified. See [S6b report](s6b-commercial.md). Container execution and production readiness remain unverified. Earlier phase status paragraphs below are historical.
+
+
+> S6 update: [Commercial preparation](s6-commercial.md) is implemented before extraction. No new independently deployed service or table transfer is claimed; S5 ownership remains active.
+
+
 **Current status: S5 (2026-11-14).** IAM and Data Integration are independently running in the local synthetic deployment with separate restricted schemas/credentials. All 38 public routes are preserved. Post-write rollback, forward cutover, restore and independent IAM restart were verified. Client/CRM and Commercial remain in the compatibility backend. See [S5 results, startup and rollback](s5-iam.md) and [actual ownership](s5-inventory.json). Docker and production deployment are not verified. Earlier status statements below are historical.
 
 > Nouvelle decision utilisateur apres M2 : cible a quatre services larges sur une instance/base PostgreSQL, schemas et credentials separes. Prospects et interactions appartiennent a Client & CRM. Le [plan de decomposition courant](coarse-services-plan.md) remplace les anciennes recommandations de ce document ; les preuves historiques M1/M2 restent conservees.

@@ -24,6 +24,7 @@ def main():
         help="Explicit Integration upstream; default is the existing backend",
     )
     parser.add_argument("--iam", help="Explicit IAM upstream; default is the existing backend")
+    parser.add_argument("--commercial", help="Owned Commercial upstream; defaults to backend")
     parser.add_argument("--port", type=int, default=8080)
     options = parser.parse_args()
     env = {**os.environ}
@@ -38,6 +39,7 @@ def main():
         options.port,
         integration=options.integration,
         iam=options.iam,
+        commercial=options.commercial,
     ) as url:
         print(f"AICED Gateway: {url} (Ctrl+C to stop)", flush=True)
         try:

@@ -94,6 +94,9 @@ def page(request, local):
     from iam_consumer.models import IAMJournalRef
 
     local = local.exclude(pk__in=IAMJournalRef.objects.values("event_id"))
+    if getattr(settings, "COMMERCIAL_REMOTE", False):
+        from iam_consumer.models import CommercialJournalRef
+        local = local.exclude(pk__in=CommercialJournalRef.objects.values("event_id")).exclude(action__startswith="clients.opportunities")
     sources = [
         (
             local.exclude(IAM_ACTION).exclude(action__startswith="imports.").count(),
@@ -132,6 +135,8 @@ def page(request, local):
             True,
         )
     )
+    if getattr(settings, "COMMERCIAL_REMOTE", False):
+        sources.append(stream(settings.COMMERCIAL_AUDIT_URL, settings.COMMERCIAL_AUDIT_KEY_ID, "commercial", "/internal/v1/commercial/audit/query"))
     total = sum(count for count, _ in sources)
     size = settings.REST_FRAMEWORK.get("PAGE_SIZE", 50)
     if raw == "last":

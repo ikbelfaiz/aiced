@@ -30,13 +30,14 @@ class ServiceUnavailable(APIException):
 
 
 class InternalClient:
-    def __init__(self, url, key_id, secret, audience, timeout=3):
+    def __init__(self, url, key_id, secret, audience, timeout=3, preserve_not_found=False):
         self.url, self.key_id, self.secret, self.audience = (
             urlsplit(url),
             key_id,
             secret,
             audience,
         )
+        self.preserve_not_found = preserve_not_found
         self.timeout = timeout
         if (
             self.url.username
@@ -103,6 +104,9 @@ class InternalClient:
                 # Denials never yield an authorization decision or actor fallback.
                 from rest_framework.exceptions import PermissionDenied
 
+                if response.status == 404 and self.preserve_not_found:
+                    from rest_framework.exceptions import NotFound
+                    raise NotFound()
                 if response.status in (401, 403, 404):
                     raise PermissionDenied("Autorisation interne refusée.")
                 raise ServiceUnavailable()

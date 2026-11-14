@@ -46,6 +46,7 @@ def main():
         if (directory / "iam-env.json").exists()
         else backend_env
     )
+    commercial_env = environment("commercial-env.json") if config.get("commercial_port") else None
     processes = []
     launches = []
     restarted = {}
@@ -106,6 +107,7 @@ def main():
                     integration_env,
                     ROOT,
                 ),
+                *([("commercial", [sys.executable, str(ROOT / "backend/commercial_service/manage.py"), "runserver", f"127.0.0.1:{config['commercial_port']}", "--noreload"], commercial_env, ROOT)] if commercial_env else []),
                 (
                     "frontend",
                     [
@@ -166,6 +168,7 @@ def main():
                     backend_env["AICED_GATEWAY_KEY"],
                     port=config["gateway_port"],
                     integration=f"127.0.0.1:{upstream}",
+                    commercial=(f"127.0.0.1:{config['commercial_port']}" if config.get("commercial_routing") else None),
                     iam=(
                         f"127.0.0.1:{config['iam_port']}"
                         if config.get("iam_routing")
@@ -176,6 +179,7 @@ def main():
                         json.dumps(
                             {
                                 "mode": mode,
+                                "commercial_upstream": config.get("commercial_port") if config.get("commercial_routing") else config["backend_port"],
                                 "gateway_port": config["gateway_port"],
                                 "integration_upstream": upstream,
                                 "iam_upstream": (

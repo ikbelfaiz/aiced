@@ -7,6 +7,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied, APIException
 from django.utils import timezone
 from core.serializers import StrictSerializer
+from commercial.contracts import OpportunityInput
 from iam_consumer.compat import Organization
 from identity.policies import require
 from .policies import client_queryset
@@ -17,7 +18,6 @@ from .models import (
     LegalEntity,
     CRMProfile,
     Interaction,
-    Opportunity,
 )
 
 
@@ -79,16 +79,6 @@ class InteractionInput(StrictSerializer):
         return value
 
 
-class OpportunityInput(StrictSerializer):
-    version = serializers.IntegerField(min_value=1, required=False)
-    title = serializers.CharField(max_length=160)
-    notes = serializers.CharField(max_length=5000, allow_blank=True, default="")
-    amount = serializers.DecimalField(
-        max_digits=18, decimal_places=3, min_value=0, allow_null=True, default=None
-    )
-    currency = serializers.ChoiceField(choices=["TND"], default="TND")
-    status = serializers.ChoiceField(choices=["open", "won", "lost"], default="open")
-    due_date = serializers.DateField(allow_null=True, default=None)
 
 
 def validate(schema, data, partial=False):
@@ -196,20 +186,15 @@ def edit_profile(actor, party_id, data, request=None):
 
 @transaction.atomic
 def save_activity(actor, party_id, category, data, activity_id=None, request=None):
-    capability = (
-        "interactions.manage" if category == "interactions" else "opportunities.manage"
-    )
-    party = accessible(actor, party_id, capability, lock=True, request=request)
-    accessible(
-        actor,
-        party_id,
-        "interactions.view" if category == "interactions" else "opportunities.view",
-    )
-    model, schema = (
-        (Interaction, InteractionInput)
-        if category == "interactions"
-        else (Opportunity, OpportunityInput)
-    )
+    if category == "opportunities":
+        from commercial.services import save_opportunity
+
+        return save_opportunity(actor, party_id, data, activity_id, request)
+    if category != "interactions":
+        raise serializers.ValidationError("Type d\u2019activit\u00e9 inconnu.")
+    party = accessible(actor, party_id, "interactions.manage", lock=True, request=request)
+    accessible(actor, party_id, "interactions.view")
+    model, schema = Interaction, InteractionInput
     values = validate(schema, data, partial=activity_id is not None)
     if activity_id:
         item = get_object_or_404(

@@ -41,9 +41,11 @@ def admit(actor, request=None, exclusive=False):
     if getattr(settings, 'IAM_REMOTE', False):
         if exclusive: raise RuntimeError('Business service cannot mutate IAM')
         from iam_consumer.access import read_principal
-        barrier()
+        from core.client_admission import scope_fence
+        scope_fence(exclusive=True)
         current = read_principal(actor.credentials)
         if current.pk != actor.pk: raise PermissionDenied('Identite invalide.')
+        actor._iam_grants = current._iam_grants
         return
     if getattr(settings, 'IAM_OWNED', False):
         from iam_control.middleware import admit as gate

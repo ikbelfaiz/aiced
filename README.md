@@ -1,5 +1,8 @@
 # AICED
 
+> Current architecture: **S6b verified locally**. IAM, Client & CRM, Commercial and Data Integration run separately with restricted data ownership. All 38 routes are preserved; actual post-write rollback/forward, browser workflows and restore were verified. See [S6b report](docs/migration/s6b-commercial.md). Container execution and production readiness remain unverified. Earlier phase status paragraphs below are historical.
+
+
 **Current status: S5 (2026-11-14).** IAM and Data Integration are independently running in the local synthetic deployment with separate restricted schemas/credentials. All 38 public routes are preserved. Post-write rollback, forward cutover, restore and independent IAM restart were verified. Client/CRM and Commercial remain in the compatibility backend. See [S5 results, startup and rollback](docs/migration/s5-iam.md) and [actual ownership](docs/migration/s5-inventory.json). Docker and production deployment are not verified. Earlier status statements below are historical.
 
 S2 : [contrats internes, garanties de révocation, audit/outbox, migrations et prérequis Integration](docs/migration/s2-authorization-audit.md). Les 38 routes publiques restent inchangées ; aucun service métier extrait. Appliquer les deux migrations additives avant le nouveau code ; pour le cluster portable local, `python scripts/s2_migrate_local.py --confirm-local-additive` vérifie d'abord une sauvegarde/restauration et une migration scratch.

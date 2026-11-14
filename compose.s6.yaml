@@ -1,0 +1,124 @@
+# Use with compose.yaml only. This includes the S5 services; do not stack S4/S5 overlays.
+# Provision, rehearse, copy and verify ownership before enabling these writers.
+# Private credentials and TLS files are intentionally not included.
+services:
+  backend:
+    env_file:
+      - .env.iam-consumer
+    environment:
+      AICED_IAM_URL: https://iam:8443
+      AICED_COMMERCIAL_REMOTE: "1"
+      AICED_COMMERCIAL_URL: https://commercial:8445
+      AICED_COMMERCIAL_AUDIT_KEY_ID: client-commercial-v1
+      CLIENT_TLS_CERT: /run/tls/client.pem
+      CLIENT_TLS_KEY: /run/tls/client-key.pem
+      AICED_INTEGRATION_AUDIT_URL: https://integration:8444
+      AICED_INTEGRATION_AUDIT_KEY_ID: client-integration-v1
+      SSL_CERT_FILE: /run/tls/ca.pem
+    command: [python, -m, iam_consumer.serve]
+    volumes:
+      - ./.local/s5-tls:/run/tls:ro
+    depends_on:
+      iam:
+        condition: service_healthy
+      integration:
+        condition: service_healthy
+  iam:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.iam
+    env_file: .env.iam-runtime
+    environment:
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:?Set public allowed hosts},iam
+      IAM_TLS_CERT: /run/tls/iam.pem
+      IAM_TLS_KEY: /run/tls/iam-key.pem
+    command: [python, -m, iam_service.serve]
+    volumes:
+      - ./.local/s5-tls:/run/tls:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, "import ssl,urllib.request; urllib.request.urlopen('https://iam:8443/health/ready',context=ssl.create_default_context(cafile='/run/tls/ca.pem'),timeout=5)"]
+      interval: 15s
+      timeout: 8s
+      retries: 5
+  iam-migrate:
+    profiles: [tools]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.iam
+    env_file: .env.iam-migrator
+    command: [python, iam_service/manage.py, migrate, --noinput]
+    depends_on:
+      db:
+        condition: service_healthy
+  integration:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.integration
+    env_file: .env.integration
+    environment:
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:?Set public allowed hosts},integration
+      AICED_IAM_URL: https://iam:8443
+      SSL_CERT_FILE: /run/tls/ca.pem
+      INTEGRATION_TLS_CERT: /run/tls/integration.pem
+      INTEGRATION_TLS_KEY: /run/tls/integration-key.pem
+    command: [python, -m, integration_service.serve]
+    volumes:
+      - ./.local/s5-tls:/run/tls:ro
+    depends_on:
+      iam:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, python, -c, "import ssl,urllib.request; urllib.request.urlopen('https://integration:8444/health/ready',context=ssl.create_default_context(),timeout=5)"]
+      interval: 15s
+      timeout: 8s
+      retries: 5
+  commercial:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.commercial
+    env_file: .env.commercial-runtime
+    environment:
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:?Set public allowed hosts},commercial
+      AICED_IAM_URL: https://iam:8443
+      AICED_CLIENT_URL: https://backend:8446
+      SSL_CERT_FILE: /run/tls/ca.pem
+      COMMERCIAL_TLS_CERT: /run/tls/commercial.pem
+      COMMERCIAL_TLS_KEY: /run/tls/commercial-key.pem
+    command: [python, -m, commercial_service.serve]
+    volumes:
+      - ./.local/s5-tls:/run/tls:ro
+    depends_on:
+      iam:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('https://commercial:8445/health/ready',timeout=5)"]
+      interval: 15s
+      timeout: 8s
+      retries: 5
+  commercial-migrate:
+    profiles: [tools]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.commercial
+    env_file: .env.commercial-migrator
+    command: [python, commercial_service/manage.py, migrate, --noinput]
+    depends_on:
+      db:
+        condition: service_healthy
+  gateway:
+    environment:
+      COMMERCIAL_UPSTREAM: commercial:8004
+      IAM_UPSTREAM: iam:8003
+      INTEGRATION_UPSTREAM: integration:8002
+    depends_on:
+      commercial:
+        condition: service_healthy
+      iam:
+        condition: service_healthy
+      integration:
+        condition: service_healthy
