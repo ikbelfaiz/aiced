@@ -1,0 +1,43 @@
+# Opt-in development candidate only, against a restored database. No default
+# Gateway cutover. Requires provisioned schema/roles and private env/cert files.
+services:
+  iam-contracts:
+    profiles: [s3]
+    build: ./backend
+    env_file: .env.iam-internal
+    environment:
+      DJANGO_ALLOWED_HOSTS: iam-contracts,localhost,127.0.0.1
+      IAM_TLS_CERT: /run/tls/iam.pem
+      IAM_TLS_KEY: /run/tls/iam-key.pem
+    volumes:
+      - ./.local/s3-tls:/run/tls:ro
+    command: [python, -m, internal_api.serve]
+    depends_on:
+      db:
+        condition: service_healthy
+  integration:
+    profiles: [s3]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.integration
+    env_file: .env.integration
+    environment:
+      AICED_IAM_URL: https://iam-contracts:8443
+      SSL_CERT_FILE: /run/tls/ca.pem
+    volumes:
+      - ./.local/s3-tls/ca.pem:/run/tls/ca.pem:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      iam-contracts:
+        condition: service_started
+  integration-migrate:
+    profiles: [s3-tools]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.integration
+    env_file: .env.integration-migrator
+    command: [python, integration_service/manage.py, migrate, --noinput]
+    depends_on:
+      db:
+        condition: service_healthy

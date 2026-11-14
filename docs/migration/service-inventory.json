@@ -1,0 +1,1276 @@
+{
+  "version": 1,
+  "status": "target-not-cut-over",
+  "schemas": {
+    "iam": "aiced_iam",
+    "client_crm": "aiced_client_crm",
+    "commercial": "aiced_commercial",
+    "integration": "aiced_integration"
+  },
+  "tables": [
+    {
+      "table": "audit_auditevent",
+      "target_owner": "iam"
+    },
+    {
+      "table": "audit_auditoutbox",
+      "target_owner": "iam"
+    },
+    {
+      "table": "audit_auditreceipt",
+      "target_owner": "iam"
+    },
+    {
+      "table": "auth_group",
+      "target_owner": "iam"
+    },
+    {
+      "table": "auth_group_permissions",
+      "target_owner": "iam"
+    },
+    {
+      "table": "auth_permission",
+      "target_owner": "iam"
+    },
+    {
+      "table": "clients_crmprofile",
+      "target_owner": "client_crm"
+    },
+    {
+      "table": "clients_externalidentity",
+      "target_owner": "client_crm"
+    },
+    {
+      "table": "clients_financialaccount",
+      "target_owner": "client_crm"
+    },
+    {
+      "table": "clients_interaction",
+      "target_owner": "client_crm"
+    },
+    {
+      "table": "clients_legalentity",
+      "target_owner": "client_crm"
+    },
+    {
+      "table": "clients_opportunity",
+      "target_owner": "commercial"
+    },
+    {
+      "table": "clients_party",
+      "target_owner": "client_crm"
+    },
+    {
+      "table": "clients_physicalperson",
+      "target_owner": "client_crm"
+    },
+    {
+      "table": "clients_prospect",
+      "target_owner": "client_crm"
+    },
+    {
+      "table": "django_content_type",
+      "target_owner": "iam"
+    },
+    {
+      "table": "django_migrations",
+      "target_owner": "legacy_registry"
+    },
+    {
+      "table": "django_session",
+      "target_owner": "iam"
+    },
+    {
+      "table": "identity_capability",
+      "target_owner": "iam"
+    },
+    {
+      "table": "identity_internalnonce",
+      "target_owner": "iam"
+    },
+    {
+      "table": "identity_loginbucket",
+      "target_owner": "iam"
+    },
+    {
+      "table": "identity_membership",
+      "target_owner": "iam"
+    },
+    {
+      "table": "identity_organization",
+      "target_owner": "iam"
+    },
+    {
+      "table": "identity_role",
+      "target_owner": "iam"
+    },
+    {
+      "table": "identity_role_permissions",
+      "target_owner": "iam"
+    },
+    {
+      "table": "identity_roleassignment",
+      "target_owner": "iam"
+    },
+    {
+      "table": "identity_user",
+      "target_owner": "iam"
+    },
+    {
+      "table": "identity_user_groups",
+      "target_owner": "iam"
+    },
+    {
+      "table": "identity_user_user_permissions",
+      "target_owner": "iam"
+    },
+    {
+      "table": "ingestion_importbatch",
+      "target_owner": "integration"
+    },
+    {
+      "table": "ingestion_importpolicy",
+      "target_owner": "integration"
+    },
+    {
+      "table": "ingestion_sourcesnapshot",
+      "target_owner": "integration"
+    },
+    {
+      "table": "ingestion_stagingrow",
+      "target_owner": "integration"
+    }
+  ],
+  "models": [
+    {
+      "model": "auth.Permission",
+      "table": "auth_permission",
+      "target_owner": "iam",
+      "relations": [
+        {
+          "field": "content_type",
+          "target": "contenttypes.ContentType"
+        }
+      ]
+    },
+    {
+      "model": "auth.Group",
+      "table": "auth_group",
+      "target_owner": "iam",
+      "relations": []
+    },
+    {
+      "model": "contenttypes.ContentType",
+      "table": "django_content_type",
+      "target_owner": "iam",
+      "relations": []
+    },
+    {
+      "model": "sessions.Session",
+      "table": "django_session",
+      "target_owner": "iam",
+      "relations": []
+    },
+    {
+      "model": "identity.User",
+      "table": "identity_user",
+      "target_owner": "iam",
+      "relations": []
+    },
+    {
+      "model": "identity.Organization",
+      "table": "identity_organization",
+      "target_owner": "iam",
+      "relations": [
+        {
+          "field": "parent",
+          "target": "identity.Organization"
+        }
+      ]
+    },
+    {
+      "model": "identity.Capability",
+      "table": "identity_capability",
+      "target_owner": "iam",
+      "relations": []
+    },
+    {
+      "model": "identity.Role",
+      "table": "identity_role",
+      "target_owner": "iam",
+      "relations": []
+    },
+    {
+      "model": "identity.Membership",
+      "table": "identity_membership",
+      "target_owner": "iam",
+      "relations": [
+        {
+          "field": "user",
+          "target": "identity.User"
+        },
+        {
+          "field": "organization",
+          "target": "identity.Organization"
+        }
+      ]
+    },
+    {
+      "model": "identity.RoleAssignment",
+      "table": "identity_roleassignment",
+      "target_owner": "iam",
+      "relations": [
+        {
+          "field": "membership",
+          "target": "identity.Membership"
+        },
+        {
+          "field": "role",
+          "target": "identity.Role"
+        }
+      ]
+    },
+    {
+      "model": "identity.LoginBucket",
+      "table": "identity_loginbucket",
+      "target_owner": "iam",
+      "relations": []
+    },
+    {
+      "model": "identity.InternalNonce",
+      "table": "identity_internalnonce",
+      "target_owner": "iam",
+      "relations": []
+    },
+    {
+      "model": "clients.Party",
+      "table": "clients_party",
+      "target_owner": "client_crm",
+      "relations": [
+        {
+          "field": "organization",
+          "target": "identity.Organization"
+        },
+        {
+          "field": "assigned_to",
+          "target": "identity.Membership"
+        }
+      ]
+    },
+    {
+      "model": "clients.Prospect",
+      "table": "clients_prospect",
+      "target_owner": "client_crm",
+      "relations": [
+        {
+          "field": "party",
+          "target": "clients.Party"
+        }
+      ]
+    },
+    {
+      "model": "clients.PhysicalPerson",
+      "table": "clients_physicalperson",
+      "target_owner": "client_crm",
+      "relations": [
+        {
+          "field": "party",
+          "target": "clients.Party"
+        }
+      ]
+    },
+    {
+      "model": "clients.LegalEntity",
+      "table": "clients_legalentity",
+      "target_owner": "client_crm",
+      "relations": [
+        {
+          "field": "party",
+          "target": "clients.Party"
+        }
+      ]
+    },
+    {
+      "model": "clients.CRMProfile",
+      "table": "clients_crmprofile",
+      "target_owner": "client_crm",
+      "relations": [
+        {
+          "field": "party",
+          "target": "clients.Party"
+        },
+        {
+          "field": "updated_by",
+          "target": "identity.User"
+        }
+      ]
+    },
+    {
+      "model": "clients.ExternalIdentity",
+      "table": "clients_externalidentity",
+      "target_owner": "client_crm",
+      "relations": [
+        {
+          "field": "party",
+          "target": "clients.Party"
+        }
+      ]
+    },
+    {
+      "model": "clients.FinancialAccount",
+      "table": "clients_financialaccount",
+      "target_owner": "client_crm",
+      "relations": [
+        {
+          "field": "party",
+          "target": "clients.Party"
+        }
+      ]
+    },
+    {
+      "model": "clients.Interaction",
+      "table": "clients_interaction",
+      "target_owner": "client_crm",
+      "relations": [
+        {
+          "field": "party",
+          "target": "clients.Party"
+        },
+        {
+          "field": "author",
+          "target": "identity.User"
+        }
+      ]
+    },
+    {
+      "model": "clients.Opportunity",
+      "table": "clients_opportunity",
+      "target_owner": "commercial",
+      "relations": [
+        {
+          "field": "party",
+          "target": "clients.Party"
+        },
+        {
+          "field": "author",
+          "target": "identity.User"
+        }
+      ]
+    },
+    {
+      "model": "audit.AuditEvent",
+      "table": "audit_auditevent",
+      "target_owner": "iam",
+      "relations": [
+        {
+          "field": "actor",
+          "target": "identity.User"
+        },
+        {
+          "field": "organization",
+          "target": "identity.Organization"
+        }
+      ]
+    },
+    {
+      "model": "audit.AuditOutbox",
+      "table": "audit_auditoutbox",
+      "target_owner": "iam",
+      "relations": [
+        {
+          "field": "event",
+          "target": "audit.AuditEvent"
+        }
+      ]
+    },
+    {
+      "model": "audit.AuditReceipt",
+      "table": "audit_auditreceipt",
+      "target_owner": "iam",
+      "relations": []
+    },
+    {
+      "model": "ingestion.ImportPolicy",
+      "table": "ingestion_importpolicy",
+      "target_owner": "integration",
+      "relations": [
+        {
+          "field": "organization",
+          "target": "identity.Organization"
+        },
+        {
+          "field": "created_by",
+          "target": "identity.User"
+        },
+        {
+          "field": "approved_by",
+          "target": "identity.User"
+        }
+      ]
+    },
+    {
+      "model": "ingestion.ImportBatch",
+      "table": "ingestion_importbatch",
+      "target_owner": "integration",
+      "relations": [
+        {
+          "field": "organization",
+          "target": "identity.Organization"
+        },
+        {
+          "field": "uploaded_by",
+          "target": "identity.User"
+        },
+        {
+          "field": "published_by",
+          "target": "identity.User"
+        },
+        {
+          "field": "policy",
+          "target": "ingestion.ImportPolicy"
+        }
+      ]
+    },
+    {
+      "model": "ingestion.StagingRow",
+      "table": "ingestion_stagingrow",
+      "target_owner": "integration",
+      "relations": [
+        {
+          "field": "batch",
+          "target": "ingestion.ImportBatch"
+        }
+      ]
+    },
+    {
+      "model": "ingestion.SourceSnapshot",
+      "table": "ingestion_sourcesnapshot",
+      "target_owner": "integration",
+      "relations": [
+        {
+          "field": "row",
+          "target": "ingestion.StagingRow"
+        }
+      ]
+    }
+  ],
+  "foreign_keys": [
+    {
+      "constraint": "audit_auditevent_actor_id_270bb4b7_fk_identity_user_id",
+      "from": "audit_auditevent",
+      "to": "identity_user",
+      "definition": "FOREIGN KEY (actor_id) REFERENCES identity_user(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "audit_auditevent_organization_id_4b1fe3b9_fk_identity_",
+      "from": "audit_auditevent",
+      "to": "identity_organization",
+      "definition": "FOREIGN KEY (organization_id) REFERENCES identity_organization(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "audit_auditoutbox_event_id_3cb1eddd_fk_audit_auditevent_id",
+      "from": "audit_auditoutbox",
+      "to": "audit_auditevent",
+      "definition": "FOREIGN KEY (event_id) REFERENCES audit_auditevent(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "auth_group_permissio_permission_id_84c5c92e_fk_auth_perm",
+      "from": "auth_group_permissions",
+      "to": "auth_permission",
+      "definition": "FOREIGN KEY (permission_id) REFERENCES auth_permission(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "auth_group_permissions_group_id_b120cbf9_fk_auth_group_id",
+      "from": "auth_group_permissions",
+      "to": "auth_group",
+      "definition": "FOREIGN KEY (group_id) REFERENCES auth_group(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "auth_permission_content_type_id_2f476e4b_fk_django_co",
+      "from": "auth_permission",
+      "to": "django_content_type",
+      "definition": "FOREIGN KEY (content_type_id) REFERENCES django_content_type(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "clients_crmprofile_party_id_6fd52529_fk_clients_party_id",
+      "from": "clients_crmprofile",
+      "to": "clients_party",
+      "definition": "FOREIGN KEY (party_id) REFERENCES clients_party(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "clients_crmprofile_updated_by_id_cf1d89c5_fk_identity_user_id",
+      "from": "clients_crmprofile",
+      "to": "identity_user",
+      "definition": "FOREIGN KEY (updated_by_id) REFERENCES identity_user(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": true
+    },
+    {
+      "constraint": "clients_externalidentity_party_id_ec17e618_fk_clients_party_id",
+      "from": "clients_externalidentity",
+      "to": "clients_party",
+      "definition": "FOREIGN KEY (party_id) REFERENCES clients_party(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "clients_financialaccount_party_id_5a9440b3_fk_clients_party_id",
+      "from": "clients_financialaccount",
+      "to": "clients_party",
+      "definition": "FOREIGN KEY (party_id) REFERENCES clients_party(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "clients_interaction_author_id_10a29177_fk_identity_user_id",
+      "from": "clients_interaction",
+      "to": "identity_user",
+      "definition": "FOREIGN KEY (author_id) REFERENCES identity_user(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": true
+    },
+    {
+      "constraint": "clients_interaction_party_id_85a915f9_fk_clients_party_id",
+      "from": "clients_interaction",
+      "to": "clients_party",
+      "definition": "FOREIGN KEY (party_id) REFERENCES clients_party(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "clients_legalentity_party_id_baba11b3_fk_clients_party_id",
+      "from": "clients_legalentity",
+      "to": "clients_party",
+      "definition": "FOREIGN KEY (party_id) REFERENCES clients_party(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "clients_opportunity_author_id_4ff37db2_fk_identity_user_id",
+      "from": "clients_opportunity",
+      "to": "identity_user",
+      "definition": "FOREIGN KEY (author_id) REFERENCES identity_user(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": true
+    },
+    {
+      "constraint": "clients_opportunity_party_id_69f324e4_fk_clients_party_id",
+      "from": "clients_opportunity",
+      "to": "clients_party",
+      "definition": "FOREIGN KEY (party_id) REFERENCES clients_party(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": true
+    },
+    {
+      "constraint": "clients_party_assigned_to_id_1fd3837d_fk_identity_membership_id",
+      "from": "clients_party",
+      "to": "identity_membership",
+      "definition": "FOREIGN KEY (assigned_to_id) REFERENCES identity_membership(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": true
+    },
+    {
+      "constraint": "clients_party_organization_id_17029e3a_fk_identity_",
+      "from": "clients_party",
+      "to": "identity_organization",
+      "definition": "FOREIGN KEY (organization_id) REFERENCES identity_organization(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": true
+    },
+    {
+      "constraint": "party_assignment_same_org",
+      "from": "clients_party",
+      "to": "identity_membership",
+      "definition": "FOREIGN KEY (assigned_to_id, organization_id) REFERENCES identity_membership(id, organization_id) DEFERRABLE",
+      "cross_boundary": true
+    },
+    {
+      "constraint": "clients_physicalperson_party_id_fb00ee5a_fk_clients_party_id",
+      "from": "clients_physicalperson",
+      "to": "clients_party",
+      "definition": "FOREIGN KEY (party_id) REFERENCES clients_party(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "clients_prospect_party_id_ec9277c9_fk_clients_party_id",
+      "from": "clients_prospect",
+      "to": "clients_party",
+      "definition": "FOREIGN KEY (party_id) REFERENCES clients_party(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "identity_membership_organization_id_d79ac337_fk_identity_",
+      "from": "identity_membership",
+      "to": "identity_organization",
+      "definition": "FOREIGN KEY (organization_id) REFERENCES identity_organization(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "identity_membership_user_id_91967c9a_fk_identity_user_id",
+      "from": "identity_membership",
+      "to": "identity_user",
+      "definition": "FOREIGN KEY (user_id) REFERENCES identity_user(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "identity_organizatio_parent_id_faa13782_fk_identity_",
+      "from": "identity_organization",
+      "to": "identity_organization",
+      "definition": "FOREIGN KEY (parent_id) REFERENCES identity_organization(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "identity_role_permis_capability_id_b2ba1f4b_fk_identity_",
+      "from": "identity_role_permissions",
+      "to": "identity_capability",
+      "definition": "FOREIGN KEY (capability_id) REFERENCES identity_capability(code) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "identity_role_permissions_role_id_72263001_fk_identity_role_id",
+      "from": "identity_role_permissions",
+      "to": "identity_role",
+      "definition": "FOREIGN KEY (role_id) REFERENCES identity_role(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "identity_roleassignm_membership_id_edf209da_fk_identity_",
+      "from": "identity_roleassignment",
+      "to": "identity_membership",
+      "definition": "FOREIGN KEY (membership_id) REFERENCES identity_membership(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "identity_roleassignment_role_id_e656d59b_fk_identity_role_id",
+      "from": "identity_roleassignment",
+      "to": "identity_role",
+      "definition": "FOREIGN KEY (role_id) REFERENCES identity_role(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "identity_user_groups_group_id_cdb422da_fk_auth_group_id",
+      "from": "identity_user_groups",
+      "to": "auth_group",
+      "definition": "FOREIGN KEY (group_id) REFERENCES auth_group(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "identity_user_groups_user_id_f69e0c80_fk_identity_user_id",
+      "from": "identity_user_groups",
+      "to": "identity_user",
+      "definition": "FOREIGN KEY (user_id) REFERENCES identity_user(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "identity_user_user_p_permission_id_c8f2cf2f_fk_auth_perm",
+      "from": "identity_user_user_permissions",
+      "to": "auth_permission",
+      "definition": "FOREIGN KEY (permission_id) REFERENCES auth_permission(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "identity_user_user_p_user_id_a626cb1f_fk_identity_",
+      "from": "identity_user_user_permissions",
+      "to": "identity_user",
+      "definition": "FOREIGN KEY (user_id) REFERENCES identity_user(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "ingestion_importbatc_organization_id_f611b523_fk_identity_",
+      "from": "ingestion_importbatch",
+      "to": "identity_organization",
+      "definition": "FOREIGN KEY (organization_id) REFERENCES identity_organization(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": true
+    },
+    {
+      "constraint": "ingestion_importbatc_policy_id_f3adfa61_fk_ingestion",
+      "from": "ingestion_importbatch",
+      "to": "ingestion_importpolicy",
+      "definition": "FOREIGN KEY (policy_id) REFERENCES ingestion_importpolicy(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "ingestion_importbatc_published_by_id_58009dad_fk_identity_",
+      "from": "ingestion_importbatch",
+      "to": "identity_user",
+      "definition": "FOREIGN KEY (published_by_id) REFERENCES identity_user(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": true
+    },
+    {
+      "constraint": "ingestion_importbatc_uploaded_by_id_fd8ada10_fk_identity_",
+      "from": "ingestion_importbatch",
+      "to": "identity_user",
+      "definition": "FOREIGN KEY (uploaded_by_id) REFERENCES identity_user(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": true
+    },
+    {
+      "constraint": "ingestion_importpoli_approved_by_id_95cf4714_fk_identity_",
+      "from": "ingestion_importpolicy",
+      "to": "identity_user",
+      "definition": "FOREIGN KEY (approved_by_id) REFERENCES identity_user(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": true
+    },
+    {
+      "constraint": "ingestion_importpoli_created_by_id_11159760_fk_identity_",
+      "from": "ingestion_importpolicy",
+      "to": "identity_user",
+      "definition": "FOREIGN KEY (created_by_id) REFERENCES identity_user(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": true
+    },
+    {
+      "constraint": "ingestion_importpoli_organization_id_d45391bb_fk_identity_",
+      "from": "ingestion_importpolicy",
+      "to": "identity_organization",
+      "definition": "FOREIGN KEY (organization_id) REFERENCES identity_organization(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": true
+    },
+    {
+      "constraint": "ingestion_sourcesnap_row_id_aaa97fef_fk_ingestion",
+      "from": "ingestion_sourcesnapshot",
+      "to": "ingestion_stagingrow",
+      "definition": "FOREIGN KEY (row_id) REFERENCES ingestion_stagingrow(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    },
+    {
+      "constraint": "ingestion_stagingrow_batch_id_05009aa3_fk_ingestion",
+      "from": "ingestion_stagingrow",
+      "to": "ingestion_importbatch",
+      "definition": "FOREIGN KEY (batch_id) REFERENCES ingestion_importbatch(id) DEFERRABLE INITIALLY DEFERRED",
+      "cross_boundary": false
+    }
+  ],
+  "routes": [
+    {
+      "path": "/api/prospects/",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "target_owner": "client_crm",
+      "current_view": "clients.prospects.ProspectsView"
+    },
+    {
+      "path": "/api/prospects/context/",
+      "methods": [
+        "GET"
+      ],
+      "target_owner": "client_crm",
+      "current_view": "clients.prospects.ProspectContextView"
+    },
+    {
+      "path": "/api/prospects/<uuid:party_id>/",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "target_owner": "client_crm",
+      "current_view": "clients.prospects.ProspectView"
+    },
+    {
+      "path": "/api/imports/context/",
+      "methods": [
+        "GET"
+      ],
+      "target_owner": "integration",
+      "current_view": "ingestion.views.ImportContextView"
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/batches/",
+      "methods": [
+        "GET"
+      ],
+      "target_owner": "integration",
+      "current_view": "ingestion.views.BatchListView"
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/upload/",
+      "methods": [
+        "POST"
+      ],
+      "target_owner": "integration",
+      "current_view": "ingestion.views.UploadView"
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/batches/<uuid:batch_id>/",
+      "methods": [
+        "GET"
+      ],
+      "target_owner": "integration",
+      "current_view": "ingestion.views.BatchView"
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/batches/<uuid:batch_id>/rejections/",
+      "methods": [
+        "GET"
+      ],
+      "target_owner": "integration",
+      "current_view": "ingestion.views.RejectionsView"
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/batches/<uuid:batch_id>/publish/",
+      "methods": [
+        "POST"
+      ],
+      "target_owner": "integration",
+      "current_view": "ingestion.views.PublishView"
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/policies/",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "target_owner": "integration",
+      "current_view": "ingestion.views.PoliciesView"
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/policies/<uuid:policy_id>/approve/",
+      "methods": [
+        "POST"
+      ],
+      "target_owner": "integration",
+      "current_view": "ingestion.views.PolicyApproveView"
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/policies/<uuid:policy_id>/revoke/",
+      "methods": [
+        "POST"
+      ],
+      "target_owner": "integration",
+      "current_view": "ingestion.views.PolicyRevokeView"
+    },
+    {
+      "path": "/api/health/",
+      "methods": [
+        "GET"
+      ],
+      "target_owner": "platform_contract",
+      "current_view": "core.views.HealthView"
+    },
+    {
+      "path": "/api/session/",
+      "methods": [
+        "GET"
+      ],
+      "target_owner": "iam",
+      "current_view": "core.views.SessionView"
+    },
+    {
+      "path": "/api/schema/",
+      "methods": [
+        "GET"
+      ],
+      "target_owner": "platform_contract",
+      "current_view": "drf_spectacular.views.SpectacularAPIView"
+    },
+    {
+      "path": "/api/auth/csrf/",
+      "methods": [
+        "GET"
+      ],
+      "target_owner": "iam",
+      "current_view": "identity.views.CsrfView"
+    },
+    {
+      "path": "/api/auth/login/",
+      "methods": [
+        "POST"
+      ],
+      "target_owner": "iam",
+      "current_view": "identity.views.LoginView"
+    },
+    {
+      "path": "/api/auth/logout/",
+      "methods": [
+        "POST"
+      ],
+      "target_owner": "iam",
+      "current_view": "identity.views.LogoutView"
+    },
+    {
+      "path": "/api/auth/access/",
+      "methods": [
+        "GET"
+      ],
+      "target_owner": "iam",
+      "current_view": "identity.views.AccessView"
+    },
+    {
+      "path": "/api/clients/",
+      "methods": [
+        "GET"
+      ],
+      "target_owner": "client_crm",
+      "current_view": "clients.views.ClientListView"
+    },
+    {
+      "path": "/api/clients/create/",
+      "methods": [
+        "POST"
+      ],
+      "target_owner": "client_crm",
+      "current_view": "clients.workspace_views.CreatePartyView"
+    },
+    {
+      "path": "/api/clients/context/",
+      "methods": [
+        "GET"
+      ],
+      "target_owner": "client_crm",
+      "current_view": "clients.workspace_views.ClientContextView"
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/workspace/",
+      "methods": [
+        "GET"
+      ],
+      "target_owner": "client_crm",
+      "current_view": "clients.workspace_views.WorkspaceView"
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/identity/",
+      "methods": [
+        "PATCH"
+      ],
+      "target_owner": "client_crm",
+      "current_view": "clients.workspace_views.IdentityEditView"
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/profile/",
+      "methods": [
+        "PATCH"
+      ],
+      "target_owner": "client_crm",
+      "current_view": "clients.workspace_views.ProfileView"
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/interactions/",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "target_owner": "client_crm",
+      "current_view": "clients.workspace_views.ActivityView"
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/interactions/<uuid:activity_id>/",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "target_owner": "client_crm",
+      "current_view": "clients.workspace_views.InteractionDetailView"
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/opportunities/",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "target_owner": "commercial",
+      "current_view": "clients.workspace_views.OpportunitiesView"
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/opportunities/<uuid:activity_id>/",
+      "methods": [
+        "GET",
+        "PATCH"
+      ],
+      "target_owner": "commercial",
+      "current_view": "clients.workspace_views.OpportunityDetailView"
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/",
+      "methods": [
+        "GET"
+      ],
+      "target_owner": "client_crm",
+      "current_view": "clients.views.ClientDetailView"
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/crm/",
+      "methods": [
+        "PATCH"
+      ],
+      "target_owner": "client_crm",
+      "current_view": "clients.views.CRMUpdateView"
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/accounts/",
+      "methods": [
+        "GET"
+      ],
+      "target_owner": "client_crm",
+      "current_view": "clients.views.AccountListView"
+    },
+    {
+      "path": "/api/organizations/<uuid:organization_id>/users/",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "target_owner": "iam",
+      "current_view": "identity.views.UserListView"
+    },
+    {
+      "path": "/api/organizations/<uuid:organization_id>/memberships/<uuid:membership_id>/",
+      "methods": [
+        "PATCH"
+      ],
+      "target_owner": "iam",
+      "current_view": "identity.views.MembershipStateView"
+    },
+    {
+      "path": "/api/organizations/<uuid:organization_id>/role-assignments/",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "target_owner": "iam",
+      "current_view": "identity.views.RoleAssignmentView"
+    },
+    {
+      "path": "/api/organizations/<uuid:organization_id>/role-assignments/<uuid:assignment_id>/",
+      "methods": [
+        "DELETE"
+      ],
+      "target_owner": "iam",
+      "current_view": "identity.views.RevokeRoleView"
+    },
+    {
+      "path": "/api/organizations/<uuid:organization_id>/roles/",
+      "methods": [
+        "GET"
+      ],
+      "target_owner": "iam",
+      "current_view": "identity.views.RoleCatalogueView"
+    },
+    {
+      "path": "/api/audit/",
+      "methods": [
+        "GET"
+      ],
+      "target_owner": "iam",
+      "current_view": "audit.views.AuditListView"
+    }
+  ],
+  "historical_migrations": [
+    {
+      "app": "audit",
+      "name": "0001_initial",
+      "dependencies": [
+        [
+          "identity",
+          "0002_capability_loginbucket_organization_membership_role_and_more"
+        ],
+        [
+          "identity",
+          "__first__"
+        ]
+      ]
+    },
+    {
+      "app": "audit",
+      "name": "0002_append_only",
+      "dependencies": [
+        [
+          "audit",
+          "0001_initial"
+        ]
+      ]
+    },
+    {
+      "app": "audit",
+      "name": "0003_auditevent_context",
+      "dependencies": [
+        [
+          "audit",
+          "0002_append_only"
+        ]
+      ]
+    },
+    {
+      "app": "audit",
+      "name": "0004_audit_outbox",
+      "dependencies": [
+        [
+          "audit",
+          "0003_auditevent_context"
+        ]
+      ]
+    },
+    {
+      "app": "clients",
+      "name": "0001_initial",
+      "dependencies": [
+        [
+          "identity",
+          "0002_capability_loginbucket_organization_membership_role_and_more"
+        ],
+        [
+          "identity",
+          "__first__"
+        ]
+      ]
+    },
+    {
+      "app": "clients",
+      "name": "0002_scope_and_subtype_integrity",
+      "dependencies": [
+        [
+          "clients",
+          "0001_initial"
+        ]
+      ]
+    },
+    {
+      "app": "clients",
+      "name": "0003_subtype_identity_immutable",
+      "dependencies": [
+        [
+          "clients",
+          "0002_scope_and_subtype_integrity"
+        ]
+      ]
+    },
+    {
+      "app": "clients",
+      "name": "0004_crmprofile_crm_notes_length",
+      "dependencies": [
+        [
+          "clients",
+          "0003_subtype_identity_immutable"
+        ],
+        [
+          "identity",
+          "__first__"
+        ]
+      ]
+    },
+    {
+      "app": "clients",
+      "name": "0005_crmprofile_email_crmprofile_phone_and_more",
+      "dependencies": [
+        [
+          "clients",
+          "0004_crmprofile_crm_notes_length"
+        ],
+        [
+          "identity",
+          "__first__"
+        ]
+      ]
+    },
+    {
+      "app": "clients",
+      "name": "0006_prospect",
+      "dependencies": [
+        [
+          "clients",
+          "0005_crmprofile_email_crmprofile_phone_and_more"
+        ]
+      ]
+    },
+    {
+      "app": "identity",
+      "name": "0001_initial",
+      "dependencies": [
+        [
+          "auth",
+          "0012_alter_user_first_name_max_length"
+        ]
+      ]
+    },
+    {
+      "app": "identity",
+      "name": "0002_capability_loginbucket_organization_membership_role_and_more",
+      "dependencies": [
+        [
+          "identity",
+          "0001_initial"
+        ]
+      ]
+    },
+    {
+      "app": "identity",
+      "name": "0003_internal_authorization",
+      "dependencies": [
+        [
+          "identity",
+          "0002_capability_loginbucket_organization_membership_role_and_more"
+        ],
+        [
+          "sessions",
+          "0001_initial"
+        ]
+      ]
+    },
+    {
+      "app": "ingestion",
+      "name": "0001_initial",
+      "dependencies": [
+        [
+          "identity",
+          "0002_capability_loginbucket_organization_membership_role_and_more"
+        ],
+        [
+          "identity",
+          "__first__"
+        ]
+      ]
+    },
+    {
+      "app": "ingestion",
+      "name": "0002_immutable_snapshots",
+      "dependencies": [
+        [
+          "ingestion",
+          "0001_initial"
+        ]
+      ]
+    },
+    {
+      "app": "ingestion",
+      "name": "0003_stagingrow_warnings",
+      "dependencies": [
+        [
+          "ingestion",
+          "0002_immutable_snapshots"
+        ]
+      ]
+    },
+    {
+      "app": "ingestion",
+      "name": "0004_remove_importbatch_import_idempotency_and_more",
+      "dependencies": [
+        [
+          "identity",
+          "0002_capability_loginbucket_organization_membership_role_and_more"
+        ],
+        [
+          "ingestion",
+          "0003_stagingrow_warnings"
+        ],
+        [
+          "identity",
+          "__first__"
+        ]
+      ]
+    },
+    {
+      "app": "ingestion",
+      "name": "0005_importbatch_import_publication_consistent_and_more",
+      "dependencies": [
+        [
+          "identity",
+          "0002_capability_loginbucket_organization_membership_role_and_more"
+        ],
+        [
+          "ingestion",
+          "0004_remove_importbatch_import_idempotency_and_more"
+        ],
+        [
+          "identity",
+          "__first__"
+        ]
+      ]
+    }
+  ]
+}

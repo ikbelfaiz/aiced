@@ -1,0 +1,21 @@
+# Verified Python 3.12 toolchain for the initial skeleton.
+# Regenerate and review before dependency upgrades; no PDF inspection packages.
+Django==5.2.19
+djangorestframework==3.18.3
+drf-spectacular==0.30.0
+psycopg[binary]==3.2.12
+asgiref==3.13.0
+sqlparse==0.6.1
+tzdata==2026.6
+uritemplate==4.2.0
+PyYAML==6.0.3
+jsonschema==4.26.0
+inflection==0.5.1
+typing-extensions==4.16.0
+attrs==26.1.0
+jsonschema-specifications==2025.9.1
+referencing==0.37.0
+rpds-py==2026.9.1
+openpyxl==3.1.5
+et_xmlfile==2.0.0
+defusedxml==0.7.1

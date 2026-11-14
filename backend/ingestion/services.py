@@ -1,0 +1,259 @@
+import hashlib
+from datetime import datetime
+from django.conf import settings
+from django.db import transaction
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from rest_framework.exceptions import ValidationError, PermissionDenied, Throttled
+from .runtime import record, authorize, model
+
+ImportBatch, StagingRow, SourceSnapshot, ImportPolicy = [
+    model(name)
+    for name in ("ImportBatch", "StagingRow", "SourceSnapshot", "ImportPolicy")
+]
+from .templates import TEMPLATES
+from .parser import parse
+
+
+def stage(
+    actor,
+    organization_id,
+    template,
+    source_as_of,
+    snapshot_kind,
+    content,
+    request=None,
+    date_format="ISO",
+):
+    authorize(actor, organization_id, "imports.upload")
+    if (
+        template not in TEMPLATES
+        or snapshot_kind not in ["partial", "complete"]
+        or date_format not in ["ISO", "DMY"]
+    ):
+        raise ValidationError("Modèle ou nature du snapshot invalide.")
+    if source_as_of > timezone.localdate():
+        raise ValidationError("Date source future interdite.")
+    digest = hashlib.sha256(content).hexdigest()
+    key = dict(
+        organization_id=organization_id,
+        template=template,
+        template_version=1,
+        digest=digest,
+        source_as_of=source_as_of,
+        snapshot_kind=snapshot_kind,
+        date_format=date_format,
+    )
+    existing = ImportBatch.objects.filter(**key).first()
+    if existing:
+        return existing, False
+    try:
+        rows = parse(content, template, date_format)
+    except ValidationError:
+        record(
+            "imports.file_rejected",
+            actor=actor,
+            organization_id=organization_id,
+            result="denied",
+            request=request,
+        )
+        raise
+    for row in rows:
+        for position, value in row["normalized_dates"].items():
+            if datetime.fromisoformat(value).date() > source_as_of:
+                row["errors"].append(
+                    f"colonne {position} : date postérieure à la situation source déclarée"
+                )
+    with transaction.atomic():
+        authorize(actor, organization_id, "imports.upload", lock=True, request=request)
+        existing = ImportBatch.objects.filter(**key).first()
+        if existing:
+            return existing, False
+        batches = ImportBatch.objects.filter(organization_id=organization_id)
+        if (
+            batches.filter(status="staged").count()
+            >= settings.IMPORT_MAX_STAGED_BATCHES
+            or batches.filter(created_at__date=timezone.localdate()).count()
+            >= settings.IMPORT_MAX_DAILY_BATCHES
+        ):
+            raise Throttled(
+                detail="Quota de lots atteint pour cette organisation. Contacter le responsable des données."
+            )
+        candidate_keys = list(
+            {
+                row["cells"][str(position)]
+                for row in rows
+                for position in TEMPLATES[template]["candidate_keys"]
+                if isinstance(row["cells"][str(position)], str)
+            }
+        )
+        known = set()
+        for start in range(0, len(candidate_keys), 500):
+            known.update(
+                SourceSnapshot.objects.filter(
+                    row__batch__organization_id=organization_id,
+                    row__batch__template=template,
+                    external_key__in=candidate_keys[start : start + 500],
+                ).values_list("external_key", flat=True)
+            )
+        for row in rows:
+            for position in TEMPLATES[template]["candidate_keys"]:
+                if row["cells"][str(position)] in known:
+                    row["warnings"].append(
+                        f"Clé candidate colonne {position} déjà publiée : nouvelle version source à examiner, aucun rapprochement automatique"
+                    )
+        batch = ImportBatch.objects.create(**key, uploaded_by=actor)
+        StagingRow.objects.bulk_create(
+            [StagingRow(batch=batch, **row) for row in rows], batch_size=500
+        )
+        record(
+            "imports.staged",
+            actor=actor,
+            organization_id=organization_id,
+            target_id=batch.pk,
+            request=request,
+            context={
+                "rows": len(rows),
+                "rejected": sum(bool(row["errors"]) for row in rows),
+                "template": template,
+            },
+        )
+        return batch, True
+
+
+@transaction.atomic
+def create_policy(
+    actor,
+    organization_id,
+    template,
+    key_column,
+    rationale,
+    request=None,
+    date_format="ISO",
+):
+    authorize(
+        actor, organization_id, "imports.policy_manage", lock=True, request=request
+    )
+    if (
+        template not in TEMPLATES
+        or key_column not in TEMPLATES[template]["candidate_keys"]
+        or date_format not in ["ISO", "DMY"]
+    ):
+        raise ValidationError("Colonne clé non prévue par le modèle.")
+    policy = ImportPolicy.objects.create(
+        organization_id=organization_id,
+        template=template,
+        key_column=key_column,
+        rationale=rationale,
+        date_format=date_format,
+        created_by=actor,
+    )
+    record(
+        "imports.policy_created",
+        actor=actor,
+        organization_id=organization_id,
+        target_id=policy.pk,
+        request=request,
+    )
+    return policy
+
+
+@transaction.atomic
+def approve_policy(actor, organization_id, policy_id, revoke=False, request=None):
+    authorize(actor, organization_id, "imports.approve", lock=True, request=request)
+    policy = get_object_or_404(
+        ImportPolicy.objects.select_for_update(),
+        pk=policy_id,
+        organization_id=organization_id,
+    )
+    if revoke:
+        policy.revoked_at = timezone.now()
+    else:
+        if policy.created_by_id == actor.pk:
+            raise PermissionDenied("Auto-approbation interdite.")
+        if policy.revoked_at:
+            raise ValidationError("Politique révoquée ; créer une nouvelle version.")
+        if policy.approved_at:
+            return policy
+        policy.approved_by = actor
+        policy.approved_at = timezone.now()
+    policy.save(
+        update_fields=["revoked_at"] if revoke else ["approved_by", "approved_at"]
+    )
+    record(
+        "imports.policy_revoked" if revoke else "imports.policy_approved",
+        actor=actor,
+        organization_id=organization_id,
+        target_id=policy.pk,
+        request=request,
+    )
+    return policy
+
+
+@transaction.atomic
+def publish(
+    actor, organization_id, batch_id, policy_id, skip_rejected=False, request=None
+):
+    authorize(actor, organization_id, "imports.approve", lock=True, request=request)
+    batch = get_object_or_404(
+        ImportBatch.objects.select_for_update(),
+        pk=batch_id,
+        organization_id=organization_id,
+    )
+    if batch.uploaded_by_id == actor.pk:
+        raise PermissionDenied("Le déposant ne peut pas publier son lot.")
+    if batch.status == "published":
+        if batch.policy_id != policy_id:
+            raise ValidationError("Lot déjà publié avec une autre politique.")
+        return batch
+    policy = get_object_or_404(
+        ImportPolicy.objects.select_for_update(),
+        pk=policy_id,
+        organization_id=organization_id,
+        template=batch.template,
+    )
+    if not policy.approved_at or policy.revoked_at:
+        raise ValidationError("Politique approuvée et active requise.")
+    if policy.date_format != batch.date_format:
+        raise ValidationError(
+            "Le format de date du lot ne correspond pas à la règle approuvée."
+        )
+    rows = list(batch.rows.all())
+    rejected = [row for row in rows if row.errors]
+    if rejected and not skip_rejected:
+        raise ValidationError(
+            "Lignes rejetées : publication bloquée sans exclusion explicite."
+        )
+    accepted = [row for row in rows if not row.errors]
+    if not accepted:
+        raise ValidationError("Aucune ligne publiable.")
+    keys = [row.cells.get(str(policy.key_column)) for row in accepted]
+    if any(
+        not isinstance(key, str) or not key.strip() or len(key) > 160 for key in keys
+    ) or len(keys) != len(set(keys)):
+        raise ValidationError(
+            "Clé approuvée manquante ou dupliquée ; aucune publication."
+        )
+    SourceSnapshot.objects.bulk_create(
+        [SourceSnapshot(row=row, external_key=key) for row, key in zip(accepted, keys)],
+        batch_size=500,
+    )
+    batch.status = "published"
+    batch.policy = policy
+    batch.published_by = actor
+    batch.published_at = timezone.now()
+    batch.save(update_fields=["status", "policy", "published_by", "published_at"])
+    record(
+        "imports.published",
+        actor=actor,
+        organization_id=organization_id,
+        target_id=batch.pk,
+        request=request,
+        context={
+            "accepted": len(accepted),
+            "excluded": len(rejected),
+            "policy_id": str(policy.pk),
+            "mode": "immutable_snapshots_only",
+        },
+    )
+    return batch

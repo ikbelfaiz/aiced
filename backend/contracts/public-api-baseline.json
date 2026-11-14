@@ -1,0 +1,261 @@
+{
+  "version": 1,
+  "historical_migration_hash_format": "sha256-utf8-lf",
+  "routes": [
+    {
+      "path": "/api/prospects/",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/prospects/context/",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/prospects/<uuid:party_id>/",
+      "methods": [
+        "GET",
+        "PATCH"
+      ]
+    },
+    {
+      "path": "/api/imports/context/",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/batches/",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/upload/",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/batches/<uuid:batch_id>/",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/batches/<uuid:batch_id>/rejections/",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/batches/<uuid:batch_id>/publish/",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/policies/",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/policies/<uuid:policy_id>/approve/",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/imports/<uuid:organization_id>/policies/<uuid:policy_id>/revoke/",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/health/",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/session/",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/schema/",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/auth/csrf/",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/auth/login/",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/auth/logout/",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/auth/access/",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/clients/",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/clients/create/",
+      "methods": [
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/clients/context/",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/workspace/",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/identity/",
+      "methods": [
+        "PATCH"
+      ]
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/profile/",
+      "methods": [
+        "PATCH"
+      ]
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/interactions/",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/interactions/<uuid:activity_id>/",
+      "methods": [
+        "GET",
+        "PATCH"
+      ]
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/opportunities/",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/opportunities/<uuid:activity_id>/",
+      "methods": [
+        "GET",
+        "PATCH"
+      ]
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/crm/",
+      "methods": [
+        "PATCH"
+      ]
+    },
+    {
+      "path": "/api/clients/<uuid:party_id>/accounts/",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/organizations/<uuid:organization_id>/users/",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/organizations/<uuid:organization_id>/memberships/<uuid:membership_id>/",
+      "methods": [
+        "PATCH"
+      ]
+    },
+    {
+      "path": "/api/organizations/<uuid:organization_id>/role-assignments/",
+      "methods": [
+        "GET",
+        "POST"
+      ]
+    },
+    {
+      "path": "/api/organizations/<uuid:organization_id>/role-assignments/<uuid:assignment_id>/",
+      "methods": [
+        "DELETE"
+      ]
+    },
+    {
+      "path": "/api/organizations/<uuid:organization_id>/roles/",
+      "methods": [
+        "GET"
+      ]
+    },
+    {
+      "path": "/api/audit/",
+      "methods": [
+        "GET"
+      ]
+    }
+  ],
+  "historical_migrations": {
+    "audit/migrations/0001_initial.py": "dce73ed913f6d3fb946b6f71a1201d01a588bb59121b1e068585fc67489ed47f",
+    "audit/migrations/0002_append_only.py": "6ac77cac6ad09beabac8f39813afbcf66ee426fbe8f78b9f6ca549b4c0d80f8d",
+    "audit/migrations/0003_auditevent_context.py": "31ec6f7c17c766640932182f76ab564cef41e87193eb580679d559447f94e982",
+    "clients/migrations/0001_initial.py": "2f9e0fa1120d510e1f2edbc6c36053020034a1d4cb739017ce25aeb5a922275c",
+    "clients/migrations/0002_scope_and_subtype_integrity.py": "126b554ae2196253f9b0056e735ebb3212966b854af5391fd2fe0b5a41855c2b",
+    "clients/migrations/0003_subtype_identity_immutable.py": "c1f66fb1d548c4b23e217930d1a9f7c73740f169ce4ec47eeab9b82c87722694",
+    "clients/migrations/0004_crmprofile_crm_notes_length.py": "e8fc0f7e45e1cd2c6f7754847e54518481a8191733f57838819fd09939d7723a",
+    "clients/migrations/0005_crmprofile_email_crmprofile_phone_and_more.py": "b82554ff279d390442bc310b11b1bc6342fa0865d329de1a316f4db8c74842a9",
+    "clients/migrations/0006_prospect.py": "8a6dff4f1e4bd39f61eb693e34dd651be49e726059a1038c6473a2e2f4f4e9e5",
+    "identity/migrations/0001_initial.py": "d11c9ddc6d99a1446309e27be5f052845e93d57207e3b903377b771df5249e0f",
+    "identity/migrations/0002_capability_loginbucket_organization_membership_role_and_more.py": "a7bd38d5ed69c69a8d85dc11db54f3645d56d691e41bc79cdefa6fac1769e44c",
+    "ingestion/migrations/0001_initial.py": "3b26565ae4cd21d821d61081fd18506a0787935817739e978d2f363e13f2971a",
+    "ingestion/migrations/0002_immutable_snapshots.py": "5db6d5c9e6ad882baa069e23ea4e79fac9f01936a2b8d0327817b409cf97d2f5",
+    "ingestion/migrations/0003_stagingrow_warnings.py": "93c8a7f7429fc3b972cc1d3b0238eb4997bd22db9d3bca88094d479e170a4d0e",
+    "ingestion/migrations/0004_remove_importbatch_import_idempotency_and_more.py": "45b75d6feef9b11576082c294a677ab56bfd9e1ef1a970e9415d2802e0ea2581",
+    "ingestion/migrations/0005_importbatch_import_publication_consistent_and_more.py": "6b39658d68358993d27903bf16a760c8684b8082ef2876642ee89ecff18171b9"
+  }
+}

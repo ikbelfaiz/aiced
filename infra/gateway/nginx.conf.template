@@ -1,0 +1,77 @@
+worker_processes 1;
+pid logs/nginx.pid;
+error_log logs/error.log crit;
+events { worker_connections 512; }
+http {
+    # No URLs, query strings, credentials or payloads in access logs.
+    log_format minimal '$status $request_time $upstream_status';
+    access_log logs/access.log minimal;
+    server_tokens off;
+    client_body_temp_path temp/client;
+    proxy_temp_path temp/proxy;
+    map $http_upgrade $connection_upgrade { default upgrade; '' close; }
+    # Default Integration upstream is the legacy backend. Candidate deployment is opt-in.
+    upstream legacy_backend { server ${BACKEND_UPSTREAM}; }
+    upstream integration_backend { server ${INTEGRATION_UPSTREAM}; }
+    map $uri $api_upstream {
+        ~^/api/imports/ integration_backend;
+        default legacy_backend;
+    }
+    server {
+        listen ${GATEWAY_PORT};
+        client_max_body_size 10m;
+        client_body_timeout 30s;
+        keepalive_timeout 30s;
+        error_page 413 = @too_large;
+        error_page 502 503 = @unavailable;
+        error_page 504 = @timeout;
+        location @too_large {
+            default_type application/json;
+            add_header Cache-Control no-store always;
+            return 413 '{"error":{"status":413,"details":"Fichier ou requête trop volumineux."}}';
+        }
+        location @unavailable {
+            default_type application/json;
+            add_header Cache-Control no-store always;
+            return 502 '{"error":{"status":502,"details":"Service temporairement indisponible."}}';
+        }
+        location @timeout {
+            default_type application/json;
+            add_header Cache-Control no-store always;
+            return 504 '{"error":{"status":504,"details":"Le service ne répond pas dans le délai prévu."}}';
+        }
+        # No URI suffix: preserve the original path, escaping and query string.
+        location /api/ {
+            proxy_pass http://$api_upstream;
+            proxy_http_version 1.1;
+            proxy_set_header Connection "";
+            proxy_set_header Host $http_host;
+            proxy_set_header Forwarded "";
+            proxy_set_header X-Forwarded-For "";
+            proxy_set_header X-Forwarded-Host "";
+            proxy_set_header X-Forwarded-Proto "";
+            proxy_set_header X-Real-IP "";
+            proxy_set_header X-Aiced-Gateway-Key "${AICED_GATEWAY_KEY}";
+            proxy_set_header X-Aiced-Client-IP $remote_addr;
+            proxy_set_header X-Aiced-Proto $scheme;
+            proxy_connect_timeout 3s;
+            proxy_send_timeout 30s;
+            proxy_read_timeout ${BACKEND_TIMEOUT};
+            proxy_next_upstream off;
+            proxy_cache off;
+            proxy_intercept_errors off;
+            proxy_redirect off;
+        }
+        # Same public origin for the existing SPA, assets and Vite development HMR.
+        location / {
+            proxy_pass http://${FRONTEND_UPSTREAM};
+            proxy_http_version 1.1;
+            proxy_set_header Host $http_host;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection $connection_upgrade;
+            # The edge key must never reach the frontend server.
+            proxy_set_header X-Aiced-Gateway-Key "";
+            proxy_next_upstream off;
+        }
+    }
+}

@@ -1,0 +1,14 @@
+references/
+.local/
+.tools/
+.env
+.env.*
+!.env.example
+**/__pycache__/
+*.py[cod]
+.venv/
+node_modules/
+dist/
+*.sqlite3
+coverage/
+media/

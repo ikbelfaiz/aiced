@@ -1,0 +1,46 @@
+name: Skeleton checks
+on: [push, pull_request]
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: aiced
+          POSTGRES_USER: aiced
+          POSTGRES_PASSWORD: synthetic-ci-password
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U aiced -d aiced"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DJANGO_SECRET_KEY: synthetic-ci-key-only-never-use-in-deployment-123456
+      DJANGO_DEBUG: "1"
+      POSTGRES_HOST: 127.0.0.1
+      POSTGRES_DB: aiced
+      POSTGRES_USER: aiced
+      POSTGRES_PASSWORD: synthetic-ci-password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r backend/requirements.lock
+      - run: python backend/manage.py check
+      - run: python backend/manage.py migrate --noinput
+      - run: python backend/manage.py makemigrations --check --dry-run
+      - run: python backend/manage.py test core identity
+      - run: python backend/manage.py spectacular --file /tmp/schema.yaml --validate
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci --no-audit --no-fund
+      - run: npm run build

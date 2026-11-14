@@ -1,0 +1,335 @@
+import csv
+from datetime import date
+from io import StringIO
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import extend_schema
+from drf_spectacular.types import OpenApiTypes
+from rest_framework import serializers
+from rest_framework.parsers import BaseParser
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.exceptions import ValidationError
+from core.serializers import StrictSerializer
+from core.parsers import PayloadTooLarge
+from .runtime import adapter, model, record
+
+ImportBatch, ImportPolicy = model("ImportBatch"), model("ImportPolicy")
+DATE_FORMAT_CHOICES = ImportBatch._meta.get_field("date_format").choices
+from .services import authorize, stage, create_policy, approve_policy, publish
+from .templates import TEMPLATES
+from .parser import MAX_BYTES
+
+
+class XLSXParser(BaseParser):
+    media_type = "application/octet-stream"
+
+    def parse(self, stream, media_type=None, parser_context=None):
+        content = stream.read(MAX_BYTES + 1)
+        if len(content) > MAX_BYTES:
+            raise PayloadTooLarge("Fichier supérieur à 10 Mio.")
+        return content
+
+
+class BatchOutput(serializers.ModelSerializer):
+    total = serializers.SerializerMethodField()
+    rejected = serializers.SerializerMethodField()
+    published_rows = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ImportBatch
+        fields = [
+            "id",
+            "template",
+            "template_version",
+            "digest",
+            "source_as_of",
+            "snapshot_kind",
+            "date_format",
+            "status",
+            "created_at",
+            "uploaded_by_id",
+            "published_by_id",
+            "published_at",
+            "policy_id",
+            "total",
+            "rejected",
+            "published_rows",
+        ]
+
+    def get_total(self, obj) -> int:
+        return obj.rows.count()
+
+    def get_rejected(self, obj) -> int:
+        return obj.rows.exclude(errors=[]).count()
+
+    def get_published_rows(self, obj) -> int:
+        return obj.rows.filter(sourcesnapshot__isnull=False).count()
+
+
+class PolicyOutput(serializers.ModelSerializer):
+    class Meta:
+        model = ImportPolicy
+        fields = [
+            "id",
+            "template",
+            "key_column",
+            "date_format",
+            "rationale",
+            "created_by_id",
+            "approved_by_id",
+            "approved_at",
+            "revoked_at",
+            "created_at",
+        ]
+
+
+class PolicyInput(StrictSerializer):
+    template = serializers.ChoiceField(choices=list(TEMPLATES))
+    key_column = serializers.IntegerField(min_value=1, max_value=41)
+    rationale = serializers.CharField(min_length=20, max_length=1000)
+    date_format = serializers.ChoiceField(choices=DATE_FORMAT_CHOICES, default="ISO")
+
+
+class PublishInput(StrictSerializer):
+    policy_id = serializers.UUIDField()
+    skip_rejected = serializers.BooleanField(default=False)
+
+
+class ImportContextView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(responses={200: OpenApiTypes.OBJECT})
+    def get(self, request):
+        return Response(
+            {
+                "templates": TEMPLATES,
+                "mode": "immutable_snapshots_only",
+                "organizations": adapter().context(request.user),
+            }
+        )
+
+
+class BatchListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(responses={200: BatchOutput(many=True)})
+    def get(self, request, organization_id):
+        authorize(request.user, organization_id)
+        paginator = PageNumberPagination()
+        page = paginator.paginate_queryset(
+            ImportBatch.objects.filter(organization_id=organization_id), request
+        )
+        return paginator.get_paginated_response(BatchOutput(page, many=True).data)
+
+
+class UploadView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [XLSXParser]
+
+    @extend_schema(
+        request={"application/octet-stream": {"type": "string", "format": "binary"}},
+        responses={201: BatchOutput, 200: BatchOutput},
+    )
+    def post(self, request, organization_id):
+        authorize(request.user, organization_id, "imports.upload")
+        if set(request.query_params) - {
+            "template",
+            "source_as_of",
+            "snapshot_kind",
+            "date_format",
+        }:
+            raise ValidationError("Paramètre inconnu.")
+        try:
+            as_of = date.fromisoformat(request.query_params.get("source_as_of", ""))
+        except ValueError:
+            raise ValidationError("Date source ISO requise.")
+        batch, created = stage(
+            request.user,
+            organization_id,
+            request.query_params.get("template"),
+            as_of,
+            request.query_params.get("snapshot_kind", "partial"),
+            request.data,
+            request,
+            date_format=request.query_params.get("date_format", "ISO"),
+        )
+        return Response(BatchOutput(batch).data, status=201 if created else 200)
+
+
+class BatchView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(responses={200: OpenApiTypes.OBJECT})
+    def get(self, request, organization_id, batch_id):
+        authorize(request.user, organization_id)
+        batch = get_object_or_404(
+            ImportBatch, pk=batch_id, organization_id=organization_id
+        )
+        rows = batch.rows.all()
+        if request.query_params.get("rejected") == "1":
+            rows = rows.exclude(errors=[])
+        paginator = PageNumberPagination()
+        page = paginator.paginate_queryset(rows, request)
+        response = paginator.get_paginated_response(
+            [
+                {
+                    "id": row.pk,
+                    "number": row.number,
+                    "cells": row.cells,
+                    "errors": row.errors,
+                    "warnings": row.warnings,
+                    "normalized_dates": row.normalized_dates,
+                }
+                for row in page
+            ]
+        )
+        response.data["batch"] = BatchOutput(batch).data
+        response.data["headers"] = TEMPLATES[batch.template]["headers"]
+
+        response.data["history"] = [
+            {
+                "action": event.action,
+                "timestamp": event.occurred_at,
+                "actor_id": event.actor_id,
+                "context": event.context,
+            }
+            for event in adapter().history(organization_id, batch.pk)
+        ]
+        return response
+
+
+def safe_csv(value):
+    text = "" if value is None else str(value)
+    return (
+        "'" + text
+        if text.startswith(("\t", "\r", "\n"))
+        or text.lstrip(" \t\r\n\ufeff").startswith(("=", "+", "-", "@"))
+        else text
+    )
+
+
+class RejectionsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(responses={200: bytes})
+    def get(self, request, organization_id, batch_id):
+        authorize(request.user, organization_id)
+        batch = get_object_or_404(
+            ImportBatch, pk=batch_id, organization_id=organization_id
+        )
+        out = StringIO()
+        writer = csv.writer(out)
+        writer.writerow(
+            ["Ligne", "Erreurs"]
+            + [
+                f'{i}: {label or "Sans libellé"}'
+                for i, label in enumerate(TEMPLATES[batch.template]["headers"], 1)
+            ]
+        )
+        for row in batch.rows.exclude(errors=[]).iterator():
+            writer.writerow(
+                [row.number, "; ".join(row.errors)]
+                + [
+                    safe_csv(row.cells.get(str(i)))
+                    for i in range(1, len(TEMPLATES[batch.template]["headers"]) + 1)
+                ]
+            )
+
+        record(
+            "imports.rejections_downloaded",
+            actor=request.user,
+            organization_id=organization_id,
+            target_id=batch.pk,
+            request=request,
+        )
+        response = HttpResponse(
+            "\ufeff" + out.getvalue(), content_type="text/csv; charset=utf-8"
+        )
+        response["Content-Disposition"] = 'attachment; filename="rejets.csv"'
+        return response
+
+
+class PoliciesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(responses={200: PolicyOutput(many=True)})
+    def get(self, request, organization_id):
+        authorize(request.user, organization_id)
+        return Response(
+            PolicyOutput(
+                ImportPolicy.objects.filter(organization_id=organization_id).order_by(
+                    "-created_at"
+                )[:100],
+                many=True,
+            ).data
+        )
+
+    @extend_schema(request=PolicyInput, responses={201: PolicyOutput})
+    def post(self, request, organization_id):
+        serializer = PolicyInput(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(
+            PolicyOutput(
+                create_policy(
+                    request.user,
+                    organization_id,
+                    **serializer.validated_data,
+                    request=request,
+                )
+            ).data,
+            status=201,
+        )
+
+
+class PolicyApproveView(APIView):
+    permission_classes = [IsAuthenticated]
+    revoke = False
+
+    @extend_schema(request=None, responses={200: PolicyOutput})
+    def post(self, request, organization_id, policy_id):
+        if request.data:
+            raise ValidationError("Aucun champ autorisé.")
+        return Response(
+            PolicyOutput(
+                approve_policy(
+                    request.user, organization_id, policy_id, self.revoke, request
+                )
+            ).data
+        )
+
+
+class PolicyRevokeView(PolicyApproveView):
+    revoke = True
+
+
+class PublishView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(request=PublishInput, responses={200: BatchOutput})
+    def post(self, request, organization_id, batch_id):
+        authorize(request.user, organization_id, "imports.approve")
+        serializer = PublishInput(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            batch = publish(
+                request.user,
+                organization_id,
+                batch_id,
+                **serializer.validated_data,
+                request=request,
+            )
+        except ValidationError:
+
+            record(
+                "imports.publication_rejected",
+                actor=request.user,
+                organization_id=organization_id,
+                target_id=batch_id,
+                result="denied",
+                request=request,
+            )
+            raise
+        return Response(BatchOutput(batch).data)

@@ -1,0 +1,25 @@
+# Plan des entités et relations
+
+`clients/0006_prospect` ajoute une extension 1:1 de Party pour le CRM autonome : source d'acquisition (texte AICED, distincte d'ExternalIdentity), statut manuel contraint, prochaine action/date cohérentes, version et date de modification. Les UUID Party existants lient les interactions/opportunités ; aucun identifiant source réutilisé comme clé interne. La création est transactionnelle avec identité, profil et audit. Aucun champ financier ni conversion source. Les tables agenda et campagnes feront l'objet des prochaines tranches.
+
+Mise à jour Client 360 / Data Management : `clients/0005` ajoute origine/version et contacts/profil AICED, Interaction et Opportunity avec montant commercial Decimal. `ingestion/0001` à `0005` ajoutent règle de publication, lot, lignes staged, snapshots immuables, warnings, dates normalisées séparées et contraintes de cohérence approbation/publication. La publication reste limitée aux snapshots, sans lien implicite Party/FinancialAccount. Détails et vérifications : `client-360-data-management-status.md` et `import-templates.md`. Le plan Phase 1 ci-dessous reste historique.
+
+Phase 1 migre User, Organization, Capability, Role, Membership, RoleAssignment, LoginBucket, Party, PhysicalPerson, LegalEntity, CRMProfile, ExternalIdentity, FinancialAccount et AuditEvent. Commerce, staging, publication, rapprochement, SourceRecord et relations financières complètes restent un plan. UUID internes, dates timezone-aware, identifiants externes texte (zéros initiaux conservés). Aucun montant, devise, solde ou calcul financier n'est encore exposé.
+
+L'affectation de portefeuille initiale est un membership nullable sur Party (`assigned_to`). Une clé étrangère composite PostgreSQL garantit que le membership appartient à l'organisation du client. Des triggers différés valident à la fin de la transaction qu'un Party possède exactement son sous-type physique ou moral ; leur création doit donc être transactionnelle. Les tables sensibles de sous-types ne sont pas exposées par les serializers de base. Le compte local est une projection minimale attachée à un Party pour tester les permissions financières, sans hypothèse sur cotitulaires/mandataires : `AccountParty` et provenance de publication devront être complétés avant intégration. Les triggers PostgreSQL ne sont pas reproduits par la configuration SQLite de tests unitaires.
+
+La migration `clients/0004_crmprofile_crm_notes_length.py` ajoute une contrainte SQL de longueur des notes (5 000 caractères), en complément de la validation de service. La suppression d'un champ financier, la conversion de type de tiers et le rapprochement ne sont pas des opérations exposées par cette phase.
+
+| Domaine | Entités et cardinalités | Contraintes prévues |
+|---|---|---|
+| Identité | User, Organization(parent), Role, Permission, Membership(user, organization), ScopedRoleAssignment(membership, role) | Code permission unique ; pas de rôle global implicite ; expiration des affectations |
+| Clients | Party(kind), PhysicalPerson(party 1:1), LegalEntity(party 1:1), CRMProfile(party 1:1), Assignment(party, employee, organization) | Un seul sous-type cohérent ; identité sensible séparée ; index organisation et affectation |
+| Sources | ExternalIdentity(party N:1, source, external_id), SourceRecord(batch N:1, source_key, version), FinancialAccount, AccountParty(account N:M party, relationship) | Unicité source/type/external_id ; clés externes ne sont jamais PK ; titulaire et mandataire distincts |
+| Commerce | Prospect(party 1:1), Opportunity(party N:1, owner), Interaction(party N:1, author), Appointment, Reminder, Campaign, CampaignMembership | Étapes et transitions validées côté serveur ; historique conservé |
+| Import | ImportTemplate(version), ImportBatch(template N:1, uploader, organization, snapshot_kind, source_as_of, digest), StagingRow(batch N:1, row_number), ValidationIssue(row N:1), Publication | Unique batch/row ; clé d'idempotence organisation/source/template/version/digest/portée ; publication unique par lot |
+| Rapprochement | ReconciliationCase(source_record, party nullable, kind, status), MatchProposal(case N:1, candidate), Decision(case N:1, reviewer, reason, previous/new references) | Pas de fusion incertaine ; décisions append-only ; verrouillage lors de résolution |
+| Audit | AuditEvent(actor nullable, action, target UUID, organization, result, request_id, timestamp) | Append-only côté application ; index date/action/acteur ; accès dédié |
+
+Les tableaux de bord sont des agrégations autorisées de ces entités, pas des copies financières. Les versions source nécessaires à la traçabilité sont conservées selon une politique à approuver ; éviter de dupliquer des portefeuilles complets dans chaque profil.
+
+Publication : transaction atomique, verrou du lot, contrôle approbation/permission/périmètre à nouveau, références des lignes acceptées et journal d'audit dans la même transaction. Les notifications futures utilisent un outbox transactionnel seulement si nécessaire. Les suppressions en cascade sur historique et sources sont interdites ; PROTECT ou archivage explicite.
