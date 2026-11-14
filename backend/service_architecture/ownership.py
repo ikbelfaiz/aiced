@@ -37,6 +37,7 @@ def table_owner(table):
         "ingestion_importbatch",
         "ingestion_stagingrow",
         "ingestion_sourcesnapshot",
+        "ingestion_runtimestate",
     ):
         return "integration"
     raise ValueError(f"Unclassified table: {table}")

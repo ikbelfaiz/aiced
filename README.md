@@ -1,5 +1,7 @@
 # AICED
 
+**Current status ? S4, 2026-11-14:** Data Integration is independently running and active on the local synthetic deployment, with its own restricted PostgreSQL schema. All 38 public routes remain compatible. Forward cutover, post-write rollback, restore and independent process restart were verified. IAM, Client/CRM and Commercial are not yet independently extracted. Docker/production deployment remains unverified. See [S4 results and operations](docs/migration/s4-cutover.md) and [verified ownership inventory](docs/migration/s4-inventory.json). Earlier status statements below are historical.
+
 S2 : [contrats internes, garanties de révocation, audit/outbox, migrations et prérequis Integration](docs/migration/s2-authorization-audit.md). Les 38 routes publiques restent inchangées ; aucun service métier extrait. Appliquer les deux migrations additives avant le nouveau code ; pour le cluster portable local, `python scripts/s2_migrate_local.py --confirm-local-additive` vérifie d'abord une sauvegarde/restauration et une migration scratch.
 
 **Direction actualisee : quatre services Django/DRF larges (IAM, Client & CRM, Commercial, Integration), schemas/credentials separes sur PostgreSQL partage.** Voir [le plan courant et S1](docs/migration/coarse-services-plan.md). Le monolithe actuel est transitoire ; les anciennes recommandations M2 de le conserver comme cible finale sont remplacees. Aucun service metier independant encore livre dans S1.

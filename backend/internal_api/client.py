@@ -9,6 +9,21 @@ from rest_framework.exceptions import APIException
 from .security import signed_headers
 
 
+def request_credentials(request):
+    from django.conf import settings
+
+    return {
+        "session_key": request.COOKIES.get(settings.SESSION_COOKIE_NAME, ""),
+        "method": request.method,
+        "csrf_cookie": request.COOKIES.get(settings.CSRF_COOKIE_NAME, ""),
+        "csrf_token": request.headers.get("X-CSRFToken", ""),
+        "origin": request.headers.get("Origin", ""),
+        "referer": request.headers.get("Referer", ""),
+        "host": request.get_host(),
+        "scheme": request.scheme,
+    }
+
+
 class ServiceUnavailable(APIException):
     status_code = 503
     default_detail = "Service d’autorisation indisponible."

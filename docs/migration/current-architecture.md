@@ -1,5 +1,7 @@
 # Audit de l'architecture actuelle
 
+**Current status ? S4, 2026-11-14:** Data Integration is independently running and active on the local synthetic deployment, with its own restricted PostgreSQL schema. All 38 public routes remain compatible. Forward cutover, post-write rollback, restore and independent process restart were verified. IAM, Client/CRM and Commercial are not yet independently extracted. Docker/production deployment remains unverified. See [S4 results and operations](s4-cutover.md) and [verified ownership inventory](s4-inventory.json). Earlier status statements below are historical.
+
 > Nouvelle decision utilisateur apres M2 : cible a quatre services larges sur une instance/base PostgreSQL, schemas et credentials separes. Prospects et interactions appartiennent a Client & CRM. Le [plan de decomposition courant](coarse-services-plan.md) remplace les anciennes recommandations de ce document ; les preuves historiques M1/M2 restent conservees.
 
 

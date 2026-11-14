@@ -5,6 +5,27 @@ from django.db import models
 DATE_FORMAT_CHOICES = [("ISO", "ISO"), ("DMY", "Jour/mois/année")]
 
 
+class RuntimeState(models.Model):
+    """Offline deployment control, never writable through a public serializer."""
+
+    id = models.PositiveSmallIntegerField(primary_key=True, default=1)
+    mode = models.CharField(
+        max_length=8,
+        choices=[("legacy", "legacy"), ("service", "service"), ("frozen", "frozen")],
+    )
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(id=1), name="legacy_import_gate_singleton"
+            ),
+            models.CheckConstraint(
+                condition=models.Q(mode__in=["legacy", "service", "frozen"]),
+                name="legacy_import_gate_mode",
+            ),
+        ]
+
+
 class ImportPolicy(models.Model):
     """An approved, versioned rule permits immutable snapshots only, never CRM merging."""
 

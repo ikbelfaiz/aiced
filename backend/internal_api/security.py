@@ -41,7 +41,11 @@ def signed_headers(key_id, secret, audience, path, body):
 
 
 def authenticate(request, audience):
-    from identity.models import InternalNonce
+    from django.apps import apps
+
+    InternalNonce = apps.get_model(
+        getattr(settings, "INTERNAL_NONCE_MODEL", "identity.InternalNonce")
+    )
 
     if request.method != "POST" or request.META.get("QUERY_STRING"):
         raise PermissionDenied("Appel interne invalide.")

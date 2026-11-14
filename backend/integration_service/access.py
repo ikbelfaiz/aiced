@@ -7,7 +7,7 @@ from django.db import transaction
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import PermissionDenied
 from core.admission import barrier
-from internal_api.client import InternalClient, ServiceUnavailable
+from internal_api.client import InternalClient, ServiceUnavailable, request_credentials
 from integration_store.models import ActorRef, OrganizationRef, Journal
 
 
@@ -23,16 +23,7 @@ class DelegatedSession(BaseAuthentication):
         session = request.COOKIES.get(settings.SESSION_COOKIE_NAME, "")
         if not re.fullmatch(r"[a-z0-9]{32}", session):
             return None
-        credentials = {
-            "session_key": session,
-            "method": request.method,
-            "csrf_cookie": request.COOKIES.get(settings.CSRF_COOKIE_NAME, ""),
-            "csrf_token": request.headers.get("X-CSRFToken", ""),
-            "origin": request.headers.get("Origin", ""),
-            "referer": request.headers.get("Referer", ""),
-            "host": request.get_host(),
-            "scheme": request.scheme,
-        }
+        credentials = request_credentials(request)
         result = iam().post(
             "/internal/v1/principal/resolve", {"credentials": credentials}
         )
@@ -57,6 +48,9 @@ class RemoteAccess:
             # Jobs must provide a real delegated principal; UUID alone never grants access.
             raise PermissionDenied("Délégation IAM requise.")
         if lock:
+            from core.import_gate import admit
+
+            admit(lock=True)
             if not transaction.get_connection().in_atomic_block:
                 raise RuntimeError("Mutation requires local transaction")
             # Serialize quota/idempotency per org without reading IAM tables.

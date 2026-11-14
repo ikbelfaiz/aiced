@@ -51,6 +51,8 @@ class IsolatedApplicationTests(SimpleTestCase):
         ]
         actual = []
         for pattern in get_resolver().url_patterns:
+            if not str(pattern.pattern).startswith("api/imports/"):
+                continue
             view = pattern.callback.view_class
             actual.append(
                 {

@@ -1,5 +1,7 @@
 # AICED — Project handover and testing guide
 
+**Current status ? S4, 2026-11-14:** Data Integration is independently running and active on the local synthetic deployment, with its own restricted PostgreSQL schema. All 38 public routes remain compatible. Forward cutover, post-write rollback, restore and independent process restart were verified. IAM, Client/CRM and Commercial are not yet independently extracted. Docker/production deployment remains unverified. See [S4 results and operations](migration/s4-cutover.md) and [verified ownership inventory](migration/s4-inventory.json). Earlier status statements below are historical.
+
 **Prepared:** 14 November 2026  
 **Audience:** project teammates, developers and manual testers  
 **Scope:** actual repository implementation and recorded verification results. This is a development MVP, not a production acceptance certificate.

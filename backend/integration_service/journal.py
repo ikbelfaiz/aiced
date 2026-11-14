@@ -13,6 +13,10 @@ def record(
     request=None,
     context=None
 ):
+    if action.startswith("imports."):
+        from core.import_gate import admit
+
+        admit(lock=True)
     event = Journal.objects.create(
         action=action,
         actor_id=actor.pk if actor and actor.is_authenticated else None,

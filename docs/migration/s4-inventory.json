@@ -1,0 +1,57 @@
+{
+  "phase": "S4",
+  "environment": "portable local development",
+  "public_route_patterns": 38,
+  "import_route_patterns": 9,
+  "import_method_path_pairs": 10,
+  "public_table_count": 34,
+  "integration_tables": [
+    "django_migrations",
+    "ingestion_importbatch",
+    "ingestion_importpolicy",
+    "ingestion_sourcesnapshot",
+    "ingestion_stagingrow",
+    "integration_store_actorref",
+    "integration_store_internalnonce",
+    "integration_store_journal",
+    "integration_store_organizationref",
+    "integration_store_outbox",
+    "integration_store_runtimestate"
+  ],
+  "integration_migrations": [
+    [
+      "integration_store",
+      "0001_initial"
+    ],
+    [
+      "integration_store",
+      "0002_integrity_boundaries"
+    ],
+    [
+      "integration_store",
+      "0003_internalnonce_runtimestate"
+    ],
+    [
+      "integration_store",
+      "0004_writer_fence"
+    ]
+  ],
+  "foreign_key_target_schemas": [
+    "aiced_integration"
+  ],
+  "canonical_modes": {
+    "legacy_control": "service",
+    "service_control": "service"
+  },
+  "retired_import_owners_are_nologin": true,
+  "runtime_checks": {
+    "superuser": false,
+    "createdb": false,
+    "createrole": false,
+    "replication": false,
+    "bypassrls": false,
+    "public_schema_usage": false,
+    "own_schema_create": false,
+    "temp": false
+  }
+}

@@ -115,6 +115,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--confirm-local-rehearsal", required=True, action="store_true")
     parser.add_argument(
+        "--s4",
+        action="store_true",
+        help="Exercise active cutover, federated audit and post-write rollback",
+    )
+    parser.add_argument(
         "--keep-candidate",
         action="store_true",
         help="Keep this marked restored candidate and private credentials after a successful rehearsal",
@@ -128,7 +133,9 @@ def main():
     ):
         raise ValueError("Only the portable local development cluster is supported")
     run = uuid.uuid4().hex
-    directory = ROOT / ".local/s3-rehearsal" / run
+    directory = (
+        ROOT / (".local/s4-rehearsal" if options.s4 else ".local/s3-rehearsal") / run
+    )
     directory.mkdir(parents=True, mode=0o700)
     env = {
         **original,
@@ -159,6 +166,12 @@ def main():
             "audiences": ["iam", "audit"],
         }
     }
+    if options.s4:
+        keys["iam-integration-v1"] = {
+            "secret": secrets.token_urlsafe(48),
+            "service": "iam",
+            "audiences": ["integration"],
+        }
     child["AICED_INTERNAL_KEYS"] = json.dumps(keys)
     report = {
         "run": run,
@@ -285,6 +298,10 @@ def main():
             "existing backup restored with exact record/schema parity before provisioning"
         )
         execute(
+            "legacy-additive-migrations",
+            [sys.executable, "backend/manage.py", "migrate", "--noinput"],
+        )
+        execute(
             "synthetic-fixture",
             [sys.executable, "backend/testing/integration_fixture.py"],
         )
@@ -343,6 +360,26 @@ def main():
         passed(
             "owned migrations, four exact table copies, local references and local-only foreign keys"
         )
+        if options.s4:
+            from s4_transfer import freeze, activate, transfer, fence_legacy
+
+            with psycopg.connect(**connection_args(admin), autocommit=True) as conn:
+                freeze(conn)
+                transfer(conn, "public", SCHEMA)
+                with conn.transaction():
+                    fence_legacy(conn, env, spec)
+                    activate(conn, SCHEMA)
+            with psycopg.connect(**connection_args(env), autocommit=True) as conn:
+                try:
+                    conn.execute(
+                        "UPDATE public.ingestion_importbatch SET status=status"
+                    )
+                    raise AssertionError("Retired writer retained DML")
+                except psycopg.errors.InsufficientPrivilege:
+                    pass
+            passed(
+                "S4: frozen forward transfer verified; old table ownership/DML retired; exactly one writer enabled"
+            )
         with runtime_connect() as conn:
             assert conn.execute("SELECT current_schema()").fetchone()[0] == SCHEMA
             assert (
@@ -387,6 +424,10 @@ def main():
             "backend": backend_port,
         }
         integration_env["AICED_IAM_URL"] = f"http://127.0.0.1:{iam_port}"
+        if options.s4:
+            child["AICED_INTEGRATION_AUDIT_URL"] = (
+                f"http://127.0.0.1:{integration_port}"
+            )
         # Persist only this service's credentials/config; never the IAM database password.
         private_env = {
             key: value
@@ -500,6 +541,36 @@ def main():
             passed(
                 "separate real IAM, legacy and Integration processes started with separate credentials through Nginx"
             )
+            if options.s4:
+                assert (
+                    Browser(f"http://127.0.0.1:{integration_port}").request(
+                        "/health/ready"
+                    )[0]
+                    == 200
+                )
+                assert (
+                    Browser(f"http://127.0.0.1:{backend_port}").request(
+                        "/api/imports/context/"
+                    )[0]
+                    == 503
+                )
+                # Fresh audit read before asynchronous delivery must contain the
+                # exact original actor and copied/new import context, once only.
+                audit = reviewer.request("/api/audit/")
+                assert audit[0] == 200, audit[0]
+                assert len({row["id"] for row in audit[1]["results"]}) == len(
+                    audit[1]["results"]
+                )
+                assert any(
+                    row["action"] == "imports.published"
+                    and row["target_id"] == state["batch_id"]
+                    and row["actor_id"] == state["reviewer"]["id"]
+                    for row in audit[1]["results"]
+                )
+                assert uploader.request("/api/audit/")[0] == 403
+                passed(
+                    "S4: ready probe, old HTTP fence and fresh federated public audit verified without widening permissions"
+                )
             assert (
                 Browser(base).request(
                     "/api/imports/context/",
@@ -574,6 +645,15 @@ def main():
                 {"policy_id": state["policy_id"], "skip_rejected": True},
             )
             assert result[0] == 200 and result[1]["published_rows"] == 1
+            if options.s4:
+                audit = reviewer.request("/api/audit/")
+                assert audit[0] == 200
+                assert any(
+                    row["action"] == "imports.published"
+                    and row["target_id"] == batch_id
+                    and row["actor_id"] == state["reviewer"]["id"]
+                    for row in audit[1]["results"]
+                )
             assert (
                 reviewer.request(
                     root + f"batches/{batch_id}/publish/",
@@ -625,6 +705,7 @@ def main():
                 [str(ROOT / ".tools/node.exe"), "scripts/s3_browser.mjs"],
                 {
                     **child,
+                    "AICED_S4": "1" if options.s4 else "0",
                     "AICED_S3_URL": base,
                     "AICED_S3_WORKBOOK": str(directory / "browser-synthetic.xlsx"),
                     "AICED_S3_REPORT_DIR": str(directory),
@@ -633,6 +714,100 @@ def main():
             passed(
                 "Chromium: unchanged login/import screens, restored preview, XLSX upload, rejected rows and permission-aware IT denial"
             )
+            if options.s4:
+                pending_result = uploader.request(
+                    upload,
+                    workbook("S4-ROLLBACK-STAGED-" + run),
+                    headers={"Content-Type": "application/octet-stream"},
+                )
+                assert pending_result[0] == 201
+                pending_batch = pending_result[1]["id"]
+                with runtime_connect() as held:
+                    held.execute("BEGIN")
+                    held.execute(
+                        "SELECT pg_advisory_xact_lock_shared(%s)", (591445740000002,)
+                    )
+
+                    def freezing():
+                        with psycopg.connect(
+                            **connection_args(admin), autocommit=True
+                        ) as c:
+                            freeze(c)
+
+                    with ThreadPoolExecutor(max_workers=2) as pool:
+                        freezer = pool.submit(freezing)
+                        deadline = time.monotonic() + 8
+                        with psycopg.connect(
+                            **connection_args(admin), autocommit=True
+                        ) as c:
+                            while not c.execute(
+                                "SELECT 1 FROM pg_stat_activity WHERE datname=%s AND usename=%s AND wait_event='advisory'",
+                                (env["POSTGRES_DB"], admin["POSTGRES_USER"]),
+                            ).fetchone():
+                                if time.monotonic() > deadline:
+                                    raise AssertionError(
+                                        "Freeze did not wait for admitted work"
+                                    )
+                                time.sleep(0.02)
+                        waiter = pool.submit(
+                            uploader.request,
+                            upload,
+                            workbook("S4-WAITING-FREEZE-" + run),
+                            headers={"Content-Type": "application/octet-stream"},
+                        )
+                        time.sleep(0.15)
+                        held.execute("COMMIT")
+                        freezer.result(timeout=10)
+                        assert waiter.result(timeout=10)[0] == 503
+                assert reviewer.request("/api/audit/")[0] == 503
+                with psycopg.connect(**connection_args(admin), autocommit=True) as c:
+                    activate(c, SCHEMA)
+                assert uploader.request(root + f"batches/{pending_batch}/")[0] == 200
+                passed(
+                    "S4: freeze waits for admitted transactions; queued HTTP upload rejected after freeze; existing staged work remains intact"
+                )
+                from internal_api.security import signed_headers
+                from urllib.parse import urlsplit
+
+                path = "/internal/v1/integration/audit/query"
+                credentials = {
+                    "session_key": next(
+                        c.value for c in reviewer.jar if c.name == "sessionid"
+                    ),
+                    "method": "GET",
+                    "host": urlsplit(base).netloc,
+                    "scheme": "http",
+                }
+                body = json.dumps(
+                    {"credentials": credentials, "offset": 0, "limit": 100},
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ).encode()
+                private = Browser(f"http://127.0.0.1:{integration_port}")
+                assert (
+                    private.request(
+                        path,
+                        body,
+                        headers={
+                            "Content-Type": "application/json",
+                            "X-User-ID": state["reviewer"]["id"],
+                            "X-Role": "admin",
+                        },
+                    )[0]
+                    == 403
+                )
+                headers = signed_headers(
+                    "iam-integration-v1",
+                    keys["iam-integration-v1"]["secret"],
+                    "integration",
+                    path,
+                    body,
+                )
+                assert private.request(path, body, headers=headers)[0] == 200
+                assert private.request(path, body, headers=headers)[0] == 403
+                passed(
+                    "S4: owned replay store rejects forged private audit headers and repeated signed requests"
+                )
             with psycopg.connect(**connection_args(admin), autocommit=True) as conn:
                 counts = [
                     count(conn, table)
@@ -735,6 +910,8 @@ def main():
             iam_process.terminate()
             iam_process.wait(timeout=10)
             assert reviewer.request(root + "batches/")[0] == 503
+            if options.s4:
+                assert reviewer.request("/api/audit/")[0] == 503
             assert (
                 reviewer.request(
                     root + f"batches/{batch_id}/publish/",
@@ -767,6 +944,8 @@ def main():
             service.terminate()
             service.wait(timeout=10)
             assert reviewer.request(root + "batches/")[0] == 502
+            if options.s4:
+                assert reviewer.request("/api/audit/")[0] == 503
             assert reviewer.request("/api/session/")[0] == 200
             passed(
                 "Integration process loss produces Gateway 502 while legacy session API remains available"
@@ -914,6 +1093,40 @@ def main():
             "post-commit candidate backup/restore: exact owned records, constraints, triggers, owners/ACL and separate-process startup"
         )
         scratch.drop(second)
+        if options.s4:
+            with psycopg.connect(**connection_args(admin), autocommit=True) as conn:
+                freeze(conn)
+
+                class ProbeRollback(Exception):
+                    pass
+
+                try:
+                    with conn.transaction():
+                        conn.execute(
+                            "UPDATE public.ingestion_importbatch SET digest=%s WHERE id=%s",
+                            ("0" * 64, state["batch_id"]),
+                        )
+                        try:
+                            transfer(conn, SCHEMA, "public")
+                        except ValueError as error:
+                            assert "Immutable transfer conflict" in str(error)
+                        else:
+                            raise AssertionError(
+                                "Divergent immutable metadata was overwritten"
+                            )
+                        raise ProbeRollback()
+                except ProbeRollback:
+                    pass
+                transfer(conn, SCHEMA, "public")
+                # Replay the offline transfer itself: UUIDs, immutable rows and
+                # delivery metadata must remain safe if deployment is retried.
+                transfer(conn, SCHEMA, "public")
+                with conn.transaction():
+                    fence_legacy(conn, env, spec, active=False)
+                    activate(conn, "public")
+            passed(
+                "S4: post-commit rollback reverse-copies new/published/staged batches and full audit/outbox; repeated transfer is idempotent"
+            )
         # Rollback candidate routing against the untouched legacy dataset.
         with ExitStack() as stack:
             stack.enter_context(
@@ -941,9 +1154,98 @@ def main():
             browser = Browser(base)
             browser.login(state["reviewer"]["username"], child["AICED_S3_PASSWORD"])
             assert browser.request(root + f"batches/{state['batch_id']}/")[0] == 200
+            if options.s4:
+                reverted = browser.request(root + f"batches/{batch_id}/")
+                assert (
+                    reverted[0] == 200 and reverted[1]["batch"]["published_rows"] == 1
+                )
+                assert any(
+                    event["action"] == "imports.published"
+                    for event in reverted[1]["history"]
+                )
+                assert browser.request(root + "batches/")[1]["count"] >= 3
+                assert (
+                    browser.request(root + f'policies/{policy[1]["id"]}/approve/', {})[
+                        0
+                    ]
+                    == 400
+                )
+                audit = browser.request("/api/audit/")
+                assert audit[0] == 200 and any(
+                    row["target_id"] == batch_id for row in audit[1]["results"]
+                )
+                # A staged batch remains actionable after reverse transfer, not
+                # just visible. Existing publication replays keep the same rows.
+                assert (
+                    browser.request(
+                        root + f"batches/{batch_id}/publish/",
+                        {"policy_id": state["policy_id"], "skip_rejected": True},
+                    )[0]
+                    == 200
+                )
+                assert (
+                    browser.request(root + f"batches/{pending_batch}/")[1]["batch"][
+                        "status"
+                    ]
+                    == "staged"
+                )
+                resumed = browser.request(
+                    root + f"batches/{pending_batch}/publish/",
+                    {"policy_id": state["policy_id"], "skip_rejected": True},
+                )
+                assert resumed[0] == 200 and resumed[1]["published_rows"] == 1
+                passed(
+                    "S4: normal legacy Gateway resumes a previously staged service batch after rollback with exactly one published row"
+                )
         passed(
             "pre-cutover rollback: default Gateway imports route still serves original history"
         )
+        if options.s4:
+            after_public = fingerprint(env)
+            for table, value in public_before_copy["tables"].items():
+                if table.startswith("clients_"):
+                    require_equal(
+                        value,
+                        after_public["tables"][table],
+                        "Client/CRM and authoritative accounts unchanged: " + table,
+                    )
+            report["client_crm_unchanged"] = True
+            with psycopg.connect(**connection_args(admin), autocommit=True) as c:
+                freeze(c)
+                transfer(c, "public", SCHEMA)
+                with c.transaction():
+                    fence_legacy(c, env, spec)
+                    activate(c, SCHEMA)
+            report["final_writer"] = "integration"
+            report["code_sha256"] = {
+                str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
+                for directory_name in [
+                    "backend/integration_service",
+                    "backend/integration_store",
+                    "backend/ingestion",
+                    "backend/internal_api",
+                    "backend/audit",
+                    "backend/core",
+                    "backend/config",
+                    "backend/identity",
+                    "backend/clients",
+                ]
+                for p in (ROOT / directory_name).rglob("*.py")
+            }
+            for name in [
+                "scripts/s4_transfer.py",
+                "scripts/s4_local.py",
+                "scripts/run_s4_deployment.py",
+                "scripts/s3_database.py",
+                "scripts/s3_rehearsal.py",
+                "infra/gateway/nginx.conf.template",
+            ]:
+                report["code_sha256"][name] = hashlib.sha256(
+                    (ROOT / name).read_bytes()
+                ).hexdigest()
+            passed(
+                "S4: forward re-cutover preserves post-rollback publication; final local writer is Integration; no Client/CRM or account rows changed"
+            )
         report["status"] = "passed"
     finally:
         try:

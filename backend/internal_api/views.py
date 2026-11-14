@@ -166,6 +166,33 @@ class ImportContextView(PrivateView):
         return Response(result)
 
 
+class ImportAuditScopeView(PrivateView):
+    def post(self, request):
+        if self.service != "integration":
+            raise PermissionDenied("Service non autorisé.")
+        data = self.validated(PrincipalInput, request)
+        actor = resolve(data["credentials"])
+        from identity.policies import organization_ids
+
+        organizations = list(
+            organization_ids(actor, "audit.view", full_scope=True).distinct()
+        )
+        if not organizations:
+            raise PermissionDenied("Audit non autorisé.")
+        return Response({"organizations": [str(org) for org in organizations]})
+
+
+class IntegrationReadyView(PrivateView):
+    def post(self, request):
+        if self.service != "integration" or request.data:
+            raise PermissionDenied("Appel non autorisé.")
+        from django.db import connection
+
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+        return Response({"ready": True, "database": connection.settings_dict["NAME"]})
+
+
 class ClientAuthorizationView(PrivateView):
     audience = "client"
 

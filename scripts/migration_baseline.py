@@ -61,10 +61,16 @@ def connection_args(env, database=None):
     )
 
 
-def fingerprint(env):
+def fingerprint(env, snapshot=None):
     """Sorted private digests, schema and sequence state in one read-only snapshot."""
     with psycopg.connect(**connection_args(env)) as conn:
         conn.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
+        if snapshot is not None:
+            # An exported same-database snapshot lets a live-development backup
+            # be compared coherently even if unrelated users keep working.
+            if not re.fullmatch(r'[0-9A-Fa-f-]+', snapshot):
+                raise ValueError('Invalid exported snapshot')
+            conn.execute(sql.SQL('SET TRANSACTION SNAPSHOT {}').format(sql.Literal(snapshot)))
         tables = [
             row[0]
             for row in conn.execute(

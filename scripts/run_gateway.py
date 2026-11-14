@@ -19,6 +19,10 @@ def main():
     )
     parser.add_argument("--backend", default="127.0.0.1:8000")
     parser.add_argument("--frontend", default="127.0.0.1:5173")
+    parser.add_argument(
+        "--integration",
+        help="Explicit Integration upstream; default is the existing backend",
+    )
     parser.add_argument("--port", type=int, default=8080)
     options = parser.parse_args()
     env = {**os.environ}
@@ -26,7 +30,12 @@ def main():
         env.update(json.loads(options.env_file.read_text()))
     key = env.get("AICED_GATEWAY_KEY", "")
     with nginx_gateway(
-        ROOT / ".local/gateway", options.backend, options.frontend, key, options.port
+        ROOT / ".local/gateway",
+        options.backend,
+        options.frontend,
+        key,
+        options.port,
+        integration=options.integration,
     ) as url:
         print(f"AICED Gateway: {url} (Ctrl+C to stop)", flush=True)
         try:

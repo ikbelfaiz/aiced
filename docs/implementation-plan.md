@@ -1,5 +1,7 @@
 # Roadmap AICED — migration par services et suite métier
 
+**Current status ? S4, 2026-11-14:** Data Integration is independently running and active on the local synthetic deployment, with its own restricted PostgreSQL schema. All 38 public routes remain compatible. Forward cutover, post-write rollback, restore and independent process restart were verified. IAM, Client/CRM and Commercial are not yet independently extracted. Docker/production deployment remains unverified. See [S4 results and operations](migration/s4-cutover.md) and [verified ownership inventory](migration/s4-inventory.json). Earlier status statements below are historical.
+
 **S2 livré et vérifié** : [autorisation interne, coordination de révocation, audit transactionnel et gates S3](migration/s2-authorization-audit.md). Prochaine extraction : Data Integration candidat synthétique, uniquement après ses migrations/settings/credentials et adaptateurs HTTP propres. Aucun service métier encore extrait ; S2 a ajouté trois tables techniques et deux migrations, sans transfert métier.
 
 **Direction actualisee : quatre services Django/DRF larges (IAM, Client & CRM, Commercial, Integration), schemas/credentials separes sur PostgreSQL partage.** Voir [le plan courant et S1](migration/coarse-services-plan.md). Le monolithe actuel est transitoire ; les anciennes recommandations M2 de le conserver comme cible finale sont remplacees. Aucun service metier independant encore livre dans S1.

@@ -34,6 +34,7 @@ MIDDLEWARE = [
     'core.middleware.GatewayMetadataMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'core.middleware.RequestContextMiddleware',
+    'core.import_gate_middleware.ImportGateMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -63,9 +64,11 @@ for _key_id, _key in AICED_INTERNAL_KEYS.items():
             or _key.get('secret') in _internal_secrets
             or _key.get('service') not in ('iam','client_crm','commercial','integration')
             or not isinstance(_key.get('audiences'), list)
-            or not set(_key['audiences']) <= {'iam','client','audit'}):
+            or not set(_key['audiences']) <= {'iam','client','audit','integration'}):
         raise ImproperlyConfigured('Invalid AICED_INTERNAL_KEYS configuration.')
     _internal_secrets.add(_key['secret'])
+INTEGRATION_AUDIT_URL = os.environ.get('AICED_INTEGRATION_AUDIT_URL', '')
+INTEGRATION_AUDIT_KEY_ID = os.environ.get('AICED_INTEGRATION_AUDIT_KEY_ID', 'iam-integration-v1')
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 'OPTIONS': {'min_length': 12}},

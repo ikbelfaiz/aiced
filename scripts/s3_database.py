@@ -25,8 +25,8 @@ def guard(conn, env):
         raise ValueError("Only marked disposable restored databases are supported")
 
 
-def provision(conn, env):
-    guard(conn, env)
+def provision(conn, env, verify=guard):
+    verify(conn, env)
     run = env["AICED_REHEARSAL_RUN"]
     spec = {
         "schema": SCHEMA,
@@ -105,6 +105,16 @@ def grant_runtime(conn, spec):
             sql.SQL("GRANT SELECT ON TABLE {}.django_migrations TO {}").format(
                 sql.Identifier(SCHEMA), runtime
             )
+        )
+        conn.execute(
+            sql.SQL(
+                "GRANT SELECT ON TABLE {}.integration_store_runtimestate TO {}"
+            ).format(sql.Identifier(SCHEMA), runtime)
+        )
+        conn.execute(
+            sql.SQL(
+                "GRANT SELECT,INSERT,DELETE ON TABLE {}.integration_store_internalnonce TO {}"
+            ).format(sql.Identifier(SCHEMA), runtime)
         )
         for table in [
             *TABLES,
@@ -226,7 +236,12 @@ def copy_restored(conn, env):
 
 
 def cleanup_roles(conn, env, spec):
-    for kind in ("runtime", "migrator", "owner"):
+    for kind in (
+        "runtime",
+        "migrator",
+        "owner",
+        *(["archive"] if "archive" in spec["roles"] else []),
+    ):
         name = spec["roles"][kind]
         marker = conn.execute(
             "SELECT shobj_description(oid,'pg_authid') FROM pg_roles WHERE rolname=%s",

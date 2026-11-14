@@ -1,0 +1,68 @@
+# Active local/staging Integration routing; provision and verify persistence first.
+# Private env/cert files are intentionally not included in source control.
+services:
+  backend:
+    env_file:
+      - .env
+      - .env.iam-internal
+    environment:
+      AICED_INTEGRATION_AUDIT_URL: https://integration:8444
+      SSL_CERT_FILE: /run/tls/ca.pem
+    volumes:
+      - ./.local/s4-tls/ca.pem:/run/tls/ca.pem:ro
+    depends_on:
+      integration:
+        condition: service_healthy
+  iam-contracts:
+    build: ./backend
+    env_file: .env.iam-internal
+    environment:
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:?Set public allowed hosts},iam-contracts
+      IAM_TLS_CERT: /run/tls/iam.pem
+      IAM_TLS_KEY: /run/tls/iam-key.pem
+    command: [python, -m, internal_api.serve]
+    volumes:
+      - ./.local/s4-tls:/run/tls:ro
+    depends_on:
+      db:
+        condition: service_healthy
+  integration:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.integration
+    env_file: .env.integration
+    environment:
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:?Set public allowed hosts},integration
+      AICED_IAM_URL: https://iam-contracts:8443
+      SSL_CERT_FILE: /run/tls/ca.pem
+      INTEGRATION_TLS_CERT: /run/tls/integration.pem
+      INTEGRATION_TLS_KEY: /run/tls/integration-key.pem
+    command: [python, -m, integration_service.serve]
+    volumes:
+      - ./.local/s4-tls:/run/tls:ro
+    depends_on:
+      db:
+        condition: service_healthy
+      iam-contracts:
+        condition: service_started
+    healthcheck:
+      test: [CMD, python, -c, "import ssl,urllib.request; urllib.request.urlopen('https://integration:8444/health/ready',context=ssl.create_default_context(),timeout=5)"]
+      interval: 15s
+      timeout: 8s
+      retries: 5
+  integration-migrate:
+    profiles: [tools]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.integration
+    env_file: .env.integration-migrator
+    command: [python, integration_service/manage.py, migrate, --noinput]
+    depends_on:
+      db:
+        condition: service_healthy
+  gateway:
+    environment:
+      INTEGRATION_UPSTREAM: ${INTEGRATION_UPSTREAM:-integration:8002}
+    depends_on:
+      integration:
+        condition: service_healthy

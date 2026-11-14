@@ -24,6 +24,36 @@ try {
   await expect(page.getByRole('link', { name: 'Rapport des rejets CSV' })).toBeVisible();
   await page.screenshot({ path: `${process.env.AICED_S3_REPORT_DIR}/integration-ui.png`, fullPage: true });
   console.log('PASS: actual upload, Zod contract, duplicate-row preview and rejection report link');
+  if (process.env.AICED_S4 === '1') {
+    const rationale = `Synthetic S4 browser review ${Date.now()}: immutable snapshots only`;
+    await page.getByRole('button', {name:'Règles de publication',exact:true}).click();
+    await page.getByRole('button', {name:'Proposer une règle'}).click();
+    await page.getByLabel('Justification de propriété et d’unicité (20 caractères minimum)').fill(rationale);
+    await page.getByRole('button', {name:'Enregistrer',exact:true}).click();
+    await expect(page.getByText(rationale,{exact:true})).toBeVisible();
+    await page.locator('.profile-menu summary').click();
+    await page.getByRole('button', {name:'Se déconnecter'}).click();
+    await page.getByLabel('Identifiant professionnel').fill(state.reviewer.username);
+    await page.getByLabel('Mot de passe',{exact:true}).fill(process.env.AICED_S3_PASSWORD);
+    await page.getByRole('button',{name:'Connexion',exact:true}).click();
+    await expect(page).not.toHaveURL(/\/connexion/);
+    await page.goto(`${base}/gestion-donnees`);
+    await page.getByRole('button',{name:'Règles de publication',exact:true}).click();
+    const rule=page.locator('.policy-list article').filter({hasText:rationale});
+    await rule.getByRole('button',{name:'Approuver la règle',exact:true}).click();
+    await page.getByRole('button',{name:'Confirmer la décision'}).click();
+    await expect(rule.getByText('Approuvée',{exact:true})).toBeVisible();
+    await page.getByRole('button',{name:'Imports & historique'}).click();
+    await page.getByRole('button',{name:/Examiner le lot/}).first().click();
+    await page.getByRole('button',{name:'Examiner la publication'}).click();
+    await page.getByLabel('Règle approuvée',{exact:true}).selectOption({label:`Colonne 2 · ${rationale.slice(0,70)}`});
+    await expect(page.getByRole('button',{name:'Confirmer la publication'})).toBeDisabled();
+    await page.getByLabel(/J’exclus explicitement/).check();
+    await page.getByRole('button',{name:'Confirmer la publication'}).click();
+    await expect(page.getByText('Snapshot publié · aucun client fusionné',{exact:true})).toBeVisible();
+    await expect(page.getByText('1 snapshot(s) publié(s)',{exact:true})).toBeVisible();
+    console.log('PASS: S4 full React two-actor rule approval and reviewed partial snapshot publication');
+  }
   await page.locator('.profile-menu summary').click();
   await page.getByRole('button', { name: 'Se déconnecter' }).click();
   await page.getByLabel('Identifiant professionnel').fill(state.it.username);

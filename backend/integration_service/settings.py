@@ -14,6 +14,7 @@ MIDDLEWARE = [
     "core.middleware.GatewayMetadataMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "core.middleware.RequestContextMiddleware",
+    "core.import_gate_middleware.ImportGateMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -31,10 +32,16 @@ REST_FRAMEWORK = {
 IAM_URL = os.environ.get("AICED_IAM_URL", "http://127.0.0.1:8001")
 INTEGRATION_KEY_ID = os.environ.get("AICED_INTEGRATION_KEY_ID", "integration-v1")
 if (
-    set(AICED_INTERNAL_KEYS) != {INTEGRATION_KEY_ID}
+    INTEGRATION_KEY_ID not in AICED_INTERNAL_KEYS
     or AICED_INTERNAL_KEYS[INTEGRATION_KEY_ID]["service"] != "integration"
 ):
-    raise ImproperlyConfigured("Integration requires only its own signing key")
+    raise ImproperlyConfigured("Integration requires its own signing key")
+for _id, _entry in AICED_INTERNAL_KEYS.items():
+    if _id != INTEGRATION_KEY_ID and (
+        _entry["service"] != "iam" or _entry["audiences"] != ["integration"]
+    ):
+        raise ImproperlyConfigured("Only IAM's inbound Integration key is accepted")
+INTERNAL_NONCE_MODEL = "integration_store.InternalNonce"
 INTEGRATION_SCHEMA = os.environ.get("AICED_INTEGRATION_SCHEMA", "aiced_integration")
 if not re.fullmatch(r"[a-z][a-z0-9_]{0,62}", INTEGRATION_SCHEMA):
     raise ImproperlyConfigured("Invalid owned schema")

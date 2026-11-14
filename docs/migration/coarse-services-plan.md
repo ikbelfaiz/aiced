@@ -1,5 +1,7 @@
 # AICED — décomposition en services larges et première tranche S1
 
+**Current status ? S4, 2026-11-14:** Data Integration is independently running and active on the local synthetic deployment, with its own restricted PostgreSQL schema. All 38 public routes remain compatible. Forward cutover, post-write rollback, restore and independent process restart were verified. IAM, Client/CRM and Commercial are not yet independently extracted. Docker/production deployment remains unverified. See [S4 results and operations](s4-cutover.md) and [verified ownership inventory](s4-inventory.json). Earlier status statements below are historical.
+
 Avancement courant : **S2 implémenté**, voir [contrats, cohérence, audit, migrations et limites](s2-authorization-audit.md). Le corps S1 ci-dessous reste historique : inventaire initial de 30 tables/25 modèles/16 migrations ; l'inventaire machine est actualisé en S2 à 33 tables/28 modèles/18 migrations. Aucun service métier indépendant encore livré. La barrière S2 est globale à la base (plus conservative que la proposition par organisation ci-dessous).
 
 ## Décision qui fait foi

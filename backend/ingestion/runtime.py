@@ -42,6 +42,8 @@ class LegacyAccess:
         require(actor, "imports.view", organization_id, full_scope=True)
         require(actor, "clients.view_financial", organization_id, full_scope=True)
         require(actor, capability, organization_id, full_scope=True)
+        from core.import_gate import admit as gate
+        gate(lock=lock)
         if lock:
             Organization.objects.select_for_update().get(pk=organization_id)
             admit(actor, request)
@@ -49,8 +51,13 @@ class LegacyAccess:
 
     def record(self, *args, **kwargs):
         from audit.services import record
+        from django.db import transaction
+        from core.import_gate import admit
 
-        return record(*args, **kwargs)
+        with transaction.atomic():
+            if args and args[0].startswith("imports."):
+                admit(lock=True)
+            return record(*args, **kwargs)
 
     def history(self, organization_id, batch_id):
         from audit.models import AuditEvent

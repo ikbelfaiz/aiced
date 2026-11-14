@@ -27,3 +27,6 @@ urlpatterns = [
         views.PolicyRevokeView.as_view(),
     ),
 ]
+from .private import urlpatterns as private_patterns
+
+urlpatterns += private_patterns
