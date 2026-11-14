@@ -19,7 +19,7 @@ def free_port():
 
 
 @contextmanager
-def nginx_gateway(directory, backend, frontend, key, port=None, timeout=120, integration=None):
+def nginx_gateway(directory, backend, frontend, key, port=None, timeout=120, integration=None, iam=None):
     binary = os.environ.get("NGINX_BINARY") or shutil.which("nginx")
     if not binary:
         candidate = ROOT / ".tools/nginx-1.30.6/nginx.exe"
@@ -34,13 +34,14 @@ def nginx_gateway(directory, backend, frontend, key, port=None, timeout=120, int
         "GATEWAY_PORT": str(port),
         "BACKEND_UPSTREAM": backend,
         "INTEGRATION_UPSTREAM": integration or backend,
+        "IAM_UPSTREAM": iam or backend,
         "FRONTEND_UPSTREAM": frontend,
         "AICED_GATEWAY_KEY": key,
         "BACKEND_TIMEOUT": str(timeout),
     }
     if not re.fullmatch(r"[A-Za-z0-9_-]{32,}", key):
         raise ValueError("Invalid gateway key")
-    for value in [backend, frontend, integration or backend]:
+    for value in [backend, frontend, integration or backend, iam or backend]:
         if not re.fullmatch(r"[A-Za-z0-9.:-]+", value):
             raise ValueError("Invalid upstream")
     if not (0 < port < 65536 and 0 < timeout):

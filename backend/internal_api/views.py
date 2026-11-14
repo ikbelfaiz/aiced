@@ -8,7 +8,6 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from core.serializers import StrictSerializer
-from identity.coordination import session_user
 from identity.policies import grants
 from .security import authenticate
 
@@ -49,6 +48,10 @@ class ClientInput(StrictSerializer):
 
 
 def resolve(data):
+    if getattr(settings, 'IAM_REMOTE', False):
+        from iam_consumer.access import read_principal
+        return read_principal(data)
+    from identity.coordination import session_user
     actor = session_user(data["session_key"])
     if data["method"] not in ("GET", "HEAD", "OPTIONS"):
         # Preserve Django's cookie/token/origin rules for the original browser
@@ -193,6 +196,10 @@ class IntegrationReadyView(PrivateView):
         return Response({"ready": True, "database": connection.settings_dict["NAME"]})
 
 
+from drf_spectacular.utils import extend_schema
+
+
+@extend_schema(exclude=True)
 class ClientAuthorizationView(PrivateView):
     audience = "client"
 

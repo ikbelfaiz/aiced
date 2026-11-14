@@ -3,7 +3,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from audit.services import record
 from .policies import client_queryset
-from identity.models import Organization
+from iam_consumer.compat import Organization
 from .models import CRMProfile
 from .serializers import CRMUpdateSerializer
 

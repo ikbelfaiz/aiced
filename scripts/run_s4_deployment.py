@@ -41,6 +41,11 @@ def main():
 
     backend_env = environment("backend-env.json")
     integration_env = environment("integration-env.json")
+    iam_env = (
+        environment("iam-env.json")
+        if (directory / "iam-env.json").exists()
+        else backend_env
+    )
     processes = []
     launches = []
     restarted = {}
@@ -69,6 +74,8 @@ def main():
                         "runserver",
                         f"127.0.0.1:{config['backend_port']}",
                         "--noreload",
+                        "--settings",
+                        config.get("backend_settings", "config.settings"),
                     ],
                     backend_env,
                     ROOT,
@@ -82,9 +89,9 @@ def main():
                         f"127.0.0.1:{config['iam_port']}",
                         "--noreload",
                         "--settings",
-                        "internal_api.settings",
+                        config.get("iam_settings", "internal_api.settings"),
                     ],
-                    backend_env,
+                    iam_env,
                     ROOT,
                 ),
                 (
@@ -159,6 +166,11 @@ def main():
                     backend_env["AICED_GATEWAY_KEY"],
                     port=config["gateway_port"],
                     integration=f"127.0.0.1:{upstream}",
+                    iam=(
+                        f"127.0.0.1:{config['iam_port']}"
+                        if config.get("iam_routing")
+                        else None
+                    ),
                 ):
                     (directory / "routing-status.json").write_text(
                         json.dumps(
@@ -166,6 +178,11 @@ def main():
                                 "mode": mode,
                                 "gateway_port": config["gateway_port"],
                                 "integration_upstream": upstream,
+                                "iam_upstream": (
+                                    config["iam_port"]
+                                    if config.get("iam_routing")
+                                    else config["backend_port"]
+                                ),
                             }
                         )
                     )

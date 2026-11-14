@@ -196,7 +196,7 @@ class ClientContextView(APIView):
 
     @extend_schema(responses={200: OpenApiTypes.OBJECT})
     def get(self, request):
-        from identity.models import Organization
+        from iam_consumer.compat import Organization
         from identity.policies import organization_ids
 
         orgs = Organization.objects.filter(

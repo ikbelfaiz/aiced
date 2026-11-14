@@ -38,6 +38,16 @@ def session_user(key):
 
 
 def admit(actor, request=None, exclusive=False):
+    if getattr(settings, 'IAM_REMOTE', False):
+        if exclusive: raise RuntimeError('Business service cannot mutate IAM')
+        from iam_consumer.access import read_principal
+        barrier()
+        current = read_principal(actor.credentials)
+        if current.pk != actor.pk: raise PermissionDenied('Identite invalide.')
+        return
+    if getattr(settings, 'IAM_OWNED', False):
+        from iam_control.middleware import admit as gate
+        gate(lock=True)
     barrier(exclusive)
     from .models import User
 

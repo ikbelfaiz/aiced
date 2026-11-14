@@ -6,8 +6,8 @@ from django.db import models
 class AuditEvent(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     occurred_at = models.DateTimeField(auto_now_add=True, db_index=True)
-    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.PROTECT)
-    organization = models.ForeignKey('identity.Organization', null=True, on_delete=models.PROTECT)
+    actor = models.ForeignKey(getattr(settings, "BUSINESS_ACTOR_MODEL", settings.AUTH_USER_MODEL), null=True, on_delete=models.PROTECT)
+    organization = models.ForeignKey(getattr(settings, 'BUSINESS_ORGANIZATION_MODEL', 'identity.Organization'), null=True, on_delete=models.PROTECT)
     action = models.CharField(max_length=100, db_index=True)
     target_id = models.UUIDField(null=True)
     result = models.CharField(max_length=20, choices=[('success', 'Succès'), ('denied', 'Refus')])

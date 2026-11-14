@@ -11,7 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from core.serializers import StrictSerializer
-from identity.models import Organization
+from iam_consumer.compat import Organization
 from identity.policies import organization_ids, require, grants
 from .policies import client_queryset
 from audit.services import record

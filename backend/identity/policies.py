@@ -5,6 +5,10 @@ from .models import RoleAssignment
 
 
 def grants(user, code=None):
+    from django.conf import settings
+    if getattr(settings, 'IAM_REMOTE', False):
+        from iam_consumer.access import grant_rows
+        return grant_rows(user, code)
     if not user.is_authenticated or not user.is_active:
         return RoleAssignment.objects.none()
     qs = RoleAssignment.objects.filter(
@@ -15,6 +19,10 @@ def grants(user, code=None):
 
 
 def organization_ids(user, code, full_scope=False):
+    from django.conf import settings
+    if getattr(settings, 'IAM_REMOTE', False):
+        from iam_consumer.access import organization_values
+        return organization_values(user, code, full_scope)
     qs = grants(user, code)
     if full_scope:
         qs = qs.filter(scope=RoleAssignment.Scope.ORGANIZATION)

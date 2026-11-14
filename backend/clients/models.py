@@ -11,10 +11,10 @@ class Party(models.Model):
         LEGAL = 'legal', 'Personne morale'
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    organization = models.ForeignKey('identity.Organization', on_delete=models.PROTECT)
+    organization = models.ForeignKey(getattr(settings, 'BUSINESS_ORGANIZATION_MODEL', 'identity.Organization'), on_delete=models.PROTECT)
     kind = models.CharField(max_length=12, choices=Kind.choices)
     display_name = models.CharField(max_length=200)
-    assigned_to = models.ForeignKey('identity.Membership', null=True, blank=True, on_delete=models.PROTECT)
+    assigned_to = models.ForeignKey(getattr(settings, 'BUSINESS_MEMBERSHIP_MODEL', 'identity.Membership'), null=True, blank=True, on_delete=models.PROTECT)
     created_at = models.DateTimeField(auto_now_add=True)
     origin = models.CharField(max_length=60, default='SYNTHETIC_ONLY')
     version = models.PositiveIntegerField(default=1)
@@ -63,7 +63,7 @@ class CRMProfile(models.Model):
     party = models.OneToOneField(Party, primary_key=True, on_delete=models.PROTECT, related_name='crm_profile')
     notes = models.TextField(blank=True, max_length=5000)
     updated_at = models.DateTimeField(auto_now=True)
-    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.PROTECT)
+    updated_by = models.ForeignKey(getattr(settings, "BUSINESS_ACTOR_MODEL", settings.AUTH_USER_MODEL), null=True, on_delete=models.PROTECT)
     email = models.EmailField(blank=True)
     phone = models.CharField(max_length=40, blank=True)
     profession = models.CharField(max_length=120, blank=True)
@@ -105,7 +105,7 @@ class Interaction(models.Model):
     subject = models.CharField(max_length=160)
     notes = models.TextField(max_length=5000, blank=True)
     occurred_at = models.DateTimeField()
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    author = models.ForeignKey(getattr(settings, "BUSINESS_ACTOR_MODEL", settings.AUTH_USER_MODEL), on_delete=models.PROTECT)
     version = models.PositiveIntegerField(default=1)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -124,7 +124,7 @@ class Opportunity(models.Model):
     currency = models.CharField(max_length=3, choices=[('TND', 'TND')], default='TND')
     status = models.CharField(max_length=12, choices=[(v,v) for v in ['open','won','lost']], default='open')
     due_date = models.DateField(null=True, blank=True)
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    author = models.ForeignKey(getattr(settings, "BUSINESS_ACTOR_MODEL", settings.AUTH_USER_MODEL), on_delete=models.PROTECT)
     version = models.PositiveIntegerField(default=1)
     updated_at = models.DateTimeField(auto_now=True)
 

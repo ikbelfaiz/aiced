@@ -29,6 +29,12 @@ class AuditListView(generics.ListAPIView):
         from django.conf import settings
         from core.import_gate import mode
 
+        if getattr(settings, 'IAM_REMOTE', False):
+            from .multi_federation import page
+            if mode() != 'service':
+                from internal_api.client import ServiceUnavailable
+                raise ServiceUnavailable()
+            return page(request, self.get_queryset())
         if settings.INTEGRATION_AUDIT_URL:
             local = self.get_queryset()
             phase = mode()

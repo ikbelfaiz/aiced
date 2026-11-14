@@ -12,8 +12,12 @@ http {
     map $http_upgrade $connection_upgrade { default upgrade; '' close; }
     # Default Integration upstream is the legacy backend. Candidate deployment is opt-in.
     upstream legacy_backend { server ${BACKEND_UPSTREAM}; }
+    upstream iam_backend { server ${IAM_UPSTREAM}; }
     upstream integration_backend { server ${INTEGRATION_UPSTREAM}; }
     map $uri $api_upstream {
+        ~^/api/auth/ iam_backend;
+        ~^/api/organizations/ iam_backend;
+        /api/session/ iam_backend;
         ~^/api/imports/ integration_backend;
         default legacy_backend;
     }

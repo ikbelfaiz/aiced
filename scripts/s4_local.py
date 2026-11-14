@@ -231,6 +231,11 @@ def main():
         help="Re-cut over an existing local deployment after rollback",
     )
     args = parser.parse_args()
+    for candidate in (args.rollback,args.forward):
+        if candidate is not None:
+            iam_state = candidate / 's5-state.json'
+            if iam_state.exists() and json.loads(iam_state.read_text()).get('writer') == 'service':
+                raise ValueError('Roll back S5 IAM first; S4 legacy imports require the legacy IAM writer.')
     original = json.loads((ROOT / ".local/postgres/env.json").read_text())
     if (
         original.get("DJANGO_DEBUG") != "1"

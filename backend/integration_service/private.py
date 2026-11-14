@@ -35,7 +35,7 @@ class AuditQuery(APIView):
     permission_classes = [AllowAny]
 
     def initial(self, request, *args, **kwargs):
-        if authenticate(request, "integration") != "iam":
+        if authenticate(request, "integration") not in ("iam", "client_crm"):
             raise PermissionDenied("Service non autorisé.")
         super().initial(request, *args, **kwargs)
 

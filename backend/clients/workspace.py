@@ -7,7 +7,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied, APIException
 from django.utils import timezone
 from core.serializers import StrictSerializer
-from identity.models import Organization
+from iam_consumer.compat import Organization
 from identity.policies import require
 from .policies import client_queryset
 from audit.services import record

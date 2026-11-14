@@ -1,5 +1,7 @@
 # S4 — Controlled Integration cutover
 
+**Later state:** [S5 IAM extraction](s5-iam.md) is active locally. Roll back S5 before any S4 rollback; the S4 tool refuses the unsafe order. This S4 report remains historical evidence.
+
 ## Verified status — 14 November 2026
 
 **S4 is active and verified in the portable local development environment.**

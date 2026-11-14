@@ -38,9 +38,9 @@ if (
     raise ImproperlyConfigured("Integration requires its own signing key")
 for _id, _entry in AICED_INTERNAL_KEYS.items():
     if _id != INTEGRATION_KEY_ID and (
-        _entry["service"] != "iam" or _entry["audiences"] != ["integration"]
+        _entry["service"] not in ("iam", "client_crm") or _entry["audiences"] != ["integration"]
     ):
-        raise ImproperlyConfigured("Only IAM's inbound Integration key is accepted")
+        raise ImproperlyConfigured("Only IAM or Client audit ingress keys are accepted")
 INTERNAL_NONCE_MODEL = "integration_store.InternalNonce"
 INTEGRATION_SCHEMA = os.environ.get("AICED_INTEGRATION_SCHEMA", "aiced_integration")
 if not re.fullmatch(r"[a-z][a-z0-9_]{0,62}", INTEGRATION_SCHEMA):
