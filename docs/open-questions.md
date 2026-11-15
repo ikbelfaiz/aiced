@@ -1,5 +1,13 @@
 # Questions ouvertes et décisions provisoires
 
+## Après S7 — prochaines tranches fonctionnelles
+
+- Agenda : confirmer les participants, périmètres de visibilité, états de rendez-vous,
+  rappels, canaux autorisés et règles de modification avant automatisation.
+- Campagnes : confirmer ciblage, autorité de lancement, consentements, canaux,
+  suivi et règles d'arrêt ; aucune règle de conversion ou KPI n'est déduite.
+- Ces décisions complètent l'[analyse des écarts](functional-gap-analysis.md).
+
 ## Migration vers des services indépendants — audit
 
 - Décision confirmée par l'utilisateur : cible service-based, déploiements et données propriétaires derrière Gateway ; préserver les fonctionnalités/migrations. La cible monolithique précédente est remplacée. Aucune extraction autorisée dans l'intervention d'analyse présente.

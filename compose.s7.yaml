@@ -1,0 +1,118 @@
+name: aiced-s7
+x-python: &python
+  image: aiced-s7-python
+  init: true
+  restart: unless-stopped
+x-health: &health
+  interval: 5s
+  timeout: 5s
+  retries: 20
+  start_period: 10s
+services:
+  db:
+    image: postgres:17-alpine
+    env_file: .local/s7/db.env
+    volumes:
+      - s7_database:/var/lib/postgresql/data
+    healthcheck:
+      <<: *health
+      test: [CMD-SHELL, 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+    restart: unless-stopped
+  initialize:
+    <<: *python
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.s7
+    restart: 'no'
+    command: [python, /s7/bootstrap.py]
+    volumes:
+      - ./.local/s7:/private
+      - ./infra/s7:/s7:ro
+      - ./scripts:/scripts:ro
+      - ./infra:/infra:ro
+    depends_on:
+      db: {condition: service_healthy}
+  iam:
+    <<: *python
+    volumes: ['./.local/s7/tls/iam:/run/tls:ro']
+    env_file: .local/s7/iam.env
+    environment:
+      IAM_TLS_CERT: /run/tls/iam.pem
+      IAM_TLS_KEY: /run/tls/iam-key.pem
+    command: [python, -m, iam_service.serve]
+    depends_on:
+      initialize: {condition: service_completed_successfully}
+    healthcheck:
+      <<: *health
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('https://iam:8443/health/ready',timeout=3)"]
+  integration:
+    <<: *python
+    volumes: ['./.local/s7/tls/integration:/run/tls:ro']
+    env_file: .local/s7/integration.env
+    environment:
+      INTEGRATION_TLS_CERT: /run/tls/integration.pem
+      INTEGRATION_TLS_KEY: /run/tls/integration-key.pem
+    command: [python, -m, integration_service.serve]
+    depends_on:
+      iam: {condition: service_healthy}
+    healthcheck:
+      <<: *health
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('https://integration:8444/health/ready',timeout=3)"]
+  client:
+    <<: *python
+    volumes: ['./.local/s7/tls/client:/run/tls:ro']
+    env_file: .local/s7/client.env
+    environment:
+      CLIENT_TLS_CERT: /run/tls/client.pem
+      CLIENT_TLS_KEY: /run/tls/client-key.pem
+    command: [python, -m, iam_consumer.serve]
+    depends_on:
+      iam: {condition: service_healthy}
+      integration: {condition: service_healthy}
+    healthcheck:
+      <<: *health
+      test: [CMD, python, -c, "import os,psycopg,urllib.request; c=psycopg.connect(host=os.environ['POSTGRES_HOST'],dbname=os.environ['POSTGRES_DB'],user=os.environ['POSTGRES_USER'],password=os.environ['POSTGRES_PASSWORD'],connect_timeout=3); c.execute('SELECT 1 FROM public.django_migrations LIMIT 1'); c.close(); urllib.request.urlopen('https://client:8446/api/health/',timeout=3)"]
+  commercial:
+    <<: *python
+    volumes: ['./.local/s7/tls/commercial:/run/tls:ro']
+    env_file: .local/s7/commercial.env
+    environment:
+      COMMERCIAL_TLS_CERT: /run/tls/commercial.pem
+      COMMERCIAL_TLS_KEY: /run/tls/commercial-key.pem
+    command: [python, -m, commercial_service.serve]
+    depends_on:
+      client: {condition: service_healthy}
+    healthcheck:
+      <<: *health
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('https://commercial:8445/health/ready',timeout=3)"]
+  frontend:
+    init: true
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.s7
+    healthcheck:
+      <<: *health
+      test: [CMD, node, -e, "fetch('http://frontend:5173').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+    restart: unless-stopped
+  gateway:
+    build: ./infra/gateway
+    env_file: .local/s7/gateway.env
+    environment:
+      GATEWAY_PORT: '8080'
+      BACKEND_UPSTREAM: client:8000
+      IAM_UPSTREAM: iam:8003
+      COMMERCIAL_UPSTREAM: commercial:8004
+      INTEGRATION_UPSTREAM: integration:8002
+      FRONTEND_UPSTREAM: frontend:5173
+      BACKEND_TIMEOUT: '20'
+      AICED_REQUIRE_SERVICES: '1'
+    ports: ['127.0.0.1:5187:8080']
+    depends_on:
+      commercial: {condition: service_healthy}
+      frontend: {condition: service_healthy}
+    healthcheck:
+      <<: *health
+      test: [CMD, wget, -q, -O, /dev/null, 'http://gateway:8080/api/health/']
+    restart: unless-stopped
+volumes:
+  s7_database:

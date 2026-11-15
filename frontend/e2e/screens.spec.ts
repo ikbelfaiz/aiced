@@ -75,6 +75,7 @@ test('server pagination, type filter and account read contract',async({page})=>{
   await expect(page.locator('tbody')).toContainText('SYNTHETIC PAGE 2');
 });
 test('reference screenshots and responsive navigation',async({page})=>{
+  test.skip(!!process.env.AICED_E2E_PRODUCTION,'Requires the development-only design preview.');
   await mkdir('../.local/ui-review/screens',{recursive:true});
   await page.goto('/connexion'); await page.evaluate(()=>document.fonts.ready);
   await page.screenshot({path:'../.local/ui-review/screens/connexion.png',fullPage:true});
