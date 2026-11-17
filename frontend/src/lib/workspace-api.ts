@@ -58,6 +58,8 @@ export type Template = {
   version: number;
 };
 export type Batch = {
+  template_version: number;
+  data_scope: string;
   id: string;
   template: string;
   digest: string;
@@ -68,12 +70,15 @@ export type Batch = {
   created_at: string;
   uploaded_by_id: string;
   published_at: string | null;
+  published_by_id: string | null;
   policy_id: string | null;
   total: number;
   rejected: number;
   published_rows: number;
 };
 export type Policy = {
+  template_version: number;
+  data_scope: string;
   id: string;
   template: string;
   key_column: number;
@@ -154,13 +159,14 @@ export const importApi = {
         batch: Batch;
         headers: (string | null)[];
         history: { action: string; timestamp: string }[];
+        policy_match: {status: string; reason: string; policy: Policy | null; legacy_policies?: Policy[]; configuration?: Policy; detail_code?: string};
       }
     >(
       root(org) +
         `batches/${id}/?page=${page}&rejected=${rejected ? "1" : "0"}`,
     ),
-  policies: (org: string) => request<Policy[]>(root(org) + "policies/"),
-  policy: (org: string, data: unknown) => mutate(root(org) + "policies/", data),
+  policies: (org: string, view = "all", page = 1) => request<Policy[]>(root(org) + `policies/?view=${view}&page=${page}`),
+  policy: (org: string, data: unknown) => mutate<Policy>(root(org) + "policies/", data),
   approve: (org: string, id: string, revoke = false) =>
     mutate(root(org) + `policies/${id}/${revoke ? "revoke" : "approve"}/`),
   publish: (
@@ -180,11 +186,12 @@ export const importApi = {
     source_as_of: string,
     snapshot_kind: string,
     date_format = "ISO",
+    data_scope = "legacy",
   ) => {
     const csrf = await request<{ csrfToken: string }>("/api/auth/csrf/");
     return request<Batch>(
       root(org) +
-        `upload/?${new URLSearchParams({ template, source_as_of, snapshot_kind, date_format })}`,
+        `upload/?${new URLSearchParams({ template, source_as_of, snapshot_kind, date_format, data_scope })}`,
       {
         method: "POST",
         headers: {

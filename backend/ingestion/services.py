@@ -24,12 +24,14 @@ def stage(
     content,
     request=None,
     date_format="ISO",
+    data_scope="legacy",
 ):
     authorize(actor, organization_id, "imports.upload")
     if (
         template not in TEMPLATES
         or snapshot_kind not in ["partial", "complete"]
         or date_format not in ["ISO", "DMY"]
+        or data_scope not in ["legacy", "synthetic", "operational"]
     ):
         raise ValidationError("Modèle ou nature du snapshot invalide.")
     if source_as_of > timezone.localdate():
@@ -38,7 +40,8 @@ def stage(
     key = dict(
         organization_id=organization_id,
         template=template,
-        template_version=1,
+        template_version=TEMPLATES[template]["version"],
+        data_scope=data_scope,
         digest=digest,
         source_as_of=source_as_of,
         snapshot_kind=snapshot_kind,
@@ -93,6 +96,8 @@ def stage(
                 SourceSnapshot.objects.filter(
                     row__batch__organization_id=organization_id,
                     row__batch__template=template,
+                    row__batch__template_version=TEMPLATES[template]["version"],
+                    row__batch__data_scope=data_scope,
                     external_key__in=candidate_keys[start : start + 500],
                 ).values_list("external_key", flat=True)
             )
@@ -130,6 +135,8 @@ def create_policy(
     rationale,
     request=None,
     date_format="ISO",
+    data_scope="legacy",
+    template_version=None,
 ):
     authorize(
         actor, organization_id, "imports.policy_manage", lock=True, request=request
@@ -138,14 +145,27 @@ def create_policy(
         template not in TEMPLATES
         or key_column not in TEMPLATES[template]["candidate_keys"]
         or date_format not in ["ISO", "DMY"]
+        or data_scope not in ["legacy", "synthetic", "operational"]
+        or template_version not in [None, TEMPLATES.get(template, {}).get("version")]
     ):
         raise ValidationError("Colonne clé non prévue par le modèle.")
-    policy = ImportPolicy.objects.create(
+    configuration = dict(
         organization_id=organization_id,
         template=template,
         key_column=key_column,
-        rationale=rationale,
+        rationale=rationale.strip(),
         date_format=date_format,
+        template_version=TEMPLATES[template]["version"],
+        data_scope=data_scope,
+    )
+    # The existing organization mutation lock serializes proposals and approvals.
+    existing = ImportPolicy.objects.filter(**configuration, revoked_at__isnull=True).order_by("created_at", "id").first()
+    if existing:
+        record("imports.policy_reused", actor=actor, organization_id=organization_id,
+               target_id=existing.pk, request=request)
+        return existing
+    policy = ImportPolicy.objects.create(
+        **configuration,
         created_by=actor,
     )
     record(
@@ -167,6 +187,8 @@ def approve_policy(actor, organization_id, policy_id, revoke=False, request=None
         organization_id=organization_id,
     )
     if revoke:
+        if policy.revoked_at:
+            return policy
         policy.revoked_at = timezone.now()
     else:
         if policy.created_by_id == actor.pk:
@@ -175,6 +197,13 @@ def approve_policy(actor, organization_id, policy_id, revoke=False, request=None
             raise ValidationError("Politique révoquée ; créer une nouvelle version.")
         if policy.approved_at:
             return policy
+        if policy.data_scope != "legacy" and ImportPolicy.objects.filter(
+            organization_id=organization_id, template=policy.template,
+            template_version=policy.template_version, date_format=policy.date_format,
+            data_scope=policy.data_scope, approved_at__isnull=False,
+            revoked_at__isnull=True,
+        ).exclude(pk=policy.pk).exists():
+            raise ValidationError("Une règle approuvée est déjà active pour ce schéma, format et usage. Réutilisez-la, ou révoquez-la explicitement avant d’approuver une nouvelle configuration.")
         policy.approved_by = actor
         policy.approved_at = timezone.now()
     policy.save(
@@ -218,6 +247,8 @@ def publish(
         raise ValidationError(
             "Le format de date du lot ne correspond pas à la règle approuvée."
         )
+    if policy.template_version != batch.template_version or policy.data_scope != batch.data_scope:
+        raise ValidationError("Schéma ou usage incompatible : les règles synthétiques, opérationnelles et historiques ne sont pas interchangeables.")
     rows = list(batch.rows.all())
     rejected = [row for row in rows if row.errors]
     if rejected and not skip_rejected:

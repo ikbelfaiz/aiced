@@ -8,6 +8,10 @@ async function login(page:Page, role='reader') {
   await page.getByRole('button',{name:'Connexion',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Tableau de bord',exact:true})).toBeVisible();
 }
+async function focusSeed(page:Page){
+  await page.getByLabel('Rechercher un client',{exact:true}).fill('CLIENT SYNTHÉTIQUE A');
+  await expect.poll(()=>new URL(page.url()).searchParams.get('recherche')).toBe('CLIENT SYNTHÉTIQUE A');
+}
 test('real session, validation, client search, detail, denied finance and logout',async({page})=>{
   await page.goto('/clients'); await expect(page).toHaveURL(/connexion/);
   await page.getByRole('button',{name:'Connexion',exact:true}).click();
@@ -16,6 +20,7 @@ test('real session, validation, client search, detail, denied finance and logout
   await page.getByLabel('Mot de passe',{exact:true}).fill(process.env.AICED_E2E_PASSWORD!);
   await page.getByRole('button',{name:'Connexion',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Panorama Clients'})).toBeVisible();
+  await focusSeed(page);
   await expect(page.locator('tbody tr')).toHaveCount(1);
   let financialRequests=0; page.on('request',r=>{if(r.url().includes('/accounts/'))financialRequests++;});
   await page.getByRole('link',{name:/Voir la fiche de/}).click();
@@ -24,6 +29,10 @@ test('real session, validation, client search, detail, denied finance and logout
   await page.getByLabel('Rechercher un client',{exact:true}).fill('ABSENT_SYNTHETIC');
   await expect(page.getByRole('heading',{name:'Aucun client ne correspond à votre recherche'})).toBeVisible();
   await page.getByRole('button',{name:'Réinitialiser les filtres'}).first().click();
+  await expect.poll(()=>new URL(page.url()).searchParams.get('recherche')).toBeNull();
+  await expect(page.getByLabel('Rechercher un client',{exact:true})).toHaveValue('');
+  await expect(page.locator('tbody tr').first()).toBeVisible();
+  await focusSeed(page);
   await expect(page.locator('tbody tr')).toHaveCount(1);
   await page.locator('.profile-menu summary').click(); await page.getByRole('button',{name:'Se déconnecter'}).click();
   await expect(page).toHaveURL(/connexion/); expect(await page.evaluate(()=>localStorage.length)).toBe(0);
@@ -40,10 +49,12 @@ test('client loading, service failure and retry',async({page})=>{
   await expect(page.getByRole('heading',{name:'Chargement des clients…'})).toBeVisible(); release();
   await expect(page.getByRole('heading',{name:'Impossible de charger les clients'})).toBeVisible();
   await page.unroute('**/api/clients/?**'); await page.getByRole('button',{name:'Réessayer',exact:true}).click();
+  await focusSeed(page);
   await expect(page.locator('tbody tr')).toHaveCount(1);
 });
 test('revoked permissions and expired sessions remove protected screens',async({page})=>{
   await login(page); await page.getByRole('link',{name:'Clients',exact:true}).click();
+  await focusSeed(page);
   await expect(page.locator('tbody tr')).toHaveCount(1);
   await page.route('**/api/auth/access/',r=>r.fulfill({json:{assignments:[]}}));
   await page.locator('.profile-menu summary').click(); await page.getByRole('button',{name:'Actualiser mes droits'}).click();
@@ -60,7 +71,9 @@ test('server pagination, type filter and account read contract',async({page})=>{
   await page.getByRole('link',{name:/Voir la fiche de/}).click();
   await expect(page.locator('.account-list li')).toHaveCount(1);
   await page.goto('/clients');
-  await page.getByLabel('Type de personne',{exact:true}).selectOption('legal');
+  // S15 options enumerate visible records only; this fixture has no legal entity.
+  await expect(page.getByLabel('Type de personne',{exact:true}).locator('option[value="legal"]')).toHaveCount(0);
+  await page.goto('/clients?type=legal');
   await expect(page.getByRole('heading',{name:'Aucun client ne correspond à votre recherche'})).toBeVisible();
   await page.getByRole('button',{name:'Réinitialiser les filtres'}).first().click();
   await page.route('**/api/clients/?**',r=>{

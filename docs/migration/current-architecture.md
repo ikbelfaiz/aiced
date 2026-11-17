@@ -1,5 +1,7 @@
 # Audit de l'architecture actuelle
 
+> S8 naming update: operational filenames in this guide use the [purpose-based mapping](../docker-compose.md). Reported milestone results are historical; original inventory JSON files retain their captured filenames.
+
 > Current architecture: **S6b verified locally**. IAM, Client & CRM, Commercial and Data Integration run separately with restricted data ownership. All 38 routes are preserved; actual post-write rollback/forward, browser workflows and restore were verified. See [S6b report](s6b-commercial.md). Container execution and production readiness remain unverified. Earlier phase status paragraphs below are historical.
 
 
@@ -22,7 +24,7 @@ La demande utilisateur d'architecture par services déployables indépendamment 
 | Backend | Un projet Django, `backend/config/settings.py`, un URLConf `config/urls.py`, un WSGI, une connexion PostgreSQL `default`. Django 5.2.19, DRF 3.18.3, drf-spectacular 0.30.0 et psycopg 3.2.12 dans le verrou Python. Aucun FastAPI. |
 | Modules réels | `identity`, `clients`, `ingestion`, `audit`, `core`. Aucun app commercial séparé : Prospect, Interaction et Opportunity sont dans `clients`. Aucun app reconciliation, reporting ou IA. |
 | Frontend | React/TypeScript/Vite/Tailwind, Router, Query, RHF/Zod et Recharts. `frontend/src/app/App.tsx` et clients HTTP same-origin. |
-| Infrastructure | `compose.yaml` : `db` PostgreSQL 17-alpine avec volume persistant, un `backend`, un `frontend`. PostgreSQL non publié ; ports applicatifs liés à 127.0.0.1. Aucun API Gateway de production. |
+| Infrastructure | `compose.legacy.yaml` : `db` PostgreSQL 17-alpine avec volume persistant, un `backend`, un `frontend`. PostgreSQL non publié ; ports applicatifs liés à 127.0.0.1. Aucun API Gateway de production. |
 | Images | Dockerfiles non-root ; Django `runserver` et Vite `npm run dev`. Configuration de développement, pas de serveur applicatif/proxy TLS de production, ni image indépendante par domaine. Migrations lancées explicitement, pas au démarrage automatique. |
 | Données | Une base, schéma public, FK inter-apps, transactions et verrous communs. UUID internes indépendants des identifiants source. Pas de cloisonnement des credentials par service. |
 

@@ -1,0 +1,2310 @@
+{
+  "compose.legacy.yaml": {
+    "name": "aiced",
+    "networks": {
+      "default": {
+        "name": "aiced_default"
+      }
+    },
+    "services": {
+      "backend": {
+        "build": {
+          "context": "${WORKSPACE}/backend",
+          "dockerfile": "Dockerfile"
+        },
+        "depends_on": {
+          "db": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.env",
+            "required": true
+          }
+        ],
+        "environment": {
+          "AICED_GATEWAY_KEY": "${AICED_GATEWAY_KEY:?Set a random gateway key in .env}"
+        },
+        "networks": {
+          "default": null
+        }
+      },
+      "db": {
+        "environment": {
+          "POSTGRES_DB": "${POSTGRES_DB:?Set POSTGRES_DB in .env}",
+          "POSTGRES_PASSWORD": "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}",
+          "POSTGRES_USER": "${POSTGRES_USER:?Set POSTGRES_USER in .env}"
+        },
+        "healthcheck": {
+          "interval": "5s",
+          "retries": 10,
+          "test": [
+            "CMD-SHELL",
+            "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"
+          ],
+          "timeout": "5s"
+        },
+        "image": "postgres:17-alpine",
+        "networks": {
+          "default": null
+        },
+        "volumes": [
+          {
+            "source": "postgres_data",
+            "target": "/var/lib/postgresql/data",
+            "type": "volume",
+            "volume": {}
+          }
+        ]
+      },
+      "frontend": {
+        "build": {
+          "context": "${WORKSPACE}/frontend",
+          "dockerfile": "Dockerfile"
+        },
+        "depends_on": {
+          "backend": {
+            "condition": "service_started",
+            "required": true
+          }
+        },
+        "environment": {
+          "API_PROXY_TARGET": "http://backend:8000"
+        },
+        "networks": {
+          "default": null
+        }
+      },
+      "gateway": {
+        "build": {
+          "context": "${WORKSPACE}/infra/gateway",
+          "dockerfile": "Dockerfile"
+        },
+        "depends_on": {
+          "backend": {
+            "condition": "service_started",
+            "required": true
+          },
+          "frontend": {
+            "condition": "service_started",
+            "required": true
+          }
+        },
+        "environment": {
+          "AICED_GATEWAY_KEY": "${AICED_GATEWAY_KEY:?Set a random gateway key in .env}",
+          "BACKEND_TIMEOUT": "120",
+          "BACKEND_UPSTREAM": "backend:8000",
+          "FRONTEND_UPSTREAM": "frontend:5173",
+          "GATEWAY_PORT": "8080",
+          "INTEGRATION_UPSTREAM": "${INTEGRATION_UPSTREAM:-backend:8000}"
+        },
+        "networks": {
+          "default": null
+        },
+        "ports": [
+          {
+            "host_ip": "127.0.0.1",
+            "mode": "ingress",
+            "protocol": "tcp",
+            "published": "5173",
+            "target": 8080
+          }
+        ]
+      }
+    },
+    "volumes": {
+      "postgres_data": {
+        "name": "aiced_postgres_data"
+      }
+    }
+  },
+  "compose.integration-candidate.yaml": {
+    "name": "aiced",
+    "networks": {
+      "default": {
+        "name": "aiced_default"
+      }
+    },
+    "services": {
+      "backend": {
+        "build": {
+          "context": "${WORKSPACE}/backend",
+          "dockerfile": "Dockerfile"
+        },
+        "depends_on": {
+          "db": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.env",
+            "required": true
+          }
+        ],
+        "environment": {
+          "AICED_GATEWAY_KEY": "${AICED_GATEWAY_KEY:?Set a random gateway key in .env}"
+        },
+        "networks": {
+          "default": null
+        }
+      },
+      "db": {
+        "environment": {
+          "POSTGRES_DB": "${POSTGRES_DB:?Set POSTGRES_DB in .env}",
+          "POSTGRES_PASSWORD": "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}",
+          "POSTGRES_USER": "${POSTGRES_USER:?Set POSTGRES_USER in .env}"
+        },
+        "healthcheck": {
+          "interval": "5s",
+          "retries": 10,
+          "test": [
+            "CMD-SHELL",
+            "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"
+          ],
+          "timeout": "5s"
+        },
+        "image": "postgres:17-alpine",
+        "networks": {
+          "default": null
+        },
+        "volumes": [
+          {
+            "source": "postgres_data",
+            "target": "/var/lib/postgresql/data",
+            "type": "volume",
+            "volume": {}
+          }
+        ]
+      },
+      "frontend": {
+        "build": {
+          "context": "${WORKSPACE}/frontend",
+          "dockerfile": "Dockerfile"
+        },
+        "depends_on": {
+          "backend": {
+            "condition": "service_started",
+            "required": true
+          }
+        },
+        "environment": {
+          "API_PROXY_TARGET": "http://backend:8000"
+        },
+        "networks": {
+          "default": null
+        }
+      },
+      "gateway": {
+        "build": {
+          "context": "${WORKSPACE}/infra/gateway",
+          "dockerfile": "Dockerfile"
+        },
+        "depends_on": {
+          "backend": {
+            "condition": "service_started",
+            "required": true
+          },
+          "frontend": {
+            "condition": "service_started",
+            "required": true
+          }
+        },
+        "environment": {
+          "AICED_GATEWAY_KEY": "${AICED_GATEWAY_KEY:?Set a random gateway key in .env}",
+          "BACKEND_TIMEOUT": "120",
+          "BACKEND_UPSTREAM": "backend:8000",
+          "FRONTEND_UPSTREAM": "frontend:5173",
+          "GATEWAY_PORT": "8080",
+          "INTEGRATION_UPSTREAM": "${INTEGRATION_UPSTREAM:-backend:8000}"
+        },
+        "networks": {
+          "default": null
+        },
+        "ports": [
+          {
+            "host_ip": "127.0.0.1",
+            "mode": "ingress",
+            "protocol": "tcp",
+            "published": "5173",
+            "target": 8080
+          }
+        ]
+      },
+      "iam-contracts": {
+        "build": {
+          "context": "${WORKSPACE}/backend",
+          "dockerfile": "Dockerfile"
+        },
+        "command": [
+          "python",
+          "-m",
+          "internal_api.serve"
+        ],
+        "depends_on": {
+          "db": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.env.iam-internal",
+            "required": true
+          }
+        ],
+        "environment": {
+          "DJANGO_ALLOWED_HOSTS": "iam-contracts,localhost,127.0.0.1",
+          "IAM_TLS_CERT": "/run/tls/iam.pem",
+          "IAM_TLS_KEY": "/run/tls/iam-key.pem"
+        },
+        "networks": {
+          "default": null
+        },
+        "profiles": [
+          "s3"
+        ],
+        "volumes": [
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/.local/s3-tls",
+            "target": "/run/tls",
+            "type": "bind"
+          }
+        ]
+      },
+      "integration": {
+        "build": {
+          "context": "${WORKSPACE}/backend",
+          "dockerfile": "Dockerfile.integration"
+        },
+        "depends_on": {
+          "db": {
+            "condition": "service_healthy",
+            "required": true
+          },
+          "iam-contracts": {
+            "condition": "service_started",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.env.integration",
+            "required": true
+          }
+        ],
+        "environment": {
+          "AICED_IAM_URL": "https://iam-contracts:8443",
+          "SSL_CERT_FILE": "/run/tls/ca.pem"
+        },
+        "networks": {
+          "default": null
+        },
+        "profiles": [
+          "s3"
+        ],
+        "volumes": [
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/.local/s3-tls/ca.pem",
+            "target": "/run/tls/ca.pem",
+            "type": "bind"
+          }
+        ]
+      },
+      "integration-migrate": {
+        "build": {
+          "context": "${WORKSPACE}/backend",
+          "dockerfile": "Dockerfile.integration"
+        },
+        "command": [
+          "python",
+          "integration_service/manage.py",
+          "migrate",
+          "--noinput"
+        ],
+        "depends_on": {
+          "db": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.env.integration-migrator",
+            "required": true
+          }
+        ],
+        "networks": {
+          "default": null
+        },
+        "profiles": [
+          "s3-tools"
+        ]
+      }
+    },
+    "volumes": {
+      "postgres_data": {
+        "name": "aiced_postgres_data"
+      }
+    }
+  },
+  "compose.integration-cutover.yaml": {
+    "name": "aiced",
+    "networks": {
+      "default": {
+        "name": "aiced_default"
+      }
+    },
+    "services": {
+      "backend": {
+        "build": {
+          "context": "${WORKSPACE}/backend",
+          "dockerfile": "Dockerfile"
+        },
+        "depends_on": {
+          "db": {
+            "condition": "service_healthy",
+            "required": true
+          },
+          "integration": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.env",
+            "required": true
+          },
+          {
+            "path": "${WORKSPACE}/.env.iam-internal",
+            "required": true
+          }
+        ],
+        "environment": [
+          "AICED_GATEWAY_KEY=${AICED_GATEWAY_KEY:?Set a random gateway key in .env}",
+          "AICED_INTEGRATION_AUDIT_URL=https://integration:8444",
+          "SSL_CERT_FILE=/run/tls/ca.pem"
+        ],
+        "networks": {
+          "default": null
+        },
+        "volumes": [
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/.local/s4-tls/ca.pem",
+            "target": "/run/tls/ca.pem",
+            "type": "bind"
+          }
+        ]
+      },
+      "db": {
+        "environment": {
+          "POSTGRES_DB": "${POSTGRES_DB:?Set POSTGRES_DB in .env}",
+          "POSTGRES_PASSWORD": "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}",
+          "POSTGRES_USER": "${POSTGRES_USER:?Set POSTGRES_USER in .env}"
+        },
+        "healthcheck": {
+          "interval": "5s",
+          "retries": 10,
+          "test": [
+            "CMD-SHELL",
+            "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"
+          ],
+          "timeout": "5s"
+        },
+        "image": "postgres:17-alpine",
+        "networks": {
+          "default": null
+        },
+        "volumes": [
+          {
+            "source": "postgres_data",
+            "target": "/var/lib/postgresql/data",
+            "type": "volume",
+            "volume": {}
+          }
+        ]
+      },
+      "frontend": {
+        "build": {
+          "context": "${WORKSPACE}/frontend",
+          "dockerfile": "Dockerfile"
+        },
+        "depends_on": {
+          "backend": {
+            "condition": "service_started",
+            "required": true
+          }
+        },
+        "environment": {
+          "API_PROXY_TARGET": "http://backend:8000"
+        },
+        "networks": {
+          "default": null
+        }
+      },
+      "gateway": {
+        "build": {
+          "context": "${WORKSPACE}/infra/gateway",
+          "dockerfile": "Dockerfile"
+        },
+        "depends_on": {
+          "backend": {
+            "condition": "service_started",
+            "required": true
+          },
+          "frontend": {
+            "condition": "service_started",
+            "required": true
+          },
+          "integration": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "environment": [
+          "AICED_GATEWAY_KEY=${AICED_GATEWAY_KEY:?Set a random gateway key in .env}",
+          "BACKEND_TIMEOUT=120",
+          "BACKEND_UPSTREAM=backend:8000",
+          "FRONTEND_UPSTREAM=frontend:5173",
+          "GATEWAY_PORT=8080",
+          "INTEGRATION_UPSTREAM=${INTEGRATION_UPSTREAM:-integration:8002}"
+        ],
+        "networks": {
+          "default": null
+        },
+        "ports": [
+          {
+            "host_ip": "127.0.0.1",
+            "mode": "ingress",
+            "protocol": "tcp",
+            "published": "5173",
+            "target": 8080
+          }
+        ]
+      },
+      "iam-contracts": {
+        "build": {
+          "context": "${WORKSPACE}/backend",
+          "dockerfile": "Dockerfile"
+        },
+        "command": [
+          "python",
+          "-m",
+          "internal_api.serve"
+        ],
+        "depends_on": {
+          "db": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.env.iam-internal",
+            "required": true
+          }
+        ],
+        "environment": {
+          "DJANGO_ALLOWED_HOSTS": "${DJANGO_ALLOWED_HOSTS:?Set public allowed hosts},iam-contracts",
+          "IAM_TLS_CERT": "/run/tls/iam.pem",
+          "IAM_TLS_KEY": "/run/tls/iam-key.pem"
+        },
+        "networks": {
+          "default": null
+        },
+        "volumes": [
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/.local/s4-tls",
+            "target": "/run/tls",
+            "type": "bind"
+          }
+        ]
+      },
+      "integration": {
+        "build": {
+          "context": "${WORKSPACE}/backend",
+          "dockerfile": "Dockerfile.integration"
+        },
+        "command": [
+          "python",
+          "-m",
+          "integration_service.serve"
+        ],
+        "depends_on": {
+          "db": {
+            "condition": "service_healthy",
+            "required": true
+          },
+          "iam-contracts": {
+            "condition": "service_started",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.env.integration",
+            "required": true
+          }
+        ],
+        "environment": {
+          "AICED_IAM_URL": "https://iam-contracts:8443",
+          "DJANGO_ALLOWED_HOSTS": "${DJANGO_ALLOWED_HOSTS:?Set public allowed hosts},integration",
+          "INTEGRATION_TLS_CERT": "/run/tls/integration.pem",
+          "INTEGRATION_TLS_KEY": "/run/tls/integration-key.pem",
+          "SSL_CERT_FILE": "/run/tls/ca.pem"
+        },
+        "healthcheck": {
+          "interval": "15s",
+          "retries": 5,
+          "test": [
+            "CMD",
+            "python",
+            "-c",
+            "import ssl,urllib.request; urllib.request.urlopen('https://integration:8444/health/ready',context=ssl.create_default_context(),timeout=5)"
+          ],
+          "timeout": "8s"
+        },
+        "networks": {
+          "default": null
+        },
+        "volumes": [
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/.local/s4-tls",
+            "target": "/run/tls",
+            "type": "bind"
+          }
+        ]
+      },
+      "integration-migrate": {
+        "build": {
+          "context": "${WORKSPACE}/backend",
+          "dockerfile": "Dockerfile.integration"
+        },
+        "command": [
+          "python",
+          "integration_service/manage.py",
+          "migrate",
+          "--noinput"
+        ],
+        "depends_on": {
+          "db": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.env.integration-migrator",
+            "required": true
+          }
+        ],
+        "networks": {
+          "default": null
+        },
+        "profiles": [
+          "tools"
+        ]
+      }
+    },
+    "volumes": {
+      "postgres_data": {
+        "name": "aiced_postgres_data"
+      }
+    }
+  },
+  "compose.iam-cutover.yaml": {
+    "name": "aiced",
+    "networks": {
+      "default": {
+        "name": "aiced_default"
+      }
+    },
+    "services": {
+      "backend": {
+        "build": {
+          "context": "${WORKSPACE}/backend",
+          "dockerfile": "Dockerfile"
+        },
+        "command": [
+          "python",
+          "manage.py",
+          "runserver",
+          "0.0.0.0:8000",
+          "--noreload",
+          "--settings",
+          "iam_consumer.settings"
+        ],
+        "depends_on": {
+          "db": {
+            "condition": "service_healthy",
+            "required": true
+          },
+          "iam": {
+            "condition": "service_healthy",
+            "required": true
+          },
+          "integration": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.env",
+            "required": true
+          },
+          {
+            "path": "${WORKSPACE}/.env.iam-consumer",
+            "required": true
+          }
+        ],
+        "environment": [
+          "AICED_GATEWAY_KEY=${AICED_GATEWAY_KEY:?Set a random gateway key in .env}",
+          "AICED_IAM_URL=https://iam:8443",
+          "AICED_INTEGRATION_AUDIT_KEY_ID=client-integration-v1",
+          "AICED_INTEGRATION_AUDIT_URL=https://integration:8444",
+          "SSL_CERT_FILE=/run/tls/ca.pem"
+        ],
+        "networks": {
+          "default": null
+        },
+        "volumes": [
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/.local/s5-tls/ca.pem",
+            "target": "/run/tls/ca.pem",
+            "type": "bind"
+          }
+        ]
+      },
+      "db": {
+        "environment": {
+          "POSTGRES_DB": "${POSTGRES_DB:?Set POSTGRES_DB in .env}",
+          "POSTGRES_PASSWORD": "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}",
+          "POSTGRES_USER": "${POSTGRES_USER:?Set POSTGRES_USER in .env}"
+        },
+        "healthcheck": {
+          "interval": "5s",
+          "retries": 10,
+          "test": [
+            "CMD-SHELL",
+            "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"
+          ],
+          "timeout": "5s"
+        },
+        "image": "postgres:17-alpine",
+        "networks": {
+          "default": null
+        },
+        "volumes": [
+          {
+            "source": "postgres_data",
+            "target": "/var/lib/postgresql/data",
+            "type": "volume",
+            "volume": {}
+          }
+        ]
+      },
+      "frontend": {
+        "build": {
+          "context": "${WORKSPACE}/frontend",
+          "dockerfile": "Dockerfile"
+        },
+        "depends_on": {
+          "backend": {
+            "condition": "service_started",
+            "required": true
+          }
+        },
+        "environment": {
+          "API_PROXY_TARGET": "http://backend:8000"
+        },
+        "networks": {
+          "default": null
+        }
+      },
+      "gateway": {
+        "build": {
+          "context": "${WORKSPACE}/infra/gateway",
+          "dockerfile": "Dockerfile"
+        },
+        "depends_on": {
+          "backend": {
+            "condition": "service_started",
+            "required": true
+          },
+          "frontend": {
+            "condition": "service_started",
+            "required": true
+          },
+          "iam": {
+            "condition": "service_healthy",
+            "required": true
+          },
+          "integration": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "environment": [
+          "AICED_GATEWAY_KEY=${AICED_GATEWAY_KEY:?Set a random gateway key in .env}",
+          "BACKEND_TIMEOUT=120",
+          "BACKEND_UPSTREAM=backend:8000",
+          "FRONTEND_UPSTREAM=frontend:5173",
+          "GATEWAY_PORT=8080",
+          "INTEGRATION_UPSTREAM=integration:8002",
+          "IAM_UPSTREAM=iam:8003"
+        ],
+        "networks": {
+          "default": null
+        },
+        "ports": [
+          {
+            "host_ip": "127.0.0.1",
+            "mode": "ingress",
+            "protocol": "tcp",
+            "published": "5173",
+            "target": 8080
+          }
+        ]
+      },
+      "iam": {
+        "build": {
+          "context": "${WORKSPACE}/backend",
+          "dockerfile": "Dockerfile.iam"
+        },
+        "command": [
+          "python",
+          "-m",
+          "iam_service.serve"
+        ],
+        "depends_on": {
+          "db": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.env.iam-runtime",
+            "required": true
+          }
+        ],
+        "environment": {
+          "DJANGO_ALLOWED_HOSTS": "${DJANGO_ALLOWED_HOSTS:?Set public allowed hosts},iam",
+          "IAM_TLS_CERT": "/run/tls/iam.pem",
+          "IAM_TLS_KEY": "/run/tls/iam-key.pem"
+        },
+        "healthcheck": {
+          "interval": "15s",
+          "retries": 5,
+          "test": [
+            "CMD",
+            "python",
+            "-c",
+            "import ssl,urllib.request; urllib.request.urlopen('https://iam:8443/health/ready',context=ssl.create_default_context(cafile='/run/tls/ca.pem'),timeout=5)"
+          ],
+          "timeout": "8s"
+        },
+        "networks": {
+          "default": null
+        },
+        "volumes": [
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/.local/s5-tls",
+            "target": "/run/tls",
+            "type": "bind"
+          }
+        ]
+      },
+      "iam-migrate": {
+        "build": {
+          "context": "${WORKSPACE}/backend",
+          "dockerfile": "Dockerfile.iam"
+        },
+        "command": [
+          "python",
+          "iam_service/manage.py",
+          "migrate",
+          "--noinput"
+        ],
+        "depends_on": {
+          "db": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.env.iam-migrator",
+            "required": true
+          }
+        ],
+        "networks": {
+          "default": null
+        },
+        "profiles": [
+          "tools"
+        ]
+      },
+      "integration": {
+        "build": {
+          "context": "${WORKSPACE}/backend",
+          "dockerfile": "Dockerfile.integration"
+        },
+        "command": [
+          "python",
+          "-m",
+          "integration_service.serve"
+        ],
+        "depends_on": {
+          "iam": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.env.integration",
+            "required": true
+          }
+        ],
+        "environment": {
+          "AICED_IAM_URL": "https://iam:8443",
+          "DJANGO_ALLOWED_HOSTS": "${DJANGO_ALLOWED_HOSTS:?Set public allowed hosts},integration",
+          "INTEGRATION_TLS_CERT": "/run/tls/integration.pem",
+          "INTEGRATION_TLS_KEY": "/run/tls/integration-key.pem",
+          "SSL_CERT_FILE": "/run/tls/ca.pem"
+        },
+        "healthcheck": {
+          "interval": "15s",
+          "retries": 5,
+          "test": [
+            "CMD",
+            "python",
+            "-c",
+            "import ssl,urllib.request; urllib.request.urlopen('https://integration:8444/health/ready',context=ssl.create_default_context(),timeout=5)"
+          ],
+          "timeout": "8s"
+        },
+        "networks": {
+          "default": null
+        },
+        "volumes": [
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/.local/s5-tls",
+            "target": "/run/tls",
+            "type": "bind"
+          }
+        ]
+      }
+    },
+    "volumes": {
+      "postgres_data": {
+        "name": "aiced_postgres_data"
+      }
+    }
+  },
+  "compose.commercial-cutover.yaml": {
+    "name": "aiced",
+    "networks": {
+      "default": {
+        "name": "aiced_default"
+      }
+    },
+    "services": {
+      "backend": {
+        "build": {
+          "context": "${WORKSPACE}/backend",
+          "dockerfile": "Dockerfile"
+        },
+        "command": [
+          "python",
+          "-m",
+          "iam_consumer.serve"
+        ],
+        "depends_on": {
+          "db": {
+            "condition": "service_healthy",
+            "required": true
+          },
+          "iam": {
+            "condition": "service_healthy",
+            "required": true
+          },
+          "integration": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.env",
+            "required": true
+          },
+          {
+            "path": "${WORKSPACE}/.env.iam-consumer",
+            "required": true
+          }
+        ],
+        "environment": [
+          "AICED_GATEWAY_KEY=${AICED_GATEWAY_KEY:?Set a random gateway key in .env}",
+          "AICED_COMMERCIAL_AUDIT_KEY_ID=client-commercial-v1",
+          "AICED_COMMERCIAL_REMOTE=1",
+          "AICED_COMMERCIAL_URL=https://commercial:8445",
+          "AICED_IAM_URL=https://iam:8443",
+          "AICED_INTEGRATION_AUDIT_KEY_ID=client-integration-v1",
+          "AICED_INTEGRATION_AUDIT_URL=https://integration:8444",
+          "CLIENT_TLS_CERT=/run/tls/client.pem",
+          "CLIENT_TLS_KEY=/run/tls/client-key.pem",
+          "SSL_CERT_FILE=/run/tls/ca.pem"
+        ],
+        "networks": {
+          "default": null
+        },
+        "volumes": [
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/.local/s5-tls",
+            "target": "/run/tls",
+            "type": "bind"
+          }
+        ]
+      },
+      "commercial": {
+        "build": {
+          "context": "${WORKSPACE}/backend",
+          "dockerfile": "Dockerfile.commercial"
+        },
+        "command": [
+          "python",
+          "-m",
+          "commercial_service.serve"
+        ],
+        "depends_on": {
+          "backend": {
+            "condition": "service_started",
+            "required": true
+          },
+          "iam": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.env.commercial-runtime",
+            "required": true
+          }
+        ],
+        "environment": {
+          "AICED_CLIENT_URL": "https://backend:8446",
+          "AICED_IAM_URL": "https://iam:8443",
+          "COMMERCIAL_TLS_CERT": "/run/tls/commercial.pem",
+          "COMMERCIAL_TLS_KEY": "/run/tls/commercial-key.pem",
+          "DJANGO_ALLOWED_HOSTS": "${DJANGO_ALLOWED_HOSTS:?Set public allowed hosts},commercial",
+          "SSL_CERT_FILE": "/run/tls/ca.pem"
+        },
+        "healthcheck": {
+          "interval": "15s",
+          "retries": 5,
+          "test": [
+            "CMD",
+            "python",
+            "-c",
+            "import urllib.request; urllib.request.urlopen('https://commercial:8445/health/ready',timeout=5)"
+          ],
+          "timeout": "8s"
+        },
+        "networks": {
+          "default": null
+        },
+        "volumes": [
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/.local/s5-tls",
+            "target": "/run/tls",
+            "type": "bind"
+          }
+        ]
+      },
+      "commercial-migrate": {
+        "build": {
+          "context": "${WORKSPACE}/backend",
+          "dockerfile": "Dockerfile.commercial"
+        },
+        "command": [
+          "python",
+          "commercial_service/manage.py",
+          "migrate",
+          "--noinput"
+        ],
+        "depends_on": {
+          "db": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.env.commercial-migrator",
+            "required": true
+          }
+        ],
+        "networks": {
+          "default": null
+        },
+        "profiles": [
+          "tools"
+        ]
+      },
+      "db": {
+        "environment": {
+          "POSTGRES_DB": "${POSTGRES_DB:?Set POSTGRES_DB in .env}",
+          "POSTGRES_PASSWORD": "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}",
+          "POSTGRES_USER": "${POSTGRES_USER:?Set POSTGRES_USER in .env}"
+        },
+        "healthcheck": {
+          "interval": "5s",
+          "retries": 10,
+          "test": [
+            "CMD-SHELL",
+            "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"
+          ],
+          "timeout": "5s"
+        },
+        "image": "postgres:17-alpine",
+        "networks": {
+          "default": null
+        },
+        "volumes": [
+          {
+            "source": "postgres_data",
+            "target": "/var/lib/postgresql/data",
+            "type": "volume",
+            "volume": {}
+          }
+        ]
+      },
+      "frontend": {
+        "build": {
+          "context": "${WORKSPACE}/frontend",
+          "dockerfile": "Dockerfile"
+        },
+        "depends_on": {
+          "backend": {
+            "condition": "service_started",
+            "required": true
+          }
+        },
+        "environment": {
+          "API_PROXY_TARGET": "http://backend:8000"
+        },
+        "networks": {
+          "default": null
+        }
+      },
+      "gateway": {
+        "build": {
+          "context": "${WORKSPACE}/infra/gateway",
+          "dockerfile": "Dockerfile"
+        },
+        "depends_on": {
+          "backend": {
+            "condition": "service_started",
+            "required": true
+          },
+          "commercial": {
+            "condition": "service_healthy",
+            "required": true
+          },
+          "frontend": {
+            "condition": "service_started",
+            "required": true
+          },
+          "iam": {
+            "condition": "service_healthy",
+            "required": true
+          },
+          "integration": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "environment": [
+          "AICED_GATEWAY_KEY=${AICED_GATEWAY_KEY:?Set a random gateway key in .env}",
+          "BACKEND_TIMEOUT=120",
+          "BACKEND_UPSTREAM=backend:8000",
+          "FRONTEND_UPSTREAM=frontend:5173",
+          "GATEWAY_PORT=8080",
+          "INTEGRATION_UPSTREAM=integration:8002",
+          "COMMERCIAL_UPSTREAM=commercial:8004",
+          "IAM_UPSTREAM=iam:8003"
+        ],
+        "networks": {
+          "default": null
+        },
+        "ports": [
+          {
+            "host_ip": "127.0.0.1",
+            "mode": "ingress",
+            "protocol": "tcp",
+            "published": "5173",
+            "target": 8080
+          }
+        ]
+      },
+      "iam": {
+        "build": {
+          "context": "${WORKSPACE}/backend",
+          "dockerfile": "Dockerfile.iam"
+        },
+        "command": [
+          "python",
+          "-m",
+          "iam_service.serve"
+        ],
+        "depends_on": {
+          "db": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.env.iam-runtime",
+            "required": true
+          }
+        ],
+        "environment": {
+          "DJANGO_ALLOWED_HOSTS": "${DJANGO_ALLOWED_HOSTS:?Set public allowed hosts},iam",
+          "IAM_TLS_CERT": "/run/tls/iam.pem",
+          "IAM_TLS_KEY": "/run/tls/iam-key.pem"
+        },
+        "healthcheck": {
+          "interval": "15s",
+          "retries": 5,
+          "test": [
+            "CMD",
+            "python",
+            "-c",
+            "import ssl,urllib.request; urllib.request.urlopen('https://iam:8443/health/ready',context=ssl.create_default_context(cafile='/run/tls/ca.pem'),timeout=5)"
+          ],
+          "timeout": "8s"
+        },
+        "networks": {
+          "default": null
+        },
+        "volumes": [
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/.local/s5-tls",
+            "target": "/run/tls",
+            "type": "bind"
+          }
+        ]
+      },
+      "iam-migrate": {
+        "build": {
+          "context": "${WORKSPACE}/backend",
+          "dockerfile": "Dockerfile.iam"
+        },
+        "command": [
+          "python",
+          "iam_service/manage.py",
+          "migrate",
+          "--noinput"
+        ],
+        "depends_on": {
+          "db": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.env.iam-migrator",
+            "required": true
+          }
+        ],
+        "networks": {
+          "default": null
+        },
+        "profiles": [
+          "tools"
+        ]
+      },
+      "integration": {
+        "build": {
+          "context": "${WORKSPACE}/backend",
+          "dockerfile": "Dockerfile.integration"
+        },
+        "command": [
+          "python",
+          "-m",
+          "integration_service.serve"
+        ],
+        "depends_on": {
+          "iam": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.env.integration",
+            "required": true
+          }
+        ],
+        "environment": {
+          "AICED_IAM_URL": "https://iam:8443",
+          "DJANGO_ALLOWED_HOSTS": "${DJANGO_ALLOWED_HOSTS:?Set public allowed hosts},integration",
+          "INTEGRATION_TLS_CERT": "/run/tls/integration.pem",
+          "INTEGRATION_TLS_KEY": "/run/tls/integration-key.pem",
+          "SSL_CERT_FILE": "/run/tls/ca.pem"
+        },
+        "healthcheck": {
+          "interval": "15s",
+          "retries": 5,
+          "test": [
+            "CMD",
+            "python",
+            "-c",
+            "import ssl,urllib.request; urllib.request.urlopen('https://integration:8444/health/ready',context=ssl.create_default_context(),timeout=5)"
+          ],
+          "timeout": "8s"
+        },
+        "networks": {
+          "default": null
+        },
+        "volumes": [
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/.local/s5-tls",
+            "target": "/run/tls",
+            "type": "bind"
+          }
+        ]
+      }
+    },
+    "volumes": {
+      "postgres_data": {
+        "name": "aiced_postgres_data"
+      }
+    }
+  },
+  "compose.legacy-direct.yaml": {
+    "name": "aiced",
+    "networks": {
+      "default": {
+        "name": "aiced_default"
+      }
+    },
+    "services": {
+      "backend": {
+        "build": {
+          "context": "${WORKSPACE}/backend",
+          "dockerfile": "Dockerfile"
+        },
+        "depends_on": {
+          "db": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.env",
+            "required": true
+          }
+        ],
+        "environment": {
+          "AICED_GATEWAY_KEY": "${AICED_GATEWAY_KEY:?Set a random gateway key in .env}"
+        },
+        "networks": {
+          "default": null
+        },
+        "ports": [
+          {
+            "host_ip": "127.0.0.1",
+            "mode": "ingress",
+            "protocol": "tcp",
+            "published": "8000",
+            "target": 8000
+          }
+        ]
+      },
+      "db": {
+        "environment": {
+          "POSTGRES_DB": "${POSTGRES_DB:?Set POSTGRES_DB in .env}",
+          "POSTGRES_PASSWORD": "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}",
+          "POSTGRES_USER": "${POSTGRES_USER:?Set POSTGRES_USER in .env}"
+        },
+        "healthcheck": {
+          "interval": "5s",
+          "retries": 10,
+          "test": [
+            "CMD-SHELL",
+            "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"
+          ],
+          "timeout": "5s"
+        },
+        "image": "postgres:17-alpine",
+        "networks": {
+          "default": null
+        },
+        "volumes": [
+          {
+            "source": "postgres_data",
+            "target": "/var/lib/postgresql/data",
+            "type": "volume",
+            "volume": {}
+          }
+        ]
+      },
+      "frontend": {
+        "build": {
+          "context": "${WORKSPACE}/frontend",
+          "dockerfile": "Dockerfile"
+        },
+        "depends_on": {
+          "backend": {
+            "condition": "service_started",
+            "required": true
+          }
+        },
+        "environment": [
+          "API_PROXY_TARGET=http://backend:8000"
+        ],
+        "networks": {
+          "default": null
+        },
+        "ports": [
+          {
+            "host_ip": "127.0.0.1",
+            "mode": "ingress",
+            "protocol": "tcp",
+            "published": "5173",
+            "target": 5173
+          }
+        ]
+      },
+      "gateway": {
+        "build": {
+          "context": "${WORKSPACE}/infra/gateway",
+          "dockerfile": "Dockerfile"
+        },
+        "depends_on": {
+          "backend": {
+            "condition": "service_started",
+            "required": true
+          },
+          "frontend": {
+            "condition": "service_started",
+            "required": true
+          }
+        },
+        "environment": {
+          "AICED_GATEWAY_KEY": "${AICED_GATEWAY_KEY:?Set a random gateway key in .env}",
+          "BACKEND_TIMEOUT": "120",
+          "BACKEND_UPSTREAM": "backend:8000",
+          "FRONTEND_UPSTREAM": "frontend:5173",
+          "GATEWAY_PORT": "8080",
+          "INTEGRATION_UPSTREAM": "${INTEGRATION_UPSTREAM:-backend:8000}"
+        },
+        "networks": {
+          "default": null
+        },
+        "ports": [
+          {
+            "host_ip": "127.0.0.1",
+            "mode": "ingress",
+            "protocol": "tcp",
+            "published": "5173",
+            "target": 8080
+          }
+        ]
+      }
+    },
+    "volumes": {
+      "postgres_data": {
+        "name": "aiced_postgres_data"
+      }
+    }
+  },
+  "compose.yaml": {
+    "name": "aiced-s7",
+    "networks": {
+      "default": {
+        "name": "aiced-s7_default"
+      }
+    },
+    "services": {
+      "client": {
+        "command": [
+          "python",
+          "-m",
+          "iam_consumer.serve"
+        ],
+        "depends_on": {
+          "iam": {
+            "condition": "service_healthy",
+            "required": true
+          },
+          "integration": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.local/s7/client.env",
+            "required": true
+          }
+        ],
+        "environment": {
+          "CLIENT_TLS_CERT": "/run/tls/client.pem",
+          "CLIENT_TLS_KEY": "/run/tls/client-key.pem"
+        },
+        "healthcheck": {
+          "interval": "5s",
+          "retries": 20,
+          "start_period": "10s",
+          "test": [
+            "CMD",
+            "python",
+            "-c",
+            "import os,psycopg,urllib.request; c=psycopg.connect(host=os.environ['POSTGRES_HOST'],dbname=os.environ['POSTGRES_DB'],user=os.environ['POSTGRES_USER'],password=os.environ['POSTGRES_PASSWORD'],connect_timeout=3); c.execute('SELECT 1 FROM public.django_migrations LIMIT 1'); c.close(); urllib.request.urlopen('https://client:8446/api/health/',timeout=3)"
+          ],
+          "timeout": "5s"
+        },
+        "image": "aiced-s7-python",
+        "init": true,
+        "networks": {
+          "default": null
+        },
+        "restart": "unless-stopped",
+        "volumes": [
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/.local/s7/tls/client",
+            "target": "/run/tls",
+            "type": "bind"
+          }
+        ]
+      },
+      "commercial": {
+        "command": [
+          "python",
+          "-m",
+          "commercial_service.serve"
+        ],
+        "depends_on": {
+          "client": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.local/s7/commercial.env",
+            "required": true
+          }
+        ],
+        "environment": {
+          "COMMERCIAL_TLS_CERT": "/run/tls/commercial.pem",
+          "COMMERCIAL_TLS_KEY": "/run/tls/commercial-key.pem"
+        },
+        "healthcheck": {
+          "interval": "5s",
+          "retries": 20,
+          "start_period": "10s",
+          "test": [
+            "CMD",
+            "python",
+            "-c",
+            "import urllib.request; urllib.request.urlopen('https://commercial:8445/health/ready',timeout=3)"
+          ],
+          "timeout": "5s"
+        },
+        "image": "aiced-s7-python",
+        "init": true,
+        "networks": {
+          "default": null
+        },
+        "restart": "unless-stopped",
+        "volumes": [
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/.local/s7/tls/commercial",
+            "target": "/run/tls",
+            "type": "bind"
+          }
+        ]
+      },
+      "db": {
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.local/s7/db.env",
+            "required": true
+          }
+        ],
+        "healthcheck": {
+          "interval": "5s",
+          "retries": 20,
+          "start_period": "10s",
+          "test": [
+            "CMD-SHELL",
+            "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""
+          ],
+          "timeout": "5s"
+        },
+        "image": "postgres:17-alpine",
+        "networks": {
+          "default": null
+        },
+        "restart": "unless-stopped",
+        "volumes": [
+          {
+            "source": "s7_database",
+            "target": "/var/lib/postgresql/data",
+            "type": "volume",
+            "volume": {}
+          }
+        ]
+      },
+      "frontend": {
+        "build": {
+          "context": "${WORKSPACE}/frontend",
+          "dockerfile": "Dockerfile.compiled"
+        },
+        "healthcheck": {
+          "interval": "5s",
+          "retries": 20,
+          "start_period": "10s",
+          "test": [
+            "CMD",
+            "node",
+            "-e",
+            "fetch('http://frontend:5173').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+          ],
+          "timeout": "5s"
+        },
+        "init": true,
+        "networks": {
+          "default": null
+        },
+        "restart": "unless-stopped"
+      },
+      "gateway": {
+        "build": {
+          "context": "${WORKSPACE}/infra/gateway",
+          "dockerfile": "Dockerfile"
+        },
+        "depends_on": {
+          "commercial": {
+            "condition": "service_healthy",
+            "required": true
+          },
+          "frontend": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.local/s7/gateway.env",
+            "required": true
+          }
+        ],
+        "environment": {
+          "AICED_REQUIRE_SERVICES": "1",
+          "BACKEND_TIMEOUT": "20",
+          "BACKEND_UPSTREAM": "client:8000",
+          "COMMERCIAL_UPSTREAM": "commercial:8004",
+          "FRONTEND_UPSTREAM": "frontend:5173",
+          "GATEWAY_PORT": "8080",
+          "IAM_UPSTREAM": "iam:8003",
+          "INTEGRATION_UPSTREAM": "integration:8002"
+        },
+        "healthcheck": {
+          "interval": "5s",
+          "retries": 20,
+          "start_period": "10s",
+          "test": [
+            "CMD",
+            "wget",
+            "-q",
+            "-O",
+            "/dev/null",
+            "http://gateway:8080/api/health/"
+          ],
+          "timeout": "5s"
+        },
+        "networks": {
+          "default": null
+        },
+        "ports": [
+          {
+            "host_ip": "127.0.0.1",
+            "mode": "ingress",
+            "protocol": "tcp",
+            "published": "5187",
+            "target": 8080
+          }
+        ],
+        "restart": "unless-stopped"
+      },
+      "iam": {
+        "command": [
+          "python",
+          "-m",
+          "iam_service.serve"
+        ],
+        "depends_on": {
+          "initialize": {
+            "condition": "service_completed_successfully",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.local/s7/iam.env",
+            "required": true
+          }
+        ],
+        "environment": {
+          "IAM_TLS_CERT": "/run/tls/iam.pem",
+          "IAM_TLS_KEY": "/run/tls/iam-key.pem"
+        },
+        "healthcheck": {
+          "interval": "5s",
+          "retries": 20,
+          "start_period": "10s",
+          "test": [
+            "CMD",
+            "python",
+            "-c",
+            "import urllib.request; urllib.request.urlopen('https://iam:8443/health/ready',timeout=3)"
+          ],
+          "timeout": "5s"
+        },
+        "image": "aiced-s7-python",
+        "init": true,
+        "networks": {
+          "default": null
+        },
+        "restart": "unless-stopped",
+        "volumes": [
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/.local/s7/tls/iam",
+            "target": "/run/tls",
+            "type": "bind"
+          }
+        ]
+      },
+      "initialize": {
+        "build": {
+          "context": "${WORKSPACE}/backend",
+          "dockerfile": "Dockerfile.acceptance"
+        },
+        "command": [
+          "python",
+          "/s7/bootstrap.py"
+        ],
+        "depends_on": {
+          "db": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "image": "aiced-s7-python",
+        "init": true,
+        "networks": {
+          "default": null
+        },
+        "restart": "no",
+        "volumes": [
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "source": "${WORKSPACE}/.local/s7",
+            "target": "/private",
+            "type": "bind"
+          },
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/infra/acceptance",
+            "target": "/s7",
+            "type": "bind"
+          },
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/scripts",
+            "target": "/scripts",
+            "type": "bind"
+          },
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/infra",
+            "target": "/infra",
+            "type": "bind"
+          }
+        ]
+      },
+      "integration": {
+        "command": [
+          "python",
+          "-m",
+          "integration_service.serve"
+        ],
+        "depends_on": {
+          "iam": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.local/s7/integration.env",
+            "required": true
+          }
+        ],
+        "environment": {
+          "INTEGRATION_TLS_CERT": "/run/tls/integration.pem",
+          "INTEGRATION_TLS_KEY": "/run/tls/integration-key.pem"
+        },
+        "healthcheck": {
+          "interval": "5s",
+          "retries": 20,
+          "start_period": "10s",
+          "test": [
+            "CMD",
+            "python",
+            "-c",
+            "import urllib.request; urllib.request.urlopen('https://integration:8444/health/ready',timeout=3)"
+          ],
+          "timeout": "5s"
+        },
+        "image": "aiced-s7-python",
+        "init": true,
+        "networks": {
+          "default": null
+        },
+        "restart": "unless-stopped",
+        "volumes": [
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/.local/s7/tls/integration",
+            "target": "/run/tls",
+            "type": "bind"
+          }
+        ]
+      }
+    },
+    "volumes": {
+      "s7_database": {
+        "name": "aiced-s7_s7_database"
+      }
+    },
+    "x-health": {
+      "interval": "5s",
+      "retries": 20,
+      "start_period": "10s",
+      "timeout": "5s"
+    },
+    "x-python": {
+      "image": "aiced-s7-python",
+      "init": true,
+      "restart": "unless-stopped"
+    }
+  },
+  "compose.dev.yaml": {
+    "name": "aiced-s7",
+    "networks": {
+      "default": {
+        "name": "aiced-s7_default"
+      }
+    },
+    "services": {
+      "client": {
+        "command": [
+          "python",
+          "-m",
+          "iam_consumer.serve"
+        ],
+        "depends_on": {
+          "iam": {
+            "condition": "service_healthy",
+            "required": true
+          },
+          "integration": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.local/s7/client.env",
+            "required": true
+          }
+        ],
+        "environment": {
+          "CLIENT_TLS_CERT": "/run/tls/client.pem",
+          "CLIENT_TLS_KEY": "/run/tls/client-key.pem"
+        },
+        "healthcheck": {
+          "interval": "5s",
+          "retries": 20,
+          "start_period": "10s",
+          "test": [
+            "CMD",
+            "python",
+            "-c",
+            "import os,psycopg,urllib.request; c=psycopg.connect(host=os.environ['POSTGRES_HOST'],dbname=os.environ['POSTGRES_DB'],user=os.environ['POSTGRES_USER'],password=os.environ['POSTGRES_PASSWORD'],connect_timeout=3); c.execute('SELECT 1 FROM public.django_migrations LIMIT 1'); c.close(); urllib.request.urlopen('https://client:8446/api/health/',timeout=3)"
+          ],
+          "timeout": "5s"
+        },
+        "image": "aiced-s7-python",
+        "init": true,
+        "networks": {
+          "default": null
+        },
+        "restart": "unless-stopped",
+        "volumes": [
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/.local/s7/tls/client",
+            "target": "/run/tls",
+            "type": "bind"
+          }
+        ]
+      },
+      "commercial": {
+        "command": [
+          "python",
+          "-m",
+          "commercial_service.serve"
+        ],
+        "depends_on": {
+          "client": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.local/s7/commercial.env",
+            "required": true
+          }
+        ],
+        "environment": {
+          "COMMERCIAL_TLS_CERT": "/run/tls/commercial.pem",
+          "COMMERCIAL_TLS_KEY": "/run/tls/commercial-key.pem"
+        },
+        "healthcheck": {
+          "interval": "5s",
+          "retries": 20,
+          "start_period": "10s",
+          "test": [
+            "CMD",
+            "python",
+            "-c",
+            "import urllib.request; urllib.request.urlopen('https://commercial:8445/health/ready',timeout=3)"
+          ],
+          "timeout": "5s"
+        },
+        "image": "aiced-s7-python",
+        "init": true,
+        "networks": {
+          "default": null
+        },
+        "restart": "unless-stopped",
+        "volumes": [
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/.local/s7/tls/commercial",
+            "target": "/run/tls",
+            "type": "bind"
+          }
+        ]
+      },
+      "db": {
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.local/s7/db.env",
+            "required": true
+          }
+        ],
+        "healthcheck": {
+          "interval": "5s",
+          "retries": 20,
+          "start_period": "10s",
+          "test": [
+            "CMD-SHELL",
+            "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""
+          ],
+          "timeout": "5s"
+        },
+        "image": "postgres:17-alpine",
+        "networks": {
+          "default": null
+        },
+        "restart": "unless-stopped",
+        "volumes": [
+          {
+            "source": "s7_database",
+            "target": "/var/lib/postgresql/data",
+            "type": "volume",
+            "volume": {}
+          }
+        ]
+      },
+      "frontend": {
+        "build": {
+          "context": "${WORKSPACE}/frontend",
+          "dockerfile": "Dockerfile.compiled"
+        },
+        "command": [
+          "npm",
+          "run",
+          "dev",
+          "--",
+          "--config",
+          "vite.compose.config.ts"
+        ],
+        "healthcheck": {
+          "interval": "5s",
+          "retries": 20,
+          "start_period": "10s",
+          "test": [
+            "CMD",
+            "node",
+            "-e",
+            "fetch('http://frontend:5173').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+          ],
+          "timeout": "5s"
+        },
+        "init": true,
+        "networks": {
+          "default": null
+        },
+        "restart": "unless-stopped"
+      },
+      "gateway": {
+        "build": {
+          "context": "${WORKSPACE}/infra/gateway",
+          "dockerfile": "Dockerfile"
+        },
+        "depends_on": {
+          "commercial": {
+            "condition": "service_healthy",
+            "required": true
+          },
+          "frontend": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.local/s7/gateway.env",
+            "required": true
+          }
+        ],
+        "environment": {
+          "AICED_REQUIRE_SERVICES": "1",
+          "BACKEND_TIMEOUT": "20",
+          "BACKEND_UPSTREAM": "client:8000",
+          "COMMERCIAL_UPSTREAM": "commercial:8004",
+          "FRONTEND_UPSTREAM": "frontend:5173",
+          "GATEWAY_PORT": "8080",
+          "IAM_UPSTREAM": "iam:8003",
+          "INTEGRATION_UPSTREAM": "integration:8002"
+        },
+        "healthcheck": {
+          "interval": "5s",
+          "retries": 20,
+          "start_period": "10s",
+          "test": [
+            "CMD",
+            "wget",
+            "-q",
+            "-O",
+            "/dev/null",
+            "http://gateway:8080/api/health/"
+          ],
+          "timeout": "5s"
+        },
+        "networks": {
+          "default": null
+        },
+        "ports": [
+          {
+            "host_ip": "127.0.0.1",
+            "mode": "ingress",
+            "protocol": "tcp",
+            "published": "5187",
+            "target": 8080
+          }
+        ],
+        "restart": "unless-stopped"
+      },
+      "iam": {
+        "command": [
+          "python",
+          "-m",
+          "iam_service.serve"
+        ],
+        "depends_on": {
+          "initialize": {
+            "condition": "service_completed_successfully",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.local/s7/iam.env",
+            "required": true
+          }
+        ],
+        "environment": {
+          "IAM_TLS_CERT": "/run/tls/iam.pem",
+          "IAM_TLS_KEY": "/run/tls/iam-key.pem"
+        },
+        "healthcheck": {
+          "interval": "5s",
+          "retries": 20,
+          "start_period": "10s",
+          "test": [
+            "CMD",
+            "python",
+            "-c",
+            "import urllib.request; urllib.request.urlopen('https://iam:8443/health/ready',timeout=3)"
+          ],
+          "timeout": "5s"
+        },
+        "image": "aiced-s7-python",
+        "init": true,
+        "networks": {
+          "default": null
+        },
+        "restart": "unless-stopped",
+        "volumes": [
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/.local/s7/tls/iam",
+            "target": "/run/tls",
+            "type": "bind"
+          }
+        ]
+      },
+      "initialize": {
+        "build": {
+          "context": "${WORKSPACE}/backend",
+          "dockerfile": "Dockerfile.acceptance"
+        },
+        "command": [
+          "python",
+          "/s7/bootstrap.py"
+        ],
+        "depends_on": {
+          "db": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "image": "aiced-s7-python",
+        "init": true,
+        "networks": {
+          "default": null
+        },
+        "restart": "no",
+        "volumes": [
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "source": "${WORKSPACE}/.local/s7",
+            "target": "/private",
+            "type": "bind"
+          },
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/infra/acceptance",
+            "target": "/s7",
+            "type": "bind"
+          },
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/scripts",
+            "target": "/scripts",
+            "type": "bind"
+          },
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/infra",
+            "target": "/infra",
+            "type": "bind"
+          }
+        ]
+      },
+      "integration": {
+        "command": [
+          "python",
+          "-m",
+          "integration_service.serve"
+        ],
+        "depends_on": {
+          "iam": {
+            "condition": "service_healthy",
+            "required": true
+          }
+        },
+        "env_file": [
+          {
+            "path": "${WORKSPACE}/.local/s7/integration.env",
+            "required": true
+          }
+        ],
+        "environment": {
+          "INTEGRATION_TLS_CERT": "/run/tls/integration.pem",
+          "INTEGRATION_TLS_KEY": "/run/tls/integration-key.pem"
+        },
+        "healthcheck": {
+          "interval": "5s",
+          "retries": 20,
+          "start_period": "10s",
+          "test": [
+            "CMD",
+            "python",
+            "-c",
+            "import urllib.request; urllib.request.urlopen('https://integration:8444/health/ready',timeout=3)"
+          ],
+          "timeout": "5s"
+        },
+        "image": "aiced-s7-python",
+        "init": true,
+        "networks": {
+          "default": null
+        },
+        "restart": "unless-stopped",
+        "volumes": [
+          {
+            "bind": {
+              "create_host_path": true
+            },
+            "read_only": true,
+            "source": "${WORKSPACE}/.local/s7/tls/integration",
+            "target": "/run/tls",
+            "type": "bind"
+          }
+        ]
+      }
+    },
+    "volumes": {
+      "s7_database": {
+        "name": "aiced-s7_s7_database"
+      }
+    },
+    "x-health": {
+      "interval": "5s",
+      "retries": 20,
+      "start_period": "10s",
+      "timeout": "5s"
+    },
+    "x-python": {
+      "image": "aiced-s7-python",
+      "init": true,
+      "restart": "unless-stopped"
+    }
+  }
+}

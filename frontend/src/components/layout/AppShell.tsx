@@ -20,8 +20,10 @@ import { useDesignPreview } from "../../features/useDesignPreview";
 import { Button } from "../ui";
 
 const futureNavigation = [
+  "Activité commerciale",
   "Segmentation",
   "Prospects",
+  "Relances prospects",
   "Opportunités",
   "Interactions",
   "Agenda",
@@ -135,7 +137,24 @@ export function AppShell() {
             </button>
           )}
           {futureNavigation.map((name) =>
-            name === "Prospects" &&
+            name === 'Pilotage' && auth.can('clients.view') ? (
+              <NavLink key={name} to="/pilotage-crm" className={({isActive})=>'nav-item '+(isActive?'nav-active':'')}>Pilotage CRM</NavLink>
+            ) :
+            name === 'Activité commerciale' && (auth.can('opportunities.view') || (auth.can('clients.view') && (auth.can('interactions.view') || auth.can('prospects.view')))) ? (
+              <NavLink key={name} to="/activite-commerciale" className={({isActive})=>'nav-item '+(isActive?'nav-active':'')}>Activité commerciale</NavLink>
+            ) :
+            name === 'Campagnes' && auth.can('opportunities.view') ? (
+              <NavLink key={name} to="/campagnes" className={({isActive})=>'nav-item '+(isActive?'nav-active':'')}>Campagnes</NavLink>
+            ) :
+            name === 'Agenda' && auth.can('clients.view') && auth.can('interactions.view') ? (
+              <NavLink key={name} to="/agenda" className={({isActive})=>'nav-item '+(isActive?'nav-active':'')}>Agenda</NavLink>
+            ) :
+            name === "Opportunités" && auth.can('opportunities.view') && auth.can('clients.view') ? (
+              <NavLink key={name} to="/opportunites" className={({isActive})=>'nav-item '+(isActive?'nav-active':'')}>Opportunités</NavLink>
+            ) :
+            name === "Relances prospects" && auth.can("prospects.view") && auth.can("clients.view") ? (
+              <NavLink key={name} to="/prospects/relances" className={({isActive})=>"nav-item "+(isActive?"nav-active":"")}>Relances prospects</NavLink>
+            ) : name === "Prospects" &&
             auth.can("prospects.view") &&
             auth.can("clients.view") ? (
               <NavLink
@@ -147,6 +166,8 @@ export function AppShell() {
               >
                 Prospects
               </NavLink>
+            ) : name === "Interactions" && auth.can("interactions.view") && auth.can("clients.view") ? (
+              <NavLink key={name} to="/interactions" className={({isActive})=>"nav-item "+(isActive?"nav-active":"")}>Interactions</NavLink>
             ) : name === "Administration" &&
               auth.can("imports.view") &&
               auth.can("clients.view_financial") ? (

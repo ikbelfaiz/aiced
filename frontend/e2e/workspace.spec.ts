@@ -190,6 +190,7 @@ test("Data Management malformed upload, preview, duplicate replay, independent a
   await page
     .getByRole("link", { name: "Gestion des données", exact: true })
     .click();
+  await page.getByLabel("Usage d\u00e9clar\u00e9 du fichier").selectOption("synthetic");
   await page.getByLabel("Fichier XLSX", { exact: true }).setInputFiles({
     name: "bad.xlsx",
     mimeType: "application/octet-stream",
@@ -252,6 +253,10 @@ test("Data Management malformed upload, preview, duplicate replay, independent a
   await page
     .getByRole("button", { name: "Règles de publication", exact: true })
     .click();
+  const importContext = await (await page.request.get('/api/imports/context/')).json();
+  const importOrg = importContext.organizations[0].id;
+  const prior = await (await page.request.get(`/api/imports/${importOrg}/policies/?view=available`)).json();
+  // Approval/revocation is performed by the independent reviewer below.
   await page.getByRole("button", { name: "Proposer une règle" }).click();
   await expect(
     page.getByLabel("Interprétation des dates à approuver"),
@@ -272,6 +277,11 @@ test("Data Management malformed upload, preview, duplicate replay, independent a
   await page
     .getByRole("button", { name: "Règles de publication", exact: true })
     .click();
+  const ruleCsrf = (await (await page.request.get('/api/auth/csrf/')).json()).csrfToken;
+  for (const previous of prior.filter((p:{template:string;date_format:string;data_scope:string;approved_at:string|null}) => p.template==='legal' && p.date_format==='DMY' && p.data_scope==='synthetic' && p.approved_at)) {
+    expect((await page.request.post(`/api/imports/${importOrg}/policies/${previous.id}/revoke/`, {headers:{'X-CSRFToken':ruleCsrf},data:{}})).status()).toBe(200);
+  }
+  await page.getByLabel("Afficher les r\u00e8gles").selectOption("pending");
   const rule = page
     .locator(".policy-list article")
     .filter({ hasText: rationale });

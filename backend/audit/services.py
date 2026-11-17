@@ -10,7 +10,7 @@ def record(action, *, actor=None, organization_id=None, target_id=None, result='
         values['request_id'] = request.request_id
     event = AuditEvent.objects.create(**values)
     producer = ('integration' if action.startswith('imports.') else
-                'commercial' if action.startswith('clients.opportunities') else
+                'commercial' if action.startswith('clients.opportunities') or action=='commercial.campaign_draft_saved' else
                 'client_crm' if action.startswith(('clients.','prospects.')) else 'iam')
     AuditOutbox.objects.create(event=event,producer=producer)
     return event

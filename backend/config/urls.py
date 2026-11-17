@@ -1,3 +1,8 @@
+from clients.followups import ProspectFollowupsView
+from clients.segmentation import ClientFilterOptionsView
+from commercial.pipeline_contract import PipelineContractView
+from clients.agenda import AgendaView,AppointmentView,AgendaContextView
+from commercial.campaign_contract import CampaignContractView,CampaignContextContractView,CampaignDetailContractView
 from django.urls import path
 from drf_spectacular.views import SpectacularAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -6,8 +11,12 @@ from identity.views import (CsrfView, LoginView, LogoutView, AccessView, UserLis
                             MembershipStateView, RoleAssignmentView, RevokeRoleView, RoleCatalogueView)
 from clients.views import ClientListView, ClientDetailView, CRMUpdateView, AccountListView
 from audit.views import AuditListView
+from clients.history import InteractionHistoryView
 from clients.prospects import ProspectsView, ProspectView, ProspectContextView
 from clients.workspace_views import WorkspaceView, CreatePartyView, IdentityEditView, ProfileView, ActivityView, OpportunitiesView, ClientContextView, InteractionDetailView, OpportunityDetailView
+from clients.quality import ClientQualityView
+from clients.reporting import CommercialActivityView
+from clients.managerial_reporting import ManagerialCRMView
 from ingestion.views import ImportContextView, BatchListView, UploadView, BatchView, RejectionsView, PoliciesView, PolicyApproveView, PolicyRevokeView, PublishView
 
 urlpatterns = [
@@ -49,4 +58,19 @@ urlpatterns = [
     path('api/organizations/<uuid:organization_id>/role-assignments/<uuid:assignment_id>/', RevokeRoleView.as_view()),
     path('api/organizations/<uuid:organization_id>/roles/', RoleCatalogueView.as_view()),
     path('api/audit/', AuditListView.as_view()),
+    path('api/interactions/', InteractionHistoryView.as_view()),
+    path('api/prospects/follow-ups/', ProspectFollowupsView.as_view()),
+    path('api/clients/filter-options/', ClientFilterOptionsView.as_view()),
+    path('api/opportunities/', PipelineContractView.as_view()),
+    path('api/agenda/',AgendaView.as_view()),
+    path('api/agenda/context/',AgendaContextView.as_view()),
+    path('api/agenda/<uuid:appointment_id>/',AppointmentView.as_view()),
+    path('api/campaigns/',CampaignContractView.as_view()),
+    path('api/campaigns/context/',CampaignContextContractView.as_view()),
+    path('api/campaigns/<uuid:campaign_id>/',CampaignDetailContractView.as_view()),
+    path('api/clients/<uuid:party_id>/quality/', ClientQualityView.as_view()),
+    path('api/clients/activity-report/', CommercialActivityView.as_view()),
+    path('api/clients/managerial-report/', ManagerialCRMView.as_view()),
 ]
+from clients.source_mapping import SourceMappingPreviewView
+urlpatterns += [path('api/clients/<uuid:party_id>/source-mapping-preview/', SourceMappingPreviewView.as_view())]

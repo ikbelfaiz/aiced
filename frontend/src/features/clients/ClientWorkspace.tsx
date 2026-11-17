@@ -1,3 +1,5 @@
+import { ProfileQuality } from './ProfileQuality';
+import { SourceMappingPreview } from './SourceMappingPreview';
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams, useSearchParams } from "react-router-dom";
@@ -13,6 +15,7 @@ import { Badge, Button, StatePanel } from "../../components/ui";
 import { DataEditor, type Field } from "../../components/DataEditor";
 import { workspaceApi, type Activity } from "../../lib/workspace-api";
 import { useAuth } from "../auth/AuthProvider";
+import { request } from '../../lib/api';
 
 const date = (value?: string | null) =>
   value
@@ -68,6 +71,7 @@ function ClientWorkspacePage({ id }: { id: string }) {
   const queryClient = useQueryClient();
   const [params, setParams] = useSearchParams();
   const tab = params.get("onglet") ?? "overview";
+  const selectedOpportunity=tab==='opportunities'?params.get('opportunite'):null;
   const [editor, setEditor] = useState<{
     section: string;
     item?: Activity;
@@ -88,9 +92,9 @@ function ClientWorkspacePage({ id }: { id: string }) {
     enabled: !!permissions?.view_interactions,
   });
   const opportunities = useQuery({
-    queryKey: ["opportunities", auth.identity?.session.id, id, opportunityPage],
+    queryKey: ["opportunities", auth.identity?.session.id, id, opportunityPage, selectedOpportunity],
     queryFn: ({ signal }) =>
-      workspaceApi.activities(id, "opportunities", opportunityPage, signal),
+      selectedOpportunity ? request<Activity>(`/api/clients/${encodeURIComponent(id)}/opportunities/${encodeURIComponent(selectedOpportunity)}/`,{signal}).then(item=>({count:1,next:null,previous:null,results:[item]})) : workspaceApi.activities(id, "opportunities", opportunityPage, signal),
     enabled: !!permissions?.view_opportunities,
   });
   const accounts = useQuery({
@@ -449,7 +453,7 @@ function ClientWorkspacePage({ id }: { id: string }) {
       </nav>
       {tab === "overview" ? (
         <>
-          <div className="client-overview-grid">
+          <ProfileQuality id={id} version={client.crm.version}/>{!client.is_prospect&&<SourceMappingPreview id={id} allowed={!!permissions?.view_accounts&&auth.can('imports.view')}/>}<div className="client-overview-grid">
             <section className="card workspace-card">
               <h2>Profil client</h2>
               <div className="profile-data">
@@ -618,6 +622,7 @@ function ClientWorkspacePage({ id }: { id: string }) {
             </Button>
           </div>
           {activityList(tab)}
+          {tab==='opportunities'&&<p><Link className="text-link" to="/opportunites">Retour au pipeline</Link>{selectedOpportunity&&<> · <Button variant="text" onClick={()=>setParams({onglet:'opportunities'})}>Toutes les opportunités de cette fiche</Button></>}</p>}
         </section>
       ) : (
         <section className="card">

@@ -39,6 +39,132 @@ def workbook(template="legal", ids=("SYNTH-001",), mutate=None):
 
 
 class ImportTests(TestCase):
+    def test_review_diagnostics_distinguish_pending_revoked_and_date_mismatch(self):
+        from .matching import policy_match
+        from .views import PolicyOutput
+        rule = self.scoped_rule()
+        batch = self.scoped_batch()
+        self.assertEqual(policy_match(batch, PolicyOutput)["detail_code"], "pending")
+        approve_policy(self.manager, self.org_a.pk, rule.pk)
+        dated = stage(self.reader, self.org_a.pk, "legal", date(2026, 1, 1), "partial", workbook(), date_format="DMY", data_scope="synthetic")[0]
+        self.assertEqual(policy_match(dated, PolicyOutput)["detail_code"], "date_format")
+        approve_policy(self.manager, self.org_a.pk, rule.pk, revoke=True)
+        self.assertEqual(policy_match(batch, PolicyOutput)["detail_code"], "revoked")
+
+    def test_published_key_warning_does_not_cross_usage_boundaries(self):
+        rule = self.scoped_rule()
+        approve_policy(self.manager, self.org_a.pk, rule.pk)
+        original = self.scoped_batch()
+        publish(self.manager, self.org_a.pk, original.pk, rule.pk)
+        other = self.scoped_batch(scope="operational")
+        self.assertEqual(other.rows.first().warnings, [])
+
+    def test_matching_validates_approved_key_and_explicit_date_format(self):
+        from .matching import policy_match
+        from .views import PolicyOutput
+        rule = create_policy(self.reader, self.org_a.pk, "physical", 29, "Synthetic alternate approved column, no identity mapping", data_scope="synthetic")
+        approve_policy(self.manager, self.org_a.pk, rule.pk)
+        batch = stage(self.reader, self.org_a.pk, "physical", date(2026, 1, 1), "partial", workbook(template="physical"), data_scope="synthetic")[0]
+        self.assertEqual(policy_match(batch, PolicyOutput)["status"], "invalid_key")
+        legal = self.scoped_rule()
+        approve_policy(self.manager, self.org_a.pk, legal.pk)
+        dated = stage(self.reader, self.org_a.pk, "legal", date(2026, 1, 1), "partial", workbook(), date_format="DMY", data_scope="synthetic")[0]
+        self.assertEqual(policy_match(dated, PolicyOutput)["status"], "missing")
+        rejected = stage(self.reader, self.org_a.pk, "legal", date(2026, 1, 1), "partial", workbook(ids=("SYNTH-DUP", "SYNTH-DUP")), data_scope="synthetic")[0]
+        self.assertEqual(policy_match(rejected, PolicyOutput)["status"], "invalid_rows")
+
+    def test_matching_is_independent_of_rule_list_pagination_and_revoked_grants(self):
+        from .matching import policy_match
+        from .views import PolicyOutput
+        rule = self.scoped_rule()
+        approve_policy(self.manager, self.org_a.pk, rule.pk)
+        for index in range(101):
+            self.scoped_rule(rationale=f"Synthetic distinct pending policy text {index}")
+        batch = self.scoped_batch()
+        self.assertEqual(policy_match(batch, PolicyOutput)["policy"]["id"], str(rule.pk))
+        self.login_as(self.reader)
+        first = self.client.get(f"/api/imports/{self.org_a.pk}/policies/?view=available")
+        second = self.client.get(f"/api/imports/{self.org_a.pk}/policies/?view=available&page=2")
+        self.assertEqual(len(first.data), 100)
+        self.assertIn(str(rule.pk), [row["id"] for row in second.data])
+        RoleAssignment.objects.filter(membership=self.reader_m).delete()
+        self.assertEqual(self.client.get(f"/api/imports/{self.org_a.pk}/batches/{batch.pk}/").status_code, 403)
+
+    def scoped_rule(self, scope="synthetic", rationale="Synthetic reusable rule: immutable snapshots only"):
+        return create_policy(self.reader, self.org_a.pk, "legal", 2, rationale, data_scope=scope)
+
+    def scoped_batch(self, scope="synthetic", key="SYNTH-REUSE"):
+        return stage(self.reader, self.org_a.pk, "legal", date(2026, 1, 1), "partial", workbook(ids=(key,)), data_scope=scope)[0]
+
+    def test_identical_proposal_reuses_version_without_new_audit(self):
+        from audit.models import AuditEvent
+        rule = self.scoped_rule()
+        count = AuditEvent.objects.filter(action="imports.policy_created").count()
+        self.assertEqual(self.scoped_rule().pk, rule.pk)
+        self.assertEqual(AuditEvent.objects.filter(action="imports.policy_created").count(), count)
+        approve_policy(self.manager, self.org_a.pk, rule.pk)
+        self.assertEqual(self.scoped_rule().pk, rule.pk)
+
+    def test_one_active_rule_and_explicit_replacement_retains_history(self):
+        rule = self.scoped_rule()
+        approve_policy(self.manager, self.org_a.pk, rule.pk)
+        batch = self.scoped_batch()
+        publish(self.manager, self.org_a.pk, batch.pk, rule.pk)
+        replacement = self.scoped_rule(rationale="Changed synthetic publication policy requiring new approval")
+        with self.assertRaises(ValidationError):
+            approve_policy(self.manager, self.org_a.pk, replacement.pk)
+        approve_policy(self.manager, self.org_a.pk, rule.pk, revoke=True)
+        approve_policy(self.manager, self.org_a.pk, replacement.pk)
+        batch.refresh_from_db()
+        self.assertEqual(batch.policy_id, rule.pk)
+        self.assertEqual(batch.rows.filter(sourcesnapshot__isnull=False).count(), 1)
+
+    def test_suggestion_reused_but_every_batch_requires_independent_review(self):
+        from .matching import policy_match
+        from .views import PolicyOutput
+        rule = self.scoped_rule()
+        batch = self.scoped_batch()
+        self.assertEqual(policy_match(batch, PolicyOutput)["status"], "missing")
+        approve_policy(self.manager, self.org_a.pk, rule.pk)
+        for current in [batch, self.scoped_batch(key="SYNTH-SECOND")]:
+            self.assertEqual(policy_match(current, PolicyOutput)["policy"]["id"], str(rule.pk))
+            with self.assertRaises(PermissionDenied):
+                publish(self.reader, self.org_a.pk, current.pk, rule.pk)
+            publish(self.manager, self.org_a.pk, current.pk, rule.pk)
+        approve_policy(self.manager, self.org_a.pk, rule.pk, revoke=True)
+        self.assertEqual(policy_match(self.scoped_batch(key="SYNTH-THIRD"), PolicyOutput)["status"], "missing")
+
+    def test_usage_and_schema_are_not_interchangeable(self):
+        from .matching import policy_match
+        from .views import PolicyOutput
+        rule = self.scoped_rule()
+        approve_policy(self.manager, self.org_a.pk, rule.pk)
+        batch = self.scoped_batch(scope="operational")
+        self.assertEqual(policy_match(batch, PolicyOutput)["status"], "missing")
+        with self.assertRaises(ValidationError):
+            publish(self.manager, self.org_a.pk, batch.pk, rule.pk)
+        with self.assertRaises(ValidationError):
+            create_policy(self.reader, self.org_a.pk, "legal", 2, "Synthetic unsupported schema approval", template_version=999)
+        self.assertEqual(policy_match(self.staged(), PolicyOutput)["status"], "unclassified")
+
+    def test_rule_configuration_and_import_classification_immutable_in_database(self):
+        rule = self.scoped_rule()
+        batch = self.scoped_batch()
+        for mutation in [lambda: ImportPolicy.objects.filter(pk=rule.pk).update(key_column=1), lambda: ImportPolicy.objects.filter(pk=rule.pk).update(rationale="changed"), lambda: ImportBatch.objects.filter(pk=batch.pk).update(data_scope="operational")]:
+            with self.assertRaises(DatabaseError), transaction.atomic():
+                mutation()
+
+    def test_suggestion_requires_authorized_organization_and_approved_valid_rows(self):
+        rule = self.scoped_rule()
+        approve_policy(self.manager, self.org_a.pk, rule.pk)
+        batch = self.scoped_batch()
+        self.login_as(self.it)
+        self.assertEqual(self.client.get(f"/api/imports/{self.org_a.pk}/batches/{batch.pk}/").status_code, 403)
+        self.login_as(self.reader)
+        response = self.client.get(f"/api/imports/{self.org_a.pk}/batches/{batch.pk}/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["policy_match"]["policy"]["id"], str(rule.pk))
+
     def setUp(self):
         fixtures.SecurityFixtures.setUp(self)
         self.default_workbook = workbook()

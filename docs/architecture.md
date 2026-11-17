@@ -1,3 +1,16 @@
+# État courant après S7/S8
+
+L'architecture est gelée à quatre services Django — IAM, Client & CRM,
+Commercial, Data Integration — derrière Nginx et React, avec les schémas et
+credentials restreints existants. Les interactions et prospects restent chez
+Client & CRM ; les opportunités restent chez Commercial. Les prochains
+incréments ajoutent des fonctions dans ces frontières, sans extraction ni
+transfert de tables. Voir [S8](migration/s8-functional-validation.md) et
+[Compose courant](docker-compose.md). Le texte antérieur ci-dessous conserve
+les décisions initiales, remplacées par cette cible lorsqu'elles divergent.
+
+---
+
 # Architecture AICED — état actuel et cible par services
 
 > Current architecture: **S6b verified locally**. IAM, Client & CRM, Commercial and Data Integration run separately with restricted data ownership. All 38 routes are preserved; actual post-write rollback/forward, browser workflows and restore were verified. See [S6b report](migration/s6b-commercial.md). Container execution and production readiness remain unverified. Earlier phase status paragraphs below are historical.

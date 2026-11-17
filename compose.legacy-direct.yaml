@@ -1,0 +1,12 @@
+# Development rollback: stop gateway first, then start ONLY db backend frontend.
+# docker compose -f compose.legacy.yaml stop gateway
+# docker compose -f compose.legacy.yaml -f compose.legacy-direct.yaml up -d db backend frontend
+services:
+  backend:
+    ports:
+      - "127.0.0.1:8000:8000"
+  frontend:
+    environment:
+      API_PROXY_TARGET: http://backend:8000
+    ports:
+      - "127.0.0.1:5173:5173"

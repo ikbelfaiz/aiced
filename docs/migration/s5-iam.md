@@ -1,5 +1,7 @@
 # S5 - Independent Identity & Access Management
 
+> S8 naming update: operational filenames in this guide use the [purpose-based mapping](../docker-compose.md). Reported milestone results are historical; original inventory JSON files retain their captured filenames.
+
 > Later status: [S6b is now verified locally](s6b-commercial.md). This document preserves the earlier phase and its evidence.
 
 
@@ -266,7 +268,7 @@ S4 rollback must follow S5 rollback; the tool rejects the reverse order. Restore
 S4's Integration service before forwarding S5 again. The old `.local/postgres`
 credentials/startup describe the historical backend and are not the S5 runtime.
 
-For containers, use `docker compose -f compose.yaml -f compose.s5.yaml ...`, not
+For containers, use `docker compose -f compose.legacy.yaml -f compose.iam-cutover.yaml ...`, not
 the S4 overlay simultaneously. Provision/copy/review ownership first. Private
 `.env.iam-runtime`, `.env.iam-migrator`, `.env.iam-consumer`, `.env.integration`
 and CA/server certificates under `.local/s5-tls` must be supplied securely.
@@ -352,7 +354,7 @@ No expiry, authentication or migration check was bypassed to report a pass.
 - `infra/gateway/{nginx.conf.template,start.sh}`, `backend/testing/gateway.py`,
   `scripts/{run_gateway,run_s4_deployment}.py`: optional compatible IAM routing and
   separately configured supervised IAM process.
-- `backend/Dockerfile.iam`, `compose.s5.yaml`: independent deployment definition.
+- `backend/Dockerfile.iam`, `compose.iam-cutover.yaml`: independent deployment definition.
 - `scripts/{run_iam,s5_database,s5_backup,s5_rehearsal,s5_local,s5_verify_local}.py`,
   `scripts/s5_browser.mjs`, `scripts/tests/test_s5_safety.py`, and the S4 rollback
   ordering guard: controlled copy, restore, isolation, rollback and verification.

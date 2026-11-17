@@ -123,3 +123,5 @@ urlpatterns = [
     path("health/live", live),
     path("health/ready", ready),
 ]
+from .source_mapping import MappingPreview
+urlpatterns += [path('internal/v1/source-mapping/preview', MappingPreview.as_view())]

@@ -19,7 +19,7 @@ def table_owner(table):
         "audit_auditreceipt",
     ):
         return "iam"
-    if table == "clients_opportunity":
+    if table in ("clients_opportunity","commercial_store_campaigndraft"):
         return "commercial"
     if table in (
         "clients_party",
@@ -30,6 +30,7 @@ def table_owner(table):
         "clients_financialaccount",
         "clients_prospect",
         "clients_interaction",
+        "clients_appointment",
     ):
         return "client_crm"
     if table in (
@@ -52,8 +53,8 @@ def route_owner(path):
         return "iam"
     if path.startswith("/api/imports/"):
         return "integration"
-    if path.startswith("/api/clients/") and "/opportunities/" in path:
+    if path.startswith('/api/campaigns/') or path == '/api/opportunities/' or (path.startswith("/api/clients/") and "/opportunities/" in path):
         return "commercial"
-    if path.startswith(("/api/clients/", "/api/prospects/")):
+    if path.startswith(("/api/clients/", "/api/prospects/", "/api/interactions/", "/api/agenda/")):
         return "client_crm"
     raise ValueError(f"Unclassified public route: {path}")

@@ -1,0 +1,45 @@
+name: aiced
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB in .env}
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  backend:
+    build: ./backend
+    env_file: .env
+    environment:
+      AICED_GATEWAY_KEY: ${AICED_GATEWAY_KEY:?Set a random gateway key in .env}
+    depends_on:
+      db:
+        condition: service_healthy
+  frontend:
+    build: ./frontend
+    environment:
+      API_PROXY_TARGET: http://backend:8000
+    depends_on:
+      - backend
+  gateway:
+    build: ./infra/gateway
+    environment:
+      GATEWAY_PORT: "8080"
+      BACKEND_UPSTREAM: backend:8000
+      INTEGRATION_UPSTREAM: ${INTEGRATION_UPSTREAM:-backend:8000}
+      FRONTEND_UPSTREAM: frontend:5173
+      BACKEND_TIMEOUT: "120"
+      AICED_GATEWAY_KEY: ${AICED_GATEWAY_KEY:?Set a random gateway key in .env}
+    ports:
+      - "127.0.0.1:5173:8080"
+    depends_on:
+      - backend
+      - frontend
+volumes:
+  postgres_data:

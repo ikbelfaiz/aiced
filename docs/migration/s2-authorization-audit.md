@@ -134,6 +134,6 @@ Limites : aucun build/run Docker ou TLS de production sur cette machine ; pas en
 - `backend/identity/{coordination,services,authentication,models}.py`, migration `identity/0003_internal_authorization.py` ; callers dans `clients/{services,workspace,prospects}.py` et `ingestion/services.py` : admission/révocation et revalidation après attente.
 - `backend/audit/{models,services,delivery}.py`, migration `audit/0004_audit_outbox.py` : audit/outbox local et reçus append-only.
 - `backend/core/management/commands/{deliver_audit_outbox,prune_internal_nonces}.py` : commandes bornées de livraison et maintenance technique ; `core/middleware.py` : no-store aussi sur les réponses privées.
-- `backend/config/settings.py`, `.env.example` : clés techniques séparées et timeout d'admission ; aucune clé réelle versionnée.
+- `backend/config/settings.py`, `.env.legacy.example` : clés techniques séparées et timeout d'admission ; aucune clé réelle versionnée.
 - `scripts/{migration_baseline,s2_migrate_local}.py`, `backend/service_architecture/ownership.py`, `docs/migration/service-inventory.json` : gate S2, backup/migration locale contrôlée et inventaire propriétaire actualisé.
 - README, architecture/roadmap, plan S1 et ce bilan : statut, garanties, procédures et prérequis S3. Aucun source React, URLConf public, fichier Nginx/Compose ou migration historique modifié.

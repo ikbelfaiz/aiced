@@ -58,6 +58,11 @@ class InternalClient:
             )
 
     def post(self, path, payload):
+        from time import monotonic
+        from core.request_metrics import record
+        started = monotonic()
+        peer_request_id = None
+        status = None
         if not path.startswith("/internal/v1/") or "?" in path:
             raise ValueError("Invalid internal contract path")
         body = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
@@ -97,6 +102,8 @@ class InternalClient:
             if expired.is_set():
                 raise ServiceUnavailable()
             response = conn.getresponse()
+            status = response.status
+            peer_request_id = response.getheader('X-Request-ID')
             raw = response.read(65537)
             if expired.is_set():
                 raise ServiceUnavailable()
@@ -119,6 +126,10 @@ class InternalClient:
         finally:
             deadline.cancel()
             conn.close()
+            record('internal_http', peer=self.audience, path=path,
+                   peer_request_id=peer_request_id, status=status,
+                   seconds=round(monotonic()-started, 6), timeout_seconds=round(self.timeout, 6),
+                   expired=expired.is_set())
 
     def authorize(self, payload):
         result = self.post("/internal/v1/authorization/check", payload)

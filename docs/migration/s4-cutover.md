@@ -1,5 +1,7 @@
 # S4 — Controlled Integration cutover
 
+> S8 naming update: operational filenames in this guide use the [purpose-based mapping](../docker-compose.md). Reported milestone results are historical; original inventory JSON files retain their captured filenames.
+
 **Later state:** [S5 IAM extraction](s5-iam.md) is active locally. Roll back S5 before any S4 rollback; the S4 tool refuses the unsafe order. This S4 report remains historical evidence.
 
 ## Verified status — 14 November 2026
@@ -219,12 +221,12 @@ Never log request cookies, signing keys, raw Excel cells or private env files.
 
 ## Compose configuration (not executed on this workstation)
 
-`compose.s4.yaml` overlays the existing Compose setup with independent
+`compose.integration-cutover.yaml` overlays the existing Compose setup with independent
 Integration and private IAM-facade processes, owned migration job, readiness
 check, verified TLS between containers and explicit import routing:
 
 ```sh
-docker compose -f compose.yaml -f compose.s4.yaml up -d
+docker compose -f compose.legacy.yaml -f compose.integration-cutover.yaml up -d
 ```
 
 Run this only after the appropriate database backup/migration/copy/fence procedure
@@ -383,5 +385,5 @@ least-privilege deployment. **Do not begin it as part of S4.**
 - `scripts/{s4_transfer,s4_local,s4_rehearsal,run_s4_deployment}.py` and
   `scripts/tests/test_s4_transfer.py`: freeze/parity/forward/reverse tools,
   local startup and safety tests.
-- `compose.s4.yaml`, migration documentation and current-status entry points:
+- `compose.integration-cutover.yaml`, migration documentation and current-status entry points:
   opt-in active deployment and operations. No React product source changed.

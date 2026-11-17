@@ -5,7 +5,7 @@ Analyser les sources disponibles, proposer l'architecture et livrer un socle de 
 
 ## Fichiers livrés
 - `docs/` : architecture, relations, permissions, ingestion/rapprochement, stratégie UI, backlog/acceptation, questions ouvertes, analyse des références et ce bilan.
-- `AGENTS.md`, `.gitignore`, `.env.example`, `README.md`, `compose.yaml`, `infra/README.md` : conventions et environnement local.
+- `AGENTS.md`, `.gitignore`, `.env.legacy.example`, `README.md`, `compose.legacy.yaml`, `infra/README.md` : conventions et environnement local.
 - `backend/config`, `identity`, `core`, `ingestion`, requirements et Dockerfile : configuration Django/DRF, User UUID et migration, refus par défaut, vie API, session courante protégée, schéma OpenAPI protégé, logs JSON minimaux et adaptateurs explicitement inactifs.
 - `frontend/` : Vite/React/TypeScript/Tailwind, Router et Query, validation Zod de la réponse de vie et écran technique en français. RHF/Recharts déclarés pour les phases suivantes, sans formulaire ni graphe artificiel.
 - `scripts/inspect_references.py` : outil local de revue des PDF et structures Excel ; ses sorties privées sont ignorées.

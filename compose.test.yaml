@@ -1,0 +1,26 @@
+# Explicit isolated test deployment. Never reuse the application DB volume or secrets.
+name: aiced-test
+services:
+  db:
+    env_file: !override [.local/compose-test/db.env]
+  initialize:
+    volumes:
+      - ./.local/compose-test:/private
+  iam:
+    env_file: !override [.local/compose-test/iam.env]
+    volumes: ['./.local/compose-test/tls/iam:/run/tls:ro']
+  client:
+    env_file: !override [.local/compose-test/client.env]
+    volumes: ['./.local/compose-test/tls/client:/run/tls:ro']
+  commercial:
+    env_file: !override [.local/compose-test/commercial.env]
+    volumes: ['./.local/compose-test/tls/commercial:/run/tls:ro']
+  integration:
+    env_file: !override [.local/compose-test/integration.env]
+    volumes: ['./.local/compose-test/tls/integration:/run/tls:ro']
+  gateway:
+    env_file: !override [.local/compose-test/gateway.env]
+    ports: !override ['127.0.0.1:5188:8080']
+volumes:
+  s7_database:
+    name: aiced-compose-test-database

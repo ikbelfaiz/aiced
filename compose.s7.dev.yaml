@@ -1,4 +1,0 @@
-# Optional frontend development-mode browser validation; backend remains Docker-only.
-services:
-  frontend:
-    command: [npm, run, dev, --, --config, vite.s7.config.ts]

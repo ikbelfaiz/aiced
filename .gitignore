@@ -3,7 +3,7 @@ references/
 .tools/
 .env
 .env.*
-!.env.example
+!.env.legacy.example
 **/__pycache__/
 *.py[cod]
 .venv/

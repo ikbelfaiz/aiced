@@ -1,0 +1,54 @@
+import {test,expect} from '@playwright/test';
+
+test('Technical completeness combines filters and survives reload through Client 360',async({page})=>{
+  await page.goto('/clients');
+  await page.getByLabel('Identifiant professionnel').fill('synthetic.operator.a');
+  await page.getByLabel('Mot de passe',{exact:true}).fill(process.env.AICED_E2E_PASSWORD!);
+  await page.getByRole('button',{name:'Connexion',exact:true}).click();
+  await page.getByRole('button',{name:'Nouveau client',exact:true}).click();
+  const name=`SYNTHETIQUE S15 ${Date.now()}`;
+  await page.getByLabel('Prénom (personne physique)',{exact:true}).fill('TEST');
+  await page.getByLabel('Nom (personne physique)',{exact:true}).fill(name);
+  await page.getByRole('button',{name:'Enregistrer',exact:true}).click();
+  const quality=page.getByRole('region',{name:'Complétude du profil'});
+  await expect(quality).toContainText('0 %');
+  await expect(quality).toContainText('Email CRM, Téléphone CRM, Profession CRM, Secteur CRM');
+  await page.getByRole('button',{name:'Modifier le profil CRM'}).click();
+  await page.getByLabel('Profession déclarée au CRM').fill(name);
+  await page.getByRole('button',{name:'Enregistrer',exact:true}).click();
+  await expect(quality).toContainText('25 %');
+  await page.getByRole('link',{name:'Clients',exact:true}).click();
+  await page.getByLabel('Rechercher un client',{exact:true}).fill(name);
+  await page.getByLabel('Complétude minimum',{exact:true}).fill('25');
+  await page.getByLabel('Complétude maximum',{exact:true}).fill('25');
+  await page.getByLabel('Information absente',{exact:true}).selectOption('phone');
+  await page.getByLabel('Profession',{exact:true}).selectOption(JSON.stringify(name));
+  await expect(page.locator('tbody tr')).toHaveCount(1);
+  await expect(page.getByRole('region',{name:'Qualité du portefeuille autorisé'})).toContainText('ni KYC ni conformité');
+  await page.reload();
+  await expect(page.locator('tbody tr')).toHaveCount(1);
+  await page.getByLabel('Complétude minimum',{exact:true}).fill('26');
+  await page.getByLabel('Complétude maximum',{exact:true}).fill('100');
+  await expect(page.getByRole('heading',{name:'Aucun client ne correspond à votre recherche'})).toBeVisible();
+  await page.getByRole('button',{name:'Retirer la complétude minimum',exact:true}).click();
+  await expect(page.locator('tbody tr')).toHaveCount(1);
+  await page.setViewportSize({width:390,height:844});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  await page.screenshot({path:'../.local/ui-review/screens/quality-mobile.png',fullPage:true});
+  await page.locator('tbody a').first().click();
+  await expect(quality).toContainText('25 %');
+  await expect(quality).toContainText('Carthago — lecture seule');
+});
+
+test('Quality errors hide cached statistics and profile assessment',async({page})=>{
+  await page.goto('/clients');
+  await page.getByLabel('Identifiant professionnel').fill('synthetic.operator.a');
+  await page.getByLabel('Mot de passe',{exact:true}).fill(process.env.AICED_E2E_PASSWORD!);
+  await page.getByRole('button',{name:'Connexion',exact:true}).click();
+  await expect(page.locator('tbody tr').first()).toBeVisible();
+  await page.route('**/api/clients/*/quality/',route=>route.fulfill({status:403,contentType:'application/json',body:'{}'}));
+  await page.locator('tbody a').first().click();
+  const quality=page.getByRole('region',{name:'Complétude du profil'});
+  await expect(quality.getByRole('alert')).toBeVisible();
+  await expect(quality.locator('strong')).toHaveCount(0);
+});

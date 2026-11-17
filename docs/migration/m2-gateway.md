@@ -1,5 +1,7 @@
 # M2 — Gateway transparent et MVP pragmatique
 
+> S8 naming update: operational filenames in this guide use the [purpose-based mapping](../docker-compose.md). Reported milestone results are historical; original inventory JSON files retain their captured filenames.
+
 > Nouvelle decision utilisateur apres M2 : cible a quatre services larges sur une instance/base PostgreSQL, schemas et credentials separes. Prospects et interactions appartiennent a Client & CRM. Le [plan de decomposition courant](coarse-services-plan.md) remplace les anciennes recommandations de ce document ; les preuves historiques M1/M2 restent conservees.
 
 ## Décision et périmètre
@@ -31,13 +33,13 @@ Nginx 1.30.6 est épinglé dans l'image et utilisé pour les tests locaux. La [p
 
 ## Démarrage
 
-Avec Docker disponible, renseigner `.env` à partir de `.env.example`, notamment les deux secrets distincts. Sur une installation existante, conserver exactement les paramètres PostgreSQL et le volume ; ne pas remplacer son mot de passe ou sa clé Django pour M2.
+Avec Docker disponible, renseigner `.env` à partir de `.env.legacy.example`, notamment les deux secrets distincts. Sur une installation existante, conserver exactement les paramètres PostgreSQL et le volume ; ne pas remplacer son mot de passe ou sa clé Django pour M2.
 
 ```sh
-docker compose build
-docker compose up -d
+docker compose -f compose.legacy.yaml build
+docker compose -f compose.legacy.yaml up -d
 # Installation neuve uniquement : migrations habituelles, explicitement
-docker compose exec backend python manage.py migrate
+docker compose -f compose.legacy.yaml exec backend python manage.py migrate
 ```
 
 Ouvrir `http://localhost:5173` ; `/api/health/` doit répondre `{"status":"ok"}`. Ne pas exécuter de seed contre des données à préserver. Le démarrage ne lance aucune migration automatique.
@@ -55,15 +57,15 @@ Ouvrir `http://localhost:8080` ; Ctrl+C arrête seulement ce Gateway. `--env-fil
 Aucune restauration, suppression de volume ou migration inverse n'est nécessaire : les écritures sont toujours dans la même base Django. Garder `DJANGO_SECRET_KEY`, cookies, host et port publics inchangés pour conserver les sessions. Les opérations en cours peuvent recevoir une erreur de connexion lors de l'arrêt ; vérifier leur état avant de les répéter. Le replay idempotent des imports reste assuré par le backend ; les autres mutations ne sont pas automatiquement rejouées.
 
 ```sh
-docker compose stop gateway
-docker compose -f compose.yaml -f compose.direct.yaml up -d db backend frontend
+docker compose -f compose.legacy.yaml stop gateway
+docker compose -f compose.legacy.yaml -f compose.legacy-direct.yaml up -d db backend frontend
 ```
 
 Le frontend reprend le port 5173 et relaie directement `/api` vers Django ; 8000 est publié uniquement en loopback pour le développement. Ne pas démarrer le service gateway avec cet override : son port entrerait en conflit. Pour revenir au Gateway, supprimer les ports directs par recréation avec le fichier principal :
 
 ```sh
-docker compose -f compose.yaml -f compose.direct.yaml stop frontend backend
-docker compose up -d --force-recreate backend frontend gateway
+docker compose -f compose.legacy.yaml -f compose.legacy-direct.yaml stop frontend backend
+docker compose -f compose.legacy.yaml up -d --force-recreate backend frontend gateway
 ```
 
 Ne jamais utiliser `down -v` ni réinitialiser PostgreSQL. En mode local sans Docker, ouvrir directement Vite sur son origine précédente et arrêter le Gateway ; pour conserver une session à travers un changement de processus, conserver la même origine publique. Le test HTTP de rollback réutilise réellement cookie et CSRF sur le même Host, modifie une note synthétique puis vérifie que logout invalide aussi l'accès direct.
@@ -111,7 +113,7 @@ Réexaminer l'extraction de Data Integration seulement devant un besoin concret 
 | Fichiers | Changement |
 |---|---|
 | `infra/gateway/Dockerfile`, `nginx.conf.template`, `start.sh` | Nouvelle image et configuration Gateway, même template testé localement. |
-| `compose.yaml`, `compose.direct.yaml`, `.env.example` | Entrée unique, secret technique, override de rollback sans modification du volume. |
+| `compose.legacy.yaml`, `compose.legacy-direct.yaml`, `.env.legacy.example` | Entrée unique, secret technique, override de rollback sans modification du volume. |
 | `backend/config/settings.py`, `backend/core/middleware.py` | Métadonnées du Gateway authentifiées ; autorisation et logique métier inchangées. |
 | `backend/core/test_gateway_metadata.py`, `backend/gateway_tests.py`, `backend/testing/gateway.py` | Tests de confiance et harness réel Nginx/HTTP. |
 | `backend/contracts/tests.py` | Réutilisation des mêmes contrats en direct et via HTTP ; normalisation UUID pour comparaison JSON. |

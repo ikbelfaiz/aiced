@@ -48,10 +48,13 @@ export const api = {
   access: (signal?: AbortSignal) => request<Access>('/api/auth/access/', { signal }),
   login: (data: { username: string; password: string }) => mutate<Session>('/api/auth/login/', data),
   logout: () => mutate<void>('/api/auth/logout/'),
-  clients: (params: { search?: string; kind?: string; page?: number; pageSize?: number } = {}, signal?: AbortSignal) => {
+  clients: (params: { search?: string; kind?: string; page?: number; pageSize?: number; profession?:string; sector?:string; profession_missing?:string; sector_missing?:string; ordering?:string; completeness_min?:string; completeness_max?:string; missing_field?:string } = {}, signal?: AbortSignal) => {
     const query = new URLSearchParams({ page: String(params.page ?? 1), page_size: String(params.pageSize ?? 8) });
     if (params.search) query.set('search', params.search);
     if (params.kind) query.set('kind', params.kind);
+    for (const key of ['profession','sector','profession_missing','sector_missing','ordering','completeness_min','completeness_max','missing_field'] as const) {
+      if(params[key]!==undefined && params[key]!=='')query.set(key,params[key]);
+    }
     return request<Page<Party>>(`/api/clients/?${query}`, { signal });
   },
   client: (id: string, signal?: AbortSignal) => request<Party>(`/api/clients/${encodeURIComponent(id)}/`, { signal }),

@@ -1,9 +1,15 @@
-# Infrastructure locale
+# Infrastructure locale AICED
 
-La configuration Compose est à la racine. Le port PostgreSQL n'est pas publié. Les serveurs de développement sont liés à 127.0.0.1 sur l'hôte. Volumes persistants pour PostgreSQL uniquement ; aucun document de référence dans les images. Ce socle n'est pas une configuration de déploiement production.
-# Gateway M2
+`compose.yaml` démarre la stack acceptée à quatre services Django. `compose.dev.yaml`
+change uniquement le mode frontend ; `compose.test.yaml` isole le projet, les
+credentials, le port et le volume des essais. Aucun déploiement production fourni.
 
-Le Compose principal publie seulement Nginx sur `127.0.0.1:5173`. Django, Vite et PostgreSQL restent internes. Ajouter une clé indépendante `AICED_GATEWAY_KEY` dans `.env`, partagée uniquement entre backend et Gateway. Configuration locale HTTP ; serveurs de développement existants conservés. Aucun changement de base ou de propriété des tables.
+`gateway/` porte Nginx, son routage explicite et ses contrôles de métadonnées.
+`acceptance/` contient le job offline d'initialisation synthétique et les sondes
+de contrat, isolation, audit, import et historique. Le chemin interne `/s7`
+reste inchangé pour préserver les commandes des conteneurs ; seul le nom du
+répertoire hôte devient descriptif.
 
-Voir [le guide M2](../docs/migration/m2-gateway.md) pour démarrage Docker/local, confiance IP/TLS, tests et rollback par `compose.direct.yaml`. Ne jamais utiliser `down -v` pour basculer. Docker/TLS de production doivent être vérifiés séparément.
-
+Voir [les commandes et le mapping historique](../docs/docker-compose.md).
+Les anciens overlays sont réservés aux migrations/reprises documentées, jamais
+à une bascule par `down -v` ni à un démarrage parallèle sur un volume métier.

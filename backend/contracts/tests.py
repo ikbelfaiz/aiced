@@ -10,6 +10,7 @@ from django.urls import get_resolver
 from identity.models import RoleAssignment
 from ingestion.templates import TEMPLATES
 from testing.fixtures import SecurityFixtures, role, PASSWORD
+from contracts.additions import ADDITIONAL_ROUTES
 
 
 class ConsumerContractChecks(SecurityFixtures):
@@ -67,7 +68,7 @@ class ConsumerContractChecks(SecurityFixtures):
                 if m not in ("head", "options") and hasattr(view, m)
             )
             routes.append({"path": "/" + str(pattern.pattern), "methods": methods})
-        self.assertEqual(routes, manifest["routes"])
+        self.assertEqual(routes, manifest["routes"] + ADDITIONAL_ROUTES)
         for filename, digest in manifest["historical_migrations"].items():
             self.assertEqual(
                 hashlib.sha256((settings.BASE_DIR / filename).read_text(encoding='utf-8').encode('utf-8')).hexdigest(),

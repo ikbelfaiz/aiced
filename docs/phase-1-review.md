@@ -33,7 +33,7 @@ Preuves locales ignorées : `.local/review-tests.log`, `.local/review-schema.yam
 
 ## 2. Problèmes corrigés
 
-R1–R9 ci-dessus. Principaux fichiers : `backend/identity/{policies,services,authentication,serializers,views,tests}.py`, `backend/clients/{models,serializers,services,views}.py`, migration clients 0004, `backend/core/{parsers,errors,serializers,views}.py`, configuration/requirements, `.env.example`, documentation et `scripts/smoke_proxy.py`. Aucun adaptateur Carthago modifié.
+R1–R9 ci-dessus. Principaux fichiers : `backend/identity/{policies,services,authentication,serializers,views,tests}.py`, `backend/clients/{models,serializers,services,views}.py`, migration clients 0004, `backend/core/{parsers,errors,serializers,views}.py`, configuration/requirements, `.env.legacy.example`, documentation et `scripts/smoke_proxy.py`. Aucun adaptateur Carthago modifié.
 
 ## 3. Risques ou limites restants
 

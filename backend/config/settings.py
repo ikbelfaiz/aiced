@@ -3,6 +3,15 @@ import json
 import re
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
+from zoneinfo import ZoneInfo,ZoneInfoNotFoundError
+
+AICED_AGENDA_TIME_ZONE=os.environ.get('AICED_AGENDA_TIME_ZONE','Africa/Tunis')
+AICED_REPORT_TIME_ZONE=os.environ.get('AICED_REPORT_TIME_ZONE',AICED_AGENDA_TIME_ZONE)
+try:
+    ZoneInfo(AICED_AGENDA_TIME_ZONE)
+    ZoneInfo(AICED_REPORT_TIME_ZONE)
+except (ZoneInfoNotFoundError,ValueError) as exc:
+    raise ImproperlyConfigured('AICED_AGENDA_TIME_ZONE and AICED_REPORT_TIME_ZONE must be valid IANA timezones.') from exc
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 

@@ -48,6 +48,7 @@ class BatchOutput(serializers.ModelSerializer):
             "source_as_of",
             "snapshot_kind",
             "date_format",
+            "data_scope",
             "status",
             "created_at",
             "uploaded_by_id",
@@ -76,6 +77,8 @@ class PolicyOutput(serializers.ModelSerializer):
             "id",
             "template",
             "key_column",
+            "template_version",
+            "data_scope",
             "date_format",
             "rationale",
             "created_by_id",
@@ -87,6 +90,8 @@ class PolicyOutput(serializers.ModelSerializer):
 
 
 class PolicyInput(StrictSerializer):
+    data_scope = serializers.ChoiceField(choices=["legacy", "synthetic", "operational"], default="legacy")
+    template_version = serializers.IntegerField(min_value=1, required=False)
     template = serializers.ChoiceField(choices=list(TEMPLATES))
     key_column = serializers.IntegerField(min_value=1, max_value=41)
     rationale = serializers.CharField(min_length=20, max_length=1000)
@@ -140,6 +145,7 @@ class UploadView(APIView):
             "source_as_of",
             "snapshot_kind",
             "date_format",
+            "data_scope",
         }:
             raise ValidationError("Paramètre inconnu.")
         try:
@@ -155,6 +161,7 @@ class UploadView(APIView):
             request.data,
             request,
             date_format=request.query_params.get("date_format", "ISO"),
+            data_scope=request.query_params.get("data_scope", "legacy"),
         )
         return Response(BatchOutput(batch).data, status=201 if created else 200)
 
@@ -188,6 +195,8 @@ class BatchView(APIView):
         )
         response.data["batch"] = BatchOutput(batch).data
         response.data["headers"] = TEMPLATES[batch.template]["headers"]
+        from .matching import policy_match
+        response.data["policy_match"] = policy_match(batch, PolicyOutput)
 
         response.data["history"] = [
             {
@@ -258,11 +267,28 @@ class PoliciesView(APIView):
     @extend_schema(responses={200: PolicyOutput(many=True)})
     def get(self, request, organization_id):
         authorize(request.user, organization_id)
+        rules = ImportPolicy.objects.filter(organization_id=organization_id)
+        view = request.query_params.get("view", "all")
+        if view not in ["all", "available", "approved", "pending", "history", "operational", "synthetic"]:
+            raise ValidationError("Vue de règles inconnue.")
+        if view in ["available", "approved", "pending"]:
+            rules = rules.filter(revoked_at__isnull=True).exclude(data_scope="legacy")
+            if view != "available":
+                rules = rules.filter(approved_at__isnull=view == "pending")
+        elif view == "history":
+            from django.db.models import Q
+            rules = rules.filter(Q(revoked_at__isnull=False) | Q(data_scope="legacy"))
+        elif view in ["operational", "synthetic"]:
+            rules = rules.filter(data_scope=view, approved_at__isnull=False, revoked_at__isnull=True)
+        try:
+            page = int(request.query_params.get("page", "1"))
+            if not 1 <= page <= 10000:
+                raise ValueError()
+        except ValueError:
+            raise ValidationError("Page invalide.")
         return Response(
             PolicyOutput(
-                ImportPolicy.objects.filter(organization_id=organization_id).order_by(
-                    "-created_at"
-                )[:100],
+                rules.order_by("-created_at", "id")[(page-1)*100:page*100],
                 many=True,
             ).data
         )

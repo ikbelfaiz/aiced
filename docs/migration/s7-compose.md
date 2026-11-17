@@ -1,10 +1,12 @@
 # S7 — Docker Compose integration
 
+> S8 naming update: operational filenames in this guide use the [purpose-based mapping](../docker-compose.md). Reported milestone results are historical; original inventory JSON files retain their captured filenames.
+
 **Status: S7 verified on the disposable synthetic Docker stack.**
 Production readiness and completion of the remaining business features are not
 claimed. Architectural extraction stops at the existing four Django services.
 
-Acceptance uses `compose.s7.yaml` alone, never the historical Compose overlays.
+Acceptance uses `compose.yaml` alone, never the historical Compose overlays.
 The application consists of React, Nginx, IAM, Client & CRM, Commercial,
 Data Integration and PostgreSQL. `initialize` is an offline one-shot deployment
 job, not another application service. Four Django containers use independent
@@ -14,17 +16,17 @@ remains `public`, preserving S6b lineage and inaccessible historical tables.
 ## Reproduce on a fresh disposable environment
 
 ```powershell
-python scripts/s7_prepare.py
-docker compose -f compose.s7.yaml build
-docker compose -f compose.s7.yaml up -d --wait --wait-timeout 180
-docker compose -f compose.s7.yaml ps --all
-docker compose -f compose.s7.yaml run --rm --no-deps initialize python /s7/regression.py
-docker compose -f compose.s7.yaml run --rm --no-deps initialize python /s7/verify.py
-docker compose -f compose.s7.yaml run --rm --no-deps initialize python /s7/imports.py
-docker compose -f compose.s7.yaml run --rm --no-deps initialize python /s7/routes.py
-python scripts/s7_browser.py
-python scripts/s7_recovery.py
-python scripts/s7_inventory.py
+python scripts/compose_prepare.py
+docker compose -f compose.yaml build
+docker compose -f compose.yaml up -d --wait --wait-timeout 180
+docker compose -f compose.yaml ps --all
+docker compose -f compose.yaml run --rm --no-deps initialize python /s7/regression.py
+docker compose -f compose.yaml run --rm --no-deps initialize python /s7/verify.py
+docker compose -f compose.yaml run --rm --no-deps initialize python /s7/imports.py
+docker compose -f compose.yaml run --rm --no-deps initialize python /s7/routes.py
+python scripts/compose_browser.py
+python scripts/compose_recovery.py
+python scripts/compose_inventory.py
 ```
 
 Open <http://127.0.0.1:5187>. Credentials are generated into excluded
@@ -39,11 +41,11 @@ For the development-only visual-preview regression, keep every application
 backend in Docker and replace only the frontend command:
 
 ```powershell
-docker compose -f compose.s7.yaml -f compose.s7.dev.yaml up -d --no-deps frontend
-docker compose -f compose.s7.yaml restart gateway
-python scripts/s7_browser.py --development
-docker compose -f compose.s7.yaml up -d --no-deps frontend
-docker compose -f compose.s7.yaml restart gateway
+docker compose -f compose.yaml -f compose.dev.yaml up -d --no-deps frontend
+docker compose -f compose.yaml restart gateway
+python scripts/compose_browser.py --development
+docker compose -f compose.yaml up -d --no-deps frontend
+docker compose -f compose.yaml restart gateway
 ```
 
 The preview-only screenshot test explicitly skips compiled builds, which

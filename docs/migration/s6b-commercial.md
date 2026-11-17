@@ -1,5 +1,7 @@
 # S6b: independent Commercial extraction
 
+> S8 naming update: operational filenames in this guide use the [purpose-based mapping](../docker-compose.md). Reported milestone results are historical; original inventory JSON files retain their captured filenames.
+
 **Status: S6b implemented and verified in the local synthetic deployment.**
 IAM, Client & CRM, Commercial and Data Integration are actually running as four
 separate Django processes with enforced data boundaries. The active writer is
@@ -219,7 +221,7 @@ Verification phases create clearly synthetic opportunities and keep their privat
 UUID/session/configuration evidence under the deployment directory. They are
 local acceptance helpers, not production migration or health-check commands.
 
-Container definition: `docker compose -f compose.yaml -f compose.s6.yaml ...`.
+Container definition: `docker compose -f compose.legacy.yaml -f compose.commercial-cutover.yaml ...`.
 S6 includes the S5 IAM/Integration services; do not stack S4/S5 overlays. Supply
 private runtime/migrator env files and CA, IAM, Client, Integration and Commercial
 certificates under the documented local TLS mount. Commercial uses public 8004 /

@@ -1,0 +1,4 @@
+# Optional frontend development-mode browser validation; backend remains Docker-only.
+services:
+  frontend:
+    command: [npm, run, dev, --, --config, vite.compose.config.ts]

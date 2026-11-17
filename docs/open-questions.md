@@ -1,5 +1,64 @@
 # Questions ouvertes et décisions provisoires
 
+## Réutilisation des règles de publication
+
+- AMEN INVEST doit confirmer les politiques opérationnelles de chaque source,
+  colonne clé et format ; une règle synthétique ne vaut jamais cette approbation.
+- Les historiques non classifiés ne sont pas automatiquement requalifiés.
+  Définir les approbations réelles et leur remplacement explicite avant usage
+  opérationnel. Une éventuelle suppression du workflow API historique nécessite
+  une décision de compatibilité distincte ; aucun historique ne doit être effacé.
+- Les décisions MAP/OWN/VIS/LIFE de Client 360 restent requises. La réutilisation
+  d'une approbation de snapshots ne les résout pas. Voir
+  [le workflow](publication-rule-reuse.md).
+
+## S17 — pilotage CRM dans les périmètres existants
+
+- La demande autorise un reporting descriptif sur les données CRM vérifiées,
+  sans nouveau droit d'équipe ou global. Confirmer la matrice direction/équipe,
+  l'attribution des activités et la visibilité collective des agendas/brouillons
+  avant toute extension de portée ; le libellé Pilotage CRM ne donne aucun droit.
+- Confirmer le dictionnaire opérationnel et Africa/Tunis configurable ;
+  complétude technique provisoire sans KYC, interactions déclarées sans preuve
+  de contact, rendez-vous personnels et brouillons du créateur seulement.
+- Les KPI financiers, valorisations, rétention et projections Carthago restent
+  exclus. Les approbations MAP/OWN/VIS/LIFE sont toujours absentes.
+- S16.1 est accepté comme observabilité livrée, mais son défaut intermittent
+  HTTP 503 reste un risque de release non corrigé et instrumenté.
+
+## S12 — agenda personnel provisoire
+
+- Le périmètre S12 autorise explicitement la création/lecture/édition personnelles,
+  sous les droits existants clients/interactions de l'organisation. Le créateur
+  est fixé par la session ; aucun droit de lecture des agendas de collègues.
+- Confirmer avec AMEN INVEST les participants, délégations, visibilité collective,
+  annulation/archivage, activité réalisée et éventuel lien dossier. Aucune de ces
+  fonctions n'est activée et aucune interaction réalisée n'est créée automatiquement.
+- Confirmer si un chevauchement personnel doit avertir ou bloquer ; S12 permet les
+  chevauchements et le signale explicitement. Les rendez-vous sur plusieurs jours
+  et la récurrence ne sont pas implémentés.
+- Valider formellement Africa/Tunis. `AICED_AGENDA_TIME_ZONE` accepte une zone IANA
+  dans les fichiers d'environnement privés ; tout changement nécessite une revue
+  de l'affichage des instants déjà stockés, des heures ambiguës et de la portée
+  de l'édition sur une même journée. Aucun changement automatique du fuseau.
+- Canaux, consentements, destinataires et politique de rappels/synchronisation
+  restent à approuver ; aucune livraison email ou notification n'existe dans S12.
+
+## S8 — décisions de recette métier
+
+- Confirmer la priorité proposée : historique transversal livré en premier, puis
+  worklist des prochaines actions déjà saisies, filtres CRM, pipeline et agenda.
+  Les trois modules métier restent Panorama Clients, Pilotage Commercial et
+  Pilotage Managérial ; Data Integration est transversal.
+- Définir les résultats d'interaction et la notion de contact effectif : auteur
+  d'une saisie, responsable commercial, échange enregistré et contact réel ne
+  sont pas interchangeables. Aucun résultat/score n'est déduit des notes.
+- Valider catalogue produits/offres, affectation et conversion d'opportunités,
+  matrice DED/DG, sources/périodes/attribution et formules de chaque KPI avant
+  leur calcul. La recette synthétique ne vaut pas accord métier ou production.
+- Voir [le backlog avec critères d'acceptation](mvp-backlog.md) pour les
+  dépendances, efforts indicatifs et éléments implémentables sans Carthago.
+
 ## Après S7 — prochaines tranches fonctionnelles
 
 - Agenda : confirmer les participants, périmètres de visibilité, états de rendez-vous,
@@ -17,7 +76,7 @@
 ## Clarification utilisateur — 14 novembre 2026
 
 - Aucune politique de propriété/mapping Carthago approuvée : écritures et rapprochements des identités, comptes et finances source bloqués ; cette restriction ne bloque pas le CRM AICED autonome.
-- Première tranche commerciale : prospects, interactions et opportunités ; agenda, campagnes et pilotage managérial restent à développer.
+- Première tranche commerciale historique : prospects, interactions et opportunités. S12 ajoute l'agenda personnel ; S14 ajoute les brouillons privés de campagnes. Ciblage, activation, communications, agenda collectif et pilotage managérial restent à cadrer/développer.
 - Les statuts de prospect sont des qualifications manuelles, sans score ni transition automatique. La définition de conversion, les indicateurs managériaux, les règles de qualification et l'affectation/réaffectation commerciale restent à valider avant automatisation.
 
 ## Bloquants de validation métier
@@ -40,5 +99,67 @@
 - Confirmer la portée des exports (complet/partiel), leur date d'effet, les dates Excel, les formats d'identifiants et les valeurs manquantes.
 - Définir double contrôle et interdiction d'auto-approbation pour les lots et décisions d'identité.
 
-## Environnement
+## S10 — nomenclature CRM
+
+- AMEN INVEST souhaite-t-il une nomenclature de professions/secteurs, des alias
+  ou des règles de normalisation ? Qui approuve et maintient ces valeurs ?
+  S10 conserve les libellés bruts déclarés et leurs variantes ; aucun rapprochement
+  Carthago ni nettoyage automatique n'est effectué.
+
+## Historique de l'environnement initial
+
+Ce constat est historique ; les outils Docker sont désormais disponibles et
+les résultats actuels figurent dans les recettes S7–S14.
 Le dépôt initial contient uniquement des répertoires vides et neuf documents de référence. Node, npm, Docker et Git ne sont pas disponibles dans le PATH lors de l'inspection. Les vérifications impossibles seront signalées explicitement.
+
+## S14 — campagnes manuelles
+
+- Le brouillon privé au créateur est une restriction provisoire de préparation,
+  sans responsable métier ni transfert. Approuver propriété, partage,
+  affectation et matrice campagnes ; S14 réutilise opportunities.view/manage
+  sans attribuer de grant automatiquement.
+- Approuver statuts/transitions, validation, activation/annulation, rétention,
+  critères, cibles clients/prospects, consentement/exclusions. Les notes S14
+  ne sont ni des segments ni des requêtes exécutées.
+- Approuver canaux, destinataires, contenus, rappels et attribution/KPI avant
+  toute communication ou mesure. Aucun email ou lancement implémenté.
+- Confirmer Africa/Tunis ; AICED_COMMERCIAL_TIME_ZONE est configurable et les
+  dates prévues sont civiles.
+# S15 — décisions supplémentaires à confirmer
+
+- Valider les champs et l'applicabilité physique/morale d'une complétude métier.
+  L'indicateur livré est une présence technique CRM provisoire, jamais KYC.
+- Approuver nomenclatures et traitement des variantes ; aucune fusion réalisée.
+- Fournir autorité/mappings validés pour naissance, revenus, risque et produits.
+- Cadrer MAN-01 : mesures descriptives, périodes et matrice de visibilité direction.
+
+## S16 / préparation S17
+
+- S16 préparation source (demande ultérieure distincte du reporting) : décisions
+  MAP-01/02/03, OWN-01, VIS-01/02, LIFE-01 dans
+  [la matrice d'approbation](source-mapping-approval-matrix.md). Fournir les
+  approbateurs, versions et périmètres avant tout affichage réel dans Client 360.
+  Le compte peut-il avoir plusieurs titulaires ? Quelle autorité pour le lien
+  source/UUID AICED et quelle procédure de correction/révocation ? Le modèle
+  FinancialAccount actuel possède un seul Party obligatoire : aucune adéquation
+  métier n'est supposée et aucune restructuration n'est faite en préparation.
+
+- Investigation imports/accueil du 2026-11-16 : les colonnes source sont
+  inventoriées dans [import-source-mapping.md](import-source-mapping.md).
+  Confirmer B ou AC pour les personnes physiques et les relations avec
+  Détenteur du compte / Identifiant du compte titre. Aucun de ces champs
+  n'est assimilé à un UUID AICED. Valider la visibilité source par objet et
+  l'autorité par champ avant toute projection dans Client 360.
+  Risque LAB/FT ne signifie pas risque d'investissement. Les règles
+  synthétiques approuvées en recette ne sont pas des approbations métier.
+
+- Les compteurs opérationnels S16 décrivent les dossiers visibles, pas la
+  performance ou une activité attribuée à un responsable. Valider toute
+  attribution auteur/responsable et les éventuels résultats commerciaux.
+- Approuver la matrice direction/équipe et la visibilité par mesure avant S17.
+  Aucun droit global, accès financier ou agenda d'autrui n'est attribué en S16.
+- Confirmer le fuseau configurable Africa/Tunis et les périodes/mesures attendues.
+- Une évolution historique des statuts/campagnes nécessiterait un dictionnaire
+  d'événements approuvé ; `updated_at` ne prouve ni un changement précis ni un envoi.
+- Confirmer le traitement des prospects clos dans les relances : S16 conserve
+  les mêmes compteurs tous statuts que la worklist existante et l'indique à l'écran.

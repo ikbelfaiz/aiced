@@ -221,7 +221,7 @@ class AuditView(PrivateView):
                 ("users.", "membership.", "permissions.", "login.", "logout.")
             ),
             "integration": action.startswith("imports."),
-            "commercial": action == "clients.opportunities_saved",
+            "commercial": action in ("clients.opportunities_saved","commercial.campaign_draft_saved"),
             "client_crm": action.startswith(("clients.", "prospects."))
             and not action.startswith("clients.opportunities"),
         }

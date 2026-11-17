@@ -8,6 +8,7 @@ import { useDesignPreview } from '../useDesignPreview';
 import { previewSegments, previewTrend } from '../design-preview';
 import { Badge, Button, StatePanel } from '../../components/ui';
 import { formatNumber } from '../clients/model';
+import { LiveDashboard } from './LiveDashboard';
 
 function ChartPlaceholder({ children }: { children: string }) { return <div className="chart-placeholder"><p>{children}</p><span>Aucune donnée disponible</span></div>; }
 
@@ -22,8 +23,13 @@ function TrendChart({ activity = false }: { activity?: boolean }) {
 }
 
 export function DashboardPage() {
-  const auth = useAuth();
   const preview = useDesignPreview();
+  return preview ? <PreviewDashboard/> : <LiveDashboard/>;
+}
+
+function PreviewDashboard() {
+  const auth = useAuth();
+  const preview = true;
   const canClients = auth.can('clients.view');
   const clients = useQuery({ queryKey: ['clients-count', auth.identity?.session.id], queryFn: ({ signal }) => api.clients({ pageSize: 1 }, signal), enabled: canClients, retry: false });
   const count = preview ? '1 248' : clients.data ? formatNumber(clients.data.count) : '—';

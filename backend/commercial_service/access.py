@@ -36,8 +36,10 @@ def peer(kind):
     )
 
 
-def principal(credentials):
-    data = peer("iam").post(
+def principal(credentials, timeout=3):
+    client = peer("iam")
+    client.timeout = timeout
+    data = client.post(
         "/internal/v1/grants/snapshot", {"credentials": credentials}
     )
     try:

@@ -119,12 +119,14 @@ def main():
                 and row[1]["title"] == "S6 new legacy synthetic write"
             ), row
     schema = browser.request("/api/schema/?format=json")
-    assert schema[0] == 200 and schema[1] == yaml.safe_load(
+    assert schema[0] == 200
+    from contracts.additions import assert_openapi_compatible
+    assert_openapi_compatible(schema[1],yaml.safe_load(
         (
             ROOT
             / ".local/migration-baseline/ad738f3cd11047e290efb80b12af1bc2/openapi.yaml"
         ).read_text(encoding="utf-8")
-    )
+    ))
     for username in ["synthetic.it.a", "synthetic.reader.b"]:
         denied = Browser(url)
         denied.login(username, password)

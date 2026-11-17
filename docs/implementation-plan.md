@@ -1,5 +1,12 @@
 # Roadmap AICED — migration par services et suite métier
 
+> État courant S8 : S7 est accepté provisoirement et les quatre services sont
+> gelés. Aucune nouvelle extraction ni restructuration de propriété n'est prévue.
+> L'ordre fonctionnel, les critères de recette et les dépendances métier sont dans
+> [le backlog MVP](mvp-backlog.md) et [l'analyse des trois modules](functional-gap-analysis.md).
+> Les plans de migration et prochains jalons ci-dessous sont historiques et ne
+> doivent pas relancer les extractions ou créer de nouveaux services.
+
 > Current architecture: **S6b verified locally**. IAM, Client & CRM, Commercial and Data Integration run separately with restricted data ownership. All 38 routes are preserved; actual post-write rollback/forward, browser workflows and restore were verified. See [S6b report](migration/s6b-commercial.md). Container execution and production readiness remain unverified. Earlier phase status paragraphs below are historical.
 
 

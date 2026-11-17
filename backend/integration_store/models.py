@@ -36,6 +36,8 @@ class ImportPolicy(models.Model):
         "integration_store.OrganizationRef", on_delete=models.PROTECT
     )
     template = models.CharField(max_length=16)
+    template_version = models.PositiveSmallIntegerField(default=1)
+    data_scope = models.CharField(max_length=16, default="legacy", choices=[("legacy", "Non classifi\u00e9"), ("synthetic", "Synth\u00e9tique"), ("operational", "Op\u00e9rationnel")])
     key_column = models.PositiveSmallIntegerField()
     date_format = models.CharField(
         max_length=3,
@@ -59,6 +61,7 @@ class ImportPolicy(models.Model):
     class Meta:
         db_table = "ingestion_importpolicy"
         constraints = [
+            models.UniqueConstraint(fields=["organization", "template", "template_version", "date_format", "data_scope"], condition=models.Q(approved_at__isnull=False, revoked_at__isnull=True) & ~models.Q(data_scope="legacy"), name="policy_one_active_classified"),
             models.CheckConstraint(
                 condition=models.Q(approved_by__isnull=True, approved_at__isnull=True)
                 | models.Q(approved_by__isnull=False, approved_at__isnull=False),
@@ -77,6 +80,7 @@ class ImportBatch(models.Model):
         "integration_store.OrganizationRef", on_delete=models.PROTECT
     )
     template = models.CharField(max_length=16)
+    data_scope = models.CharField(max_length=16, default="legacy", choices=[("legacy", "Non classifi\u00e9"), ("synthetic", "Synth\u00e9tique"), ("operational", "Op\u00e9rationnel")])
     template_version = models.PositiveSmallIntegerField(default=1)
     digest = models.CharField(max_length=64)
     source_as_of = models.DateField()
@@ -109,6 +113,7 @@ class ImportBatch(models.Model):
                     "organization",
                     "template",
                     "template_version",
+                    "data_scope",
                     "digest",
                     "source_as_of",
                     "snapshot_kind",

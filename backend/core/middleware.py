@@ -40,7 +40,32 @@ class RequestContextMiddleware:
 
     def __call__(self, request):
         request.request_id = uuid.uuid4()
-        response = self.get_response(request)
+        from time import monotonic
+        from django.db import connection
+        from .request_metrics import request_id, record
+        token = request_id.set(str(request.request_id))
+        started = monotonic()
+        queries = [0, 0.0]
+        measured = request.path == '/api/opportunities/' or request.path.startswith('/internal/v1/')
+        def measure(execute, sql, params, many, context):
+            tick = monotonic()
+            try:
+                return execute(sql, params, many, context)
+            finally:
+                queries[0] += 1
+                queries[1] += monotonic() - tick
+        try:
+            if measured:
+                with connection.execute_wrapper(measure):
+                    response = self.get_response(request)
+            else:
+                response = self.get_response(request)
+            if measured:
+                record('request', path=request.path, status=response.status_code,
+                       seconds=round(monotonic()-started, 6), sql_count=queries[0],
+                       sql_seconds=round(queries[1], 6))
+        finally:
+            request_id.reset(token)
         response['X-Request-ID'] = str(request.request_id)
         if request.path.startswith(('/api/', '/internal/')):
             response['Cache-Control'] = 'no-store'

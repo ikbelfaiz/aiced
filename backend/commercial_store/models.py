@@ -100,3 +100,27 @@ class Outbox(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     attempts = models.PositiveIntegerField(default=0)
     delivered_at = models.DateTimeField(null=True)
+
+
+class CampaignDraft(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization_id = models.UUIDField()
+    creator = models.ForeignKey(ActorRef, on_delete=models.PROTECT)
+    name = models.CharField(max_length=160)
+    description = models.TextField(max_length=5000, blank=True)
+    targeting_notes = models.TextField(max_length=2000, blank=True)
+    planned_start = models.DateField(null=True, blank=True)
+    planned_end = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=12, default='draft', editable=False)
+    version = models.PositiveIntegerField(default=1)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-updated_at', 'id']
+        indexes = [models.Index(fields=['creator','organization_id','-updated_at'],name='campaign_creator_org_updated')]
+        constraints = [
+            models.CheckConstraint(condition=models.Q(status='draft'),name='campaign_draft_only'),
+            models.CheckConstraint(condition=models.Q(version__gte=1),name='campaign_version_positive'),
+            models.CheckConstraint(condition=models.Q(planned_start__isnull=True)|models.Q(planned_end__isnull=True)|models.Q(planned_end__gte=models.F('planned_start')),name='campaign_dates_order'),
+        ]

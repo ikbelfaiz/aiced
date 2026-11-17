@@ -289,6 +289,20 @@ class InternalContracts(SecurityFixtures, FixtureServer):
             )
         self.assertEqual(CRMProfile.objects.get(party=self.own).notes, "")
 
+    def test_campaign_audit_only_accepts_commercial_exact_action_and_deduplicates(self):
+        event=record('commercial.campaign_draft_saved',actor=self.reader,organization_id=self.org_a.pk,context={'description':'SYNTHETIC PRIVATE: NEVER SENT'})
+        self.assertEqual(AuditOutbox.objects.get(event=event).producer,'commercial')
+        payload=envelope(event)
+        commercial=InternalClient(self.live_server_url,'commercial-v1',KEY+'c','audit')
+        self.assertTrue(commercial.post('/internal/v1/audit/events',payload)['accepted'])
+        self.assertTrue(commercial.post('/internal/v1/audit/events',payload)['accepted'])
+        self.assertEqual(AuditReceipt.objects.filter(producer='commercial',event_id=event.pk).count(),1)
+        self.assertNotIn('NEVER SENT',json.dumps(AuditReceipt.objects.get(event_id=event.pk).payload))
+        with self.assertRaises(PermissionDenied):
+            InternalClient(self.live_server_url,'client-v1',KEY,'audit').post('/internal/v1/audit/events',payload)
+        with self.assertRaises(PermissionDenied):
+            commercial.post('/internal/v1/audit/events',{**payload,'action':'commercial.campaign_launched'})
+
     def test_outbox_delivery_retries_deduplicates_and_conflicts_are_rejected(self):
         event = record(
             "clients.synthetic", actor=self.reader, context={"notes": "NEVER SENT"}

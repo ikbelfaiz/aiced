@@ -1,3 +1,11 @@
+# Current handover ? S8
+
+Use the [current Compose guide](docker-compose.md), [three-module analysis](functional-gap-analysis.md), [MVP backlog](mvp-backlog.md) and [S8 results](migration/s8-functional-validation.md). The four-service architecture is frozen; default Compose runs the accepted stack.
+
+## Historical handover (pre-S7)
+
+The account/feature observations and limitations below describe the earlier milestone. Its commands now explicitly select the legacy configuration; do not use them to start the current application. Original captured artifact filenames remain historical.
+
 # AICED — Project handover and testing guide
 
 > Current architecture: **S6b verified locally**. IAM, Client & CRM, Commercial and Data Integration run separately with restricted data ownership. All 38 routes are preserved; actual post-write rollback/forward, browser workflows and restore were verified. See [S6b report](migration/s6b-commercial.md). Container execution and production readiness remain unverified. Earlier phase status paragraphs below are historical.
@@ -75,23 +83,23 @@ The retained local candidate is a testing environment, not the default UI databa
 
 Prerequisites: Docker Engine/Compose, repository access and an approved local environment. Docker was unavailable on the verification computer, so the Compose deployment itself has **not** been verified there.
 
-1. Copy `.env.example` to `.env`. Generate independent development secrets for Django, PostgreSQL and Gateway; replace all placeholders. Keep `.env` private.
+1. Copy `.env.legacy.example` to `.env`. Generate independent development secrets for Django, PostgreSQL and Gateway; replace all placeholders. Keep `.env` private.
 2. Run from the repository root:
 
 ```sh
-docker compose build
-docker compose up -d db
-docker compose run --rm backend python manage.py migrate
-docker compose up -d backend frontend gateway
+docker compose -f compose.legacy.yaml build
+docker compose -f compose.legacy.yaml up -d db
+docker compose -f compose.legacy.yaml run --rm backend python manage.py migrate
+docker compose -f compose.legacy.yaml up -d backend frontend gateway
 ```
 
 3. Open `http://localhost:5173/connexion`. Check `/api/health/` returns HTTP 200.
 4. For a new synthetic development environment, privately set `AICED_SEED_PASSWORD` and run:
 
 ```sh
-docker compose run --rm -e AICED_SEED_PASSWORD backend python manage.py seed_synthetic --confirm-synthetic
-docker compose run --rm -e AICED_SEED_PASSWORD backend python manage.py seed_workspace --confirm-synthetic
-docker compose run --rm backend python manage.py seed_prospects --confirm-synthetic
+docker compose -f compose.legacy.yaml run --rm -e AICED_SEED_PASSWORD backend python manage.py seed_synthetic --confirm-synthetic
+docker compose -f compose.legacy.yaml run --rm -e AICED_SEED_PASSWORD backend python manage.py seed_workspace --confirm-synthetic
+docker compose -f compose.legacy.yaml run --rm backend python manage.py seed_prospects --confirm-synthetic
 ```
 
 Seeds require DEBUG development mode and explicit synthetic confirmation. They preserve existing passwords and do not automatically repair modified existing roles. Do not seed an environment containing real data.

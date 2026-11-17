@@ -7,6 +7,7 @@ from django.conf import settings
 from django.test import SimpleTestCase
 from django.urls import get_resolver
 from .ownership import route_owner, table_owner, SCHEMAS
+from contracts.additions import ADDITIONAL_ROUTES
 
 
 class ServiceOwnershipTests(SimpleTestCase):
@@ -25,8 +26,8 @@ class ServiceOwnershipTests(SimpleTestCase):
             )
             self.assertIn(route_owner(path), [*SCHEMAS, "platform_contract"])
             routes.append({"path": path, "methods": methods})
-        self.assertEqual(routes, manifest["routes"])
-        self.assertEqual(len(routes), 38)
+        self.assertEqual(routes, manifest["routes"] + ADDITIONAL_ROUTES)
+        self.assertEqual(len(routes), 38 + len(ADDITIONAL_ROUTES))
 
     def test_models_and_auto_created_tables_have_explicit_owners(self):
         for model in apps.get_models(include_auto_created=True):

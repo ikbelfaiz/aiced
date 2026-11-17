@@ -4,7 +4,7 @@ error_log logs/error.log crit;
 events { worker_connections 512; }
 http {
     # No URLs, query strings, credentials or payloads in access logs.
-    log_format minimal '$status $request_time $upstream_status';
+    log_format minimal '$status $request_time $upstream_status request_id=$upstream_http_x_request_id upstream_seconds=$upstream_response_time';
     access_log logs/access.log minimal;
     server_tokens off;
     client_body_temp_path temp/client;
@@ -22,6 +22,8 @@ http {
         ~^/api/auth/ iam_backend;
         ~^/api/organizations/ iam_backend;
         /api/session/ iam_backend;
+        /api/opportunities/ commercial_backend;
+        ~^/api/campaigns/ commercial_backend;
         ~^/api/imports/ integration_backend;
         ~^/api/clients/[0-9a-fA-F-]+/opportunities/ commercial_backend;
         default legacy_backend;

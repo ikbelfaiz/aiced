@@ -67,3 +67,10 @@ DATABASES["default"]["OPTIONS"] = {
 
 # Request-scoped connections bound idle sockets in the multi-service HTTP deployment.
 DATABASES["default"]["CONN_MAX_AGE"] = 0
+
+from zoneinfo import ZoneInfo,ZoneInfoNotFoundError
+COMMERCIAL_TIME_ZONE=os.environ.get('AICED_COMMERCIAL_TIME_ZONE','Africa/Tunis')
+try:ZoneInfo(COMMERCIAL_TIME_ZONE)
+except (ValueError,ZoneInfoNotFoundError) as error:
+    raise ImproperlyConfigured('Invalid Commercial business timezone') from error
+TIME_ZONE=COMMERCIAL_TIME_ZONE

@@ -16,8 +16,10 @@ def client():
     )
 
 
-def snapshot(credentials):
-    data = client().post("/internal/v1/grants/snapshot", {"credentials": credentials})
+def snapshot(credentials, *, timeout=None):
+    peer=client()
+    if timeout is not None:peer.timeout=min(3,timeout)
+    data = peer.post("/internal/v1/grants/snapshot", {"credentials": credentials})
     try:
         UUID(data["actor_id"])
         if (
@@ -52,8 +54,8 @@ def snapshot(credentials):
     return data
 
 
-def read_principal(credentials, *, persist=True):
-    data = snapshot(credentials)
+def read_principal(credentials, *, persist=True, timeout=None):
+    data = snapshot(credentials,timeout=timeout) if timeout is not None else snapshot(credentials)
     if not persist:
         actor = ActorRef(pk=data["actor_id"], username=data["username"])
         actor.credentials = credentials

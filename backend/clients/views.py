@@ -14,6 +14,7 @@ from .serializers import PartySerializer, CRMUpdateSerializer, FinancialAccountS
 from core.serializers import ERROR_RESPONSES
 from .services import update_crm
 from .pagination import ClientPagination
+from .segmentation import SegmentationFilters, filter_clients
 
 
 def require_client_permission(user, code):
@@ -21,7 +22,7 @@ def require_client_permission(user, code):
         raise PermissionDenied('Opération non autorisée.')
 
 
-@extend_schema(parameters=[OpenApiParameter('kind', str, enum=['physical', 'legal'], description='Type de personne ; filtrage dans le périmètre autorisé.')])
+@extend_schema(parameters=[SegmentationFilters, OpenApiParameter('kind', str, enum=['physical', 'legal'], description='Type de personne ; filtrage dans le périmètre autorisé.')])
 class ClientListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = PartySerializer
@@ -37,7 +38,7 @@ class ClientListView(generics.ListAPIView):
             if kind not in ('physical', 'legal'):
                 raise ValidationError({'kind': 'Type de personne non reconnu.'})
             queryset = queryset.filter(kind=kind)
-        return queryset.order_by('id')
+        return filter_clients(queryset,self.request.query_params)
 
 
 class ClientDetailView(generics.RetrieveAPIView):

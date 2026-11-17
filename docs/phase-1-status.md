@@ -21,7 +21,7 @@ Ce bilan conserve les résultats de la livraison initiale (46 tests). La revue c
 | Identité | `backend/identity/models.py`, `policies.py`, `services.py`, `authentication.py`, `serializers.py`, `views.py`, migration `0002_*`, `management/commands/seed_synthetic.py`, `tests.py` |
 | Clients | `backend/clients/models.py`, `serializers.py`, `services.py`, `views.py`, migrations `0001` à `0003` |
 | Audit | `backend/audit/models.py`, `services.py`, `views.py`, migrations `0001` à `0003` |
-| Configuration | `backend/config/settings.py`, `urls.py`, `backend/core/serializers.py`, `middleware.py`, `errors.py`, `backend/requirements.txt`, `requirements.lock`, `.env.example` |
+| Configuration | `backend/config/settings.py`, `urls.py`, `backend/core/serializers.py`, `middleware.py`, `errors.py`, `backend/requirements.txt`, `requirements.lock`, `.env.legacy.example` |
 | Vérification | `scripts/local_postgres.py`, `scripts/backend_check.py`, `.github/workflows/ci.yml` |
 | Documentation | `README.md`, `docs/architecture.md`, `database-design.md`, `security-model.md`, `implementation-plan.md`, `open-questions.md`, ce bilan |
 

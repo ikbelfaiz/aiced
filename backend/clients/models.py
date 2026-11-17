@@ -114,6 +114,25 @@ class Interaction(models.Model):
         constraints = [models.CheckConstraint(condition=models.Q(kind__in=['call','email','meeting','visit']), name='interaction_kind_valid')]
 
 
+class Appointment(models.Model):
+    """Personal planned activity; never a completed Interaction or source record."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey(getattr(settings,'BUSINESS_ORGANIZATION_MODEL','identity.Organization'),on_delete=models.PROTECT)
+    owner = models.ForeignKey(getattr(settings,'BUSINESS_ACTOR_MODEL',settings.AUTH_USER_MODEL),on_delete=models.PROTECT)
+    title = models.CharField(max_length=160)
+    kind = models.CharField(max_length=16,choices=Interaction._meta.get_field('kind').choices)
+    notes = models.TextField(max_length=5000,blank=True)
+    starts_at = models.DateTimeField()
+    ends_at = models.DateTimeField()
+    version = models.PositiveIntegerField(default=1)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering=['starts_at','id']
+        indexes=[models.Index(fields=['owner','organization','starts_at'],name='agenda_owner_org_start')]
+        constraints=[models.CheckConstraint(condition=models.Q(ends_at__gt=models.F('starts_at')),name='appointment_positive_duration'),models.CheckConstraint(condition=models.Q(kind__in=['call','email','meeting','visit']),name='appointment_kind_valid')]
+
+
 class Opportunity(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     party = models.ForeignKey(Party, on_delete=models.PROTECT, related_name='opportunities')
