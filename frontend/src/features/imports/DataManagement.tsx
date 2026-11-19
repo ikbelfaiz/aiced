@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Upload, ShieldCheck, Database, Plus, Download } from "lucide-react";
+import { Upload, ShieldCheck, Database, Download } from "lucide-react";
 import { Badge, Button, Dialog, StatePanel } from "../../components/ui";
-import { DataEditor } from "../../components/DataEditor";
 import {
   importApi,
   type Batch,
@@ -118,10 +117,7 @@ function ImportWorkspace({
     }
   }, [reviewSelection]);
   const [dataScope, setDataScope] = useState("");
-  const [policyView, setPolicyView] = useState("approved");
-  const [policyPage, setPolicyPage] = useState(1);
   const [tab, setTab] = useState("imports"),
-    [template, setTemplate] = useState("legal"),
     [sourceDate, setSourceDate] = useState(today()),
     [snapshot, setSnapshot] = useState("partial"),
     [dateFormat, setDateFormat] = useState("ISO");
@@ -131,22 +127,12 @@ function ImportWorkspace({
   const [batch, setBatch] = useState<Batch | null>(null),
     [page, setPage] = useState(1),
     [batchPage, setBatchPage] = useState(1),
-    [rejected, setRejected] = useState(false),
-    [policyForm, setPolicyForm] = useState(false);
+    [rejected, setRejected] = useState(false);
   const [confirm, setConfirm] = useState(false),
-    [policyId, setPolicyId] = useState(""),
     [exclude, setExclude] = useState(false);
-  const [policyAction, setPolicyAction] = useState<{
-    id: string;
-    revoke: boolean;
-  } | null>(null);
   const batches = useQuery({
     queryKey: ["import-batches", auth.identity?.session.id, org.id, batchPage],
     queryFn: () => importApi.batches(org.id, batchPage),
-  });
-  const policies = useQuery({
-    queryKey: ["import-policies", auth.identity?.session.id, org.id, policyView, policyPage],
-    queryFn: () => importApi.policies(org.id, policyView, policyPage),
   });
   const preview = useQuery({
     queryKey: [
@@ -161,16 +147,12 @@ function ImportWorkspace({
     enabled: !!batch,
   });
   const selected = preview.data?.batch ?? batch;
-  const match = preview.data?.policy_match;
-  const activePolicies = selected?.data_scope !== 'legacy' ? (match?.policy ? [match.policy] : []) : match?.legacy_policies ?? [];
-  const effectivePolicyId = policyId || (match?.status === 'matched' ? match.policy?.id ?? '' : '');
   const publicationBlocks = selected?.status === 'staged' ? [
+    ...(selected.data_scope === 'legacy' && !preview.data?.legacy_rule_unique ? ['Aucune règle historique approuvée unique : redéposez le fichier en choisissant explicitement son usage pour le revalider.'] : []),
     ...(!org.approve ? ['Votre habilitation ne permet pas la publication. Un réviseur autorisé doit intervenir.'] : []),
     ...(selected.uploaded_by_id === auth.identity?.session.id ? ['Le déposant ne peut pas publier son propre lot : une revue par un autre utilisateur habilité est obligatoire.'] : []),
     ...(preview.isPending || preview.isFetching ? ['Chargement et validation des exigences de publication...'] : preview.isError ? ['Examen inaccessible : publication bloquée. Rechargez les détails.'] : []),
-    ...(selected.data_scope === 'legacy' && !preview.isPending && activePolicies.length === 0 ? ['Aucune règle historique compatible. Une approbation indépendante est requise.'] : []),
     ...(selected.total === selected.rejected ? ['Aucune ligne valide : corrigez le fichier puis déposez un nouveau lot. Le staging existant reste conservé.'] : []),
-    ...(selected.data_scope !== 'legacy' && match?.status !== 'matched' ? [match?.reason ?? 'Validation de la règle compatible en cours…'] : []),
   ] : [];
   const refresh = async () => {
     await Promise.all(
@@ -198,7 +180,6 @@ function ImportWorkspace({
     setReviewSelection(value => value + 1);
     setPage(1);
     setRejected(false);
-    setPolicyId("");
     setExclude(false);
     setError("");
   };
@@ -258,7 +239,7 @@ function ImportWorkspace({
                     const result = await importApi.upload(
                       org.id,
                       file,
-                      template,
+                      "",
                       sourceDate,
                       snapshot,
                       dateFormat,
@@ -268,19 +249,6 @@ function ImportWorkspace({
                   });
                 }}
               >
-                <label>
-                  Modèle versionné
-                  <select
-                    value={template}
-                    onChange={(e) => setTemplate(e.target.value)}
-                  >
-                    {Object.keys(templates).map((key) => (
-                      <option key={key} value={key}>
-                        {templateLabels[key]} · v{templates[key].version}
-                      </option>
-                    ))}
-                  </select>
-                </label>
                 <label>
                   Date de situation source
                   <input
@@ -461,13 +429,12 @@ function ImportWorkspace({
               </div>
               {preview.isFetching && <p role="status">Chargement des détails et des exigences...</p>}
               <p>Import : {templateLabels[selected.template]} / {selected.source_as_of}</p>
+              <p>{selected.data_scope === 'legacy' ? 'Lot historique : utilisation de la règle historique approuvée unique, si disponible.' : `Configuration fixe v1 · identifiant colonne ${selected.template === 'accounts' ? 'E' : 'B'}`}</p>
               <p className="digest">
                 Usage : {selected.data_scope === 'synthetic' ? 'Synthétique' : selected.data_scope === 'operational' ? 'Opérationnel' : 'Historique non classifié'} · Schéma v{selected.template_version} ·{' '}
                 SHA-256 : {selected.digest} · Format des dates :{" "}
                 {selected.date_format}
               </p>
-              {match && selected.status === 'staged' && <p role="status">{match.reason}{match.policy && <> Règle suggérée : {match.policy.id}. Réutilisable pour les prochains fichiers compatibles.</>}</p>}
-              {match?.configuration && <p>Règle approuvée identifiée : {match.configuration.id}. Le fichier ne satisfait pas sa colonne clé.</p>}
               <div className="batch-summary">
                 <Badge>{selected.total} lignes</Badge>
                 <Badge tone="red">{selected.rejected} rejet(s)</Badge>
@@ -478,7 +445,7 @@ function ImportWorkspace({
               </div>
               <section className="source-rule-notice" aria-label="État de publication">
                 <div><strong>{selected.status === 'published' ? 'Publication enregistrée' : !preview.isFetching && !preview.isPending && publicationBlocks.length > 0 ? 'Publication bloquée' : 'En staging : données conservées, en attente de revue'}</strong>
-                  {selected.status === 'published' ? <p>Publié le {selected.published_at ? formatDate(selected.published_at) : '—'} · réviseur : {selected.published_by_id} · règle : {selected.policy_id}. {selected.published_rows} snapshot(s) conservé(s), sans création de client ni de compte.</p> : <><p>La validation technique ne vaut pas approbation métier. Le dépôt n’est jamais publié automatiquement.</p>{publicationBlocks.length > 0 ? <ul>{publicationBlocks.map(reason=><li key={reason}>{reason}</li>)}</ul> : <p>Une règle compatible est disponible. Un réviseur autorisé peut examiner puis confirmer explicitement la publication.</p>}</>}
+                  {selected.status === 'published' ? <p>Publié le {selected.published_at ? formatDate(selected.published_at) : '—'} · réviseur : {selected.published_by_id} · règle : {selected.policy_id}. {selected.published_rows} snapshot(s) conservé(s), sans création de client ni de compte.</p> : <><p>La validation technique ne vaut pas approbation métier. Le dépôt n’est jamais publié automatiquement.</p>{publicationBlocks.length > 0 ? <ul>{publicationBlocks.map(reason=><li key={reason}>{reason}</li>)}</ul> : <p>La configuration fixe est disponible. Un réviseur autorisé peut examiner puis confirmer explicitement la publication.</p>}</>}
                 </div>
               </section>
               <div className="preview-actions">
@@ -622,126 +589,6 @@ function ImportWorkspace({
             </section>
           )}
         </>
-      ) : tab === "policies" ? (
-        <section className="card workspace-card">
-          <div className="card-title-row">
-            <div>
-              <h2>Règles de publication réutilisables</h2>
-              <p className="card-subtitle">
-                Réutilisez une règle approuvée pour les fichiers compatibles. Une nouvelle version n’est nécessaire que si la configuration ou la politique change. Chaque lot reste soumis à une revue indépendante.
-              </p>
-            </div>
-            {org.policy_manage && (
-              <Button variant="primary" onClick={() => setPolicyForm(true)}>
-                <Plus size={16} />
-                Proposer une règle
-              </Button>
-            )}
-          </div>
-          <label className="organization-select mt-5">
-            Modèle pour la nouvelle règle
-            <select
-              value={template}
-              onChange={(e) => setTemplate(e.target.value)}
-            >
-              {Object.keys(templates).map((key) => (
-                <option key={key} value={key}>
-                  {templateLabels[key]}
-                </option>
-              ))}
-            </select>
-          </label>
-          <p className="availability-note">Personnes physiques et comptes titres : les configurations opérationnelles manquantes doivent être approuvées par AMEN INVEST. Les colonnes candidates ne constituent pas une identité confirmée. Aucun modèle n’est activé automatiquement.</p>
-          <label className="organization-select mt-5">Afficher les règles
-            <select aria-label="Afficher les règles" value={policyView} onChange={e => {setPolicyView(e.target.value);setPolicyPage(1);}}>
-              <option value="operational">Opérationnel : règles approuvées</option>
-              <option value="synthetic">Tests synthétiques : règles approuvées</option>
-              <option value="approved">Règles approuvées réutilisables</option>
-              <option value="pending">Propositions en attente d’approbation</option>
-              <option value="history">Historique révoqué et règles non classifiées</option>
-            </select>
-          </label>
-          <p className="availability-note">Les anciennes règles ne sont ni supprimées, ni approuvées, ni reclassifiées automatiquement. Une règle synthétique ne peut pas publier un lot opérationnel. Révoquez explicitement la règle active avant d’approuver son remplacement.</p>
-          {policies.isPending ? (
-            <StatePanel kind="loading" title="Chargement des règles…" />
-          ) : policies.isError ? (
-            <StatePanel
-              kind="error"
-              title="Règles inaccessibles"
-              retry={() => void policies.refetch()}
-            >
-              {policies.error.message}
-            </StatePanel>
-          ) : !policies.data.length ? (
-            <StatePanel kind="empty" title="Aucune règle approuvée">
-              La publication demeure bloquée jusqu’à une approbation
-              indépendante.
-            </StatePanel>
-          ) : (
-            <div className="policy-list">
-              {policies.data.map((policy) => (
-                <article key={policy.id}>
-                  <div>
-                    <strong>
-                      {templateLabels[policy.template]} · colonne clé{" "}
-                      {policy.key_column} · dates {policy.date_format}
-                      {' · schéma v'}{policy.template_version}{' · '}{policy.data_scope === 'synthetic' ? 'Synthétique' : policy.data_scope === 'operational' ? 'Opérationnel' : 'Historique non classifié'}
-                    </strong>
-                    <Badge
-                      tone={
-                        policy.revoked_at
-                          ? "red"
-                          : policy.approved_at
-                            ? "green"
-                            : "amber"
-                      }
-                    >
-                      {policy.revoked_at
-                        ? "Révoquée"
-                        : policy.approved_at
-                          ? "Approuvée"
-                          : "En attente"}
-                    </Badge>
-                  </div>
-                  <p>{policy.rationale}</p>
-                  <small>{policy.id} · snapshot immuable uniquement</small>
-                  <p className="muted micro">
-                    Créateur : {policy.created_by_id} · approbation :{" "}
-                    {policy.approved_at
-                      ? formatDate(policy.approved_at)
-                      : "en attente"}
-                  </p>
-                  {org.approve && !policy.revoked_at && (
-                    <div className="mt-3 flex gap-3">
-                      {!policy.approved_at && (
-                        <Button
-                          disabled={
-                            policy.created_by_id ===
-                              auth.identity?.session.id || busy
-                          }
-                          onClick={() =>
-                            setPolicyAction({ id: policy.id, revoke: false })
-                          }
-                        >
-                          Approuver la règle
-                        </Button>
-                      )}
-                      <Button
-                        disabled={busy}
-                        onClick={() =>
-                          setPolicyAction({ id: policy.id, revoke: true })
-                        }
-                      >
-                        Révoquer la règle
-                      </Button>
-                    </div>
-                  )}
-                </article>
-              ))}
-            </div>
-          )}
-          <div className="pagination"><Button disabled={policyPage === 1} onClick={() => setPolicyPage(policyPage-1)}>Précédent</Button><span>Page {policyPage} · 100 règles maximum par page</span><Button disabled={!policies.data || policies.data.length < 100} onClick={() => setPolicyPage(policyPage+1)}>Suivant</Button></div>
-        </section>
       ) : (
         <section className="card workspace-card">
           <h2>Schémas réellement inspectés</h2>
@@ -771,97 +618,6 @@ function ImportWorkspace({
           ))}
         </section>
       )}
-      {policyForm && (
-        <DataEditor
-          title="Proposer une règle de publication"
-          description={`${templateLabels[template]} · snapshots immuables seulement. Justifiez le sens et l’unicité de la clé choisie. Une autre personne devra approuver cette règle. Aucun lien client automatique.`}
-          fields={[
-            {name: "data_scope", label: "Usage de la règle", required: true, options: [{value: "", label: "Choisir explicitement"}, {value: "synthetic", label: "Données synthétiques de test"}, {value: "operational", label: "Données opérationnelles · approbation métier requise"}]},
-            {
-              name: "key_column",
-              label: "Colonne clé explicitement validée",
-              options: templates[template].candidate_keys.map((position) => ({
-                value: String(position),
-                label: `${position} · ${templates[template].headers[position - 1]}`,
-              })),
-            },
-            {
-              name: "rationale",
-              label:
-                "Justification de propriété et d’unicité (20 caractères minimum)",
-              type: "textarea",
-              maxLength: 1000,
-            },
-            {
-              name: "date_format",
-              label: "Interprétation des dates à approuver",
-              options: [
-                { value: "ISO", label: "ISO · année-mois-jour" },
-                { value: "DMY", label: "Jour/mois/année · explicite" },
-              ],
-            },
-          ]}
-          initial={{ date_format: dateFormat, data_scope: dataScope }}
-          close={() => setPolicyForm(false)}
-          save={async (values) => {
-            const saved = await importApi.policy(org.id, {
-              template,
-              key_column: Number(values.key_column),
-              rationale: values.rationale,
-              date_format: values.date_format,
-              data_scope: values.data_scope,
-              template_version: templates[template].version,
-            });
-            setPolicyView(saved.approved_at ? "approved" : "pending");
-            setPolicyPage(1);
-            await refresh();
-          }}
-        />
-      )}
-      {policyAction && (
-        <Dialog
-          title={
-            policyAction.revoke ? "Révoquer la règle" : "Approuver la règle"
-          }
-          onClose={() => !busy && setPolicyAction(null)}
-        >
-          <p>
-            Cette décision est auditée.{" "}
-            {policyAction.revoke
-              ? "Les publications futures avec cette règle seront bloquées."
-              : "La règle autorisera uniquement des snapshots source immuables, sans mise à jour de client ni de compte."}
-          </p>
-          <p className="micro mt-4">Règle : {policyAction.id}</p>
-          {error && (
-            <p role="alert" className="form-error">
-              {error}
-            </p>
-          )}
-          <div className="editor-actions">
-            <Button disabled={busy} onClick={() => setPolicyAction(null)}>
-              Annuler
-            </Button>
-            <Button
-              variant="primary"
-              disabled={busy}
-              onClick={() =>
-                void perform(async () => {
-                  await importApi.approve(
-                    org.id,
-                    policyAction.id,
-                    policyAction.revoke,
-                  );
-                  setPolicyView(policyAction.revoke ? "history" : "approved");
-                  setPolicyPage(1);
-                  setPolicyAction(null);
-                })
-              }
-            >
-              Confirmer la décision
-            </Button>
-          </div>
-        </Dialog>
-      )}
       {confirm && selected && (
         <Dialog
           title="Revue avant publication"
@@ -876,23 +632,7 @@ function ImportWorkspace({
             client ou compte Carthago n’est remplacé. Aucune absence ne provoque
             de suppression.
           </p>
-          <label className="organization-select">
-            Règle approuvée
-            <select
-              aria-label="Règle approuvée"
-              value={effectivePolicyId}
-              onChange={(e) => setPolicyId(e.target.value)}
-            >
-              <option value="">Choisir une règle active</option>
-              {activePolicies
-                .map((policy) => (
-                  <option key={policy.id} value={policy.id}>
-                    Colonne {policy.key_column} ·{" "}
-                    {policy.rationale.slice(0, 70)}
-                  </option>
-                ))}
-            </select>
-          </label>
+          <p>{selected.data_scope === 'legacy' ? 'La règle historique approuvée unique sera utilisée.' : `Configuration fixe : ${templateLabels[selected.template]} · colonne ${selected.template === 'accounts' ? 'E' : 'B'} · version 1`}</p>
           {selected.rejected > 0 && (
             <label className="preview-actions">
               <input
@@ -916,14 +656,13 @@ function ImportWorkspace({
             <Button
               variant="primary"
               disabled={
-                busy || preview.isFetching || preview.isError || publicationBlocks.length > 0 || !effectivePolicyId || (selected.rejected > 0 && !exclude)
+                busy || preview.isFetching || preview.isError || publicationBlocks.length > 0 || (selected.rejected > 0 && !exclude)
               }
               onClick={() =>
                 void perform(async () => {
                   await importApi.publish(
                     org.id,
                     selected.id,
-                    effectivePolicyId,
                     exclude,
                   );
                   setConfirm(false);

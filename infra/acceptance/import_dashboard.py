@@ -16,9 +16,9 @@ with psycopg.connect(host='db',dbname=e['POSTGRES_DB'],user=e['POSTGRES_USER'],p
     fingerprints=[]
     for item in manifest:
         batch_id=item['batch_id'];template=item['template'];fixture=expected[template]
-        batch=c.execute('SELECT status,digest,published_at,published_by_id,uploaded_by_id,policy_id,source_as_of FROM aiced_integration.ingestion_importbatch WHERE id=%s',[batch_id]).fetchone()
+        batch=c.execute('SELECT status,digest,published_at,published_by_id,uploaded_by_id,policy_id,source_as_of,fixed_configuration_version FROM aiced_integration.ingestion_importbatch WHERE id=%s',[batch_id]).fetchone()
         assert batch[0]=='published' and batch[1]==fixture['digest'] and batch[2] and batch[3]!=batch[4]
-        assert str(batch[5])==item['policy_id'] and str(batch[6])=='2026-03-01'
+        assert batch[5] is None and str(batch[6])=='2026-03-01' and batch[7]==1
         rows=c.execute('SELECT r.cells,r.errors,r.normalized_dates,s.external_key FROM aiced_integration.ingestion_stagingrow r JOIN aiced_integration.ingestion_sourcesnapshot s ON s.row_id=r.id WHERE r.batch_id=%s',[batch_id]).fetchall()
         assert len(rows)==1
         cells,errors,dates,key=rows[0]

@@ -130,7 +130,7 @@ def grant_runtime(conn, spec):
             )
         for table, columns in [
             ("ingestion_importpolicy", "approved_by_id,approved_at,revoked_at"),
-            ("ingestion_importbatch", "status,published_by_id,published_at,policy_id"),
+            ("ingestion_importbatch", "status,published_by_id,published_at,policy_id,fixed_configuration_version"),
             ("integration_store_outbox", "attempts,delivered_at"),
         ]:
             conn.execute(

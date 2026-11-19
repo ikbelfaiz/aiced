@@ -90,6 +90,7 @@ class ImportBatch(models.Model):
     )
     published_at = models.DateTimeField(null=True)
     policy = models.ForeignKey(ImportPolicy, on_delete=models.PROTECT, null=True)
+    fixed_configuration_version = models.PositiveSmallIntegerField(null=True)
 
     class Meta:
         ordering = ["-created_at", "id"]
@@ -121,12 +122,19 @@ class ImportBatch(models.Model):
                     published_by__isnull=True,
                     published_at__isnull=True,
                     policy__isnull=True,
+                    fixed_configuration_version__isnull=True,
                 )
                 | models.Q(
                     status="published",
                     published_by__isnull=False,
                     published_at__isnull=False,
                     policy__isnull=False,
+                    fixed_configuration_version__isnull=True,
+                )
+                | models.Q(
+                    status="published", published_by__isnull=False,
+                    published_at__isnull=False, policy__isnull=True,
+                    fixed_configuration_version__isnull=False, fixed_configuration_version=1,
                 ),
                 name="import_publication_consistent",
             ),

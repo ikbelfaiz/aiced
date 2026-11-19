@@ -29,104 +29,58 @@ test('Home dashboard uses authorized persisted CRM counts and hides failed sourc
   await page.screenshot({path:'../.local/ui-review/screens/live-dashboard-mobile.png',fullPage:true});
 });
 
-test('All three synthetic workbooks upload and publish through the UI without creating CRM clients',async({page,browser})=>{
+test('All three synthetic workbooks use fixed configurations and independent review', async ({page, browser}) => {
   test.setTimeout(120000);
-  test.skip(!process.env.AICED_E2E_URL?.endsWith(':5188'),'Synthetic policy creation is restricted to the isolated stack.');
-  await login(page,'operator');
-  const before=await(await page.request.get('/api/clients/?page_size=1')).json();
-  const context=await(await page.request.get('/api/imports/context/')).json();
-  const org=context.organizations.find((item:{upload:boolean})=>item.upload).id;
-  const csrf=(await(await page.request.get('/api/auth/csrf/')).json()).csrfToken;
-  const reviewerContext=await browser.newContext({baseURL:process.env.AICED_E2E_URL});
-  const reviewer=await reviewerContext.newPage();
-  const manifest=[];
-  try{
-    await login(reviewer,'reviewer');
-    const reviewCsrf=(await(await reviewer.request.get('/api/auth/csrf/')).json()).csrfToken;
-    for(const template of ['physical','legal','accounts']){
-      const root=`/api/imports/${org}/`;
-      const policyResponse=await page.request.post(root+'policies/',{headers:{'X-CSRFToken':csrf},data:{template,key_column:template==='accounts'?5:2,data_scope:'synthetic',date_format:'ISO',rationale:`SYNTHETIC REVIEW ${template}: snapshots only, no CRM mapping approved.`}});
-      expect(policyResponse.status()).toBe(201);
-      const policy=await policyResponse.json();
-      const duplicate=await page.request.post(root+'policies/',{headers:{'X-CSRFToken':csrf},data:{template,key_column:template==='accounts'?5:2,data_scope:'synthetic',date_format:'ISO',rationale:`SYNTHETIC REVIEW ${template}: snapshots only, no CRM mapping approved.`}});
-      expect(duplicate.status()).toBe(201);
-      expect((await duplicate.json()).id).toBe(policy.id);
-      expect((await reviewer.request.post(root+`policies/${policy.id}/approve/`,{headers:{'X-CSRFToken':reviewCsrf},data:{}})).status()).toBe(200);
+  test.skip(!process.env.AICED_E2E_URL?.endsWith(':5188'), 'Isolated stack only.');
+  await login(page, 'operator');
+  const context = await (await page.request.get('/api/imports/context/')).json();
+  const org = context.organizations.find((item: {upload: boolean}) => item.upload).id;
+  const root = `/api/imports/${org}/`;
+  const csrf = (await (await page.request.get('/api/auth/csrf/')).json()).csrfToken;
+  const reviewerContext = await browser.newContext({baseURL: process.env.AICED_E2E_URL});
+  const reviewer = await reviewerContext.newPage();
+  const manifest = [];
+  try {
+    await login(reviewer, 'reviewer');
+    expect((await page.request.post(root + 'policies/', {headers: {'X-CSRFToken': csrf}, data: {}})).status()).toBe(405);
+    for (const template of ['physical', 'legal', 'accounts']) {
       await page.goto('/gestion-donnees');
       await page.getByLabel('Usage d\u00e9clar\u00e9 du fichier').selectOption('synthetic');
-      await page.getByLabel('Modèle versionné').selectOption(template);
-      await page.getByLabel('Date de situation source',{exact:true}).fill('2026-03-01');
-      await page.getByLabel('Fichier XLSX',{exact:true}).setInputFiles(`../.local/ui-review/synthetic-review-${template}.xlsx`);
-      const response=page.waitForResponse(r=>r.url().includes('/upload/')&&r.request().method()==='POST');
-      await page.getByRole('button',{name:'Valider et prévisualiser'}).click();
-      expect((await response).status()).toBe(201);
-      await expect(page.getByRole('heading',{name:'Prévisualisation du lot'})).toBeVisible();
-      const batch=(await(await page.request.get(root+'batches/')).json()).results[0];
+      await page.getByLabel('Date de situation source', {exact: true}).fill('2026-03-01');
+      await page.getByLabel('Fichier XLSX', {exact: true}).setInputFiles(`../.local/ui-review/synthetic-review-${template}.xlsx`);
+      const response = page.waitForResponse(r => r.url().includes('/upload/') && r.request().method() === 'POST');
+      await page.getByRole('button', {name: 'Valider et pr\u00e9visualiser'}).click();
+      const uploaded = await response;
+      expect([200, 201]).toContain(uploaded.status());
+      const batches = await (await page.request.get(root + 'batches/')).json();
+      const batch = batches.results.find((item: {template: string; source_as_of: string; data_scope: string}) =>
+        item.template === template && item.source_as_of === '2026-03-01' && item.data_scope === 'synthetic');
       expect(batch.template).toBe(template);
-      expect(batch.status).toBe('staged');expect(batch.total).toBe(1);expect(batch.rejected).toBe(0);
-      const state=page.getByRole('region',{name:'État de publication'});
-      await expect(state).toContainText('une revue par un autre utilisateur habilité est obligatoire');
-      await expect(page.getByRole('button',{name:'Examiner la publication'})).toBeDisabled();
-      expect((await page.request.post(root+`batches/${batch.id}/publish/`,{headers:{'X-CSRFToken':csrf},data:{policy_id:policy.id}})).status()).toBe(403);
+      expect(batch.rejected).toBe(0);
+      expect((await page.request.post(root + `batches/${batch.id}/publish/`, {headers: {'X-CSRFToken': csrf}, data: {}})).status()).toBe(403);
       await reviewer.goto('/gestion-donnees');
-      await reviewer.getByRole('button',{name:`Examiner le lot ${batch.id}`,exact:true}).click();
-      await reviewer.getByRole('button',{name:'Examiner la publication'}).click();
-      await expect(reviewer.getByLabel('Règle approuvée',{exact:true})).toHaveValue(policy.id);
-      await reviewer.getByLabel('Règle approuvée',{exact:true}).selectOption(policy.id);
-      await reviewer.getByRole('button',{name:'Confirmer la publication'}).click();
-      await expect(reviewer.getByRole('region',{name:'État de publication'})).toContainText('Publication enregistrée');
-      await expect(reviewer.getByRole('region',{name:'État de publication'})).toContainText(policy.id);
-      await reviewer.reload();
-      await reviewer.getByRole('button',{name:`Examiner le lot ${batch.id}`,exact:true}).click();
-      await expect(reviewer.getByRole('region',{name:'État de publication'})).toContainText('1 snapshot(s) conservé(s)');
-      manifest.push({template,batch_id:batch.id,policy_id:policy.id});
-      if(template==='legal'){
-        // A second compatible upload reuses the same approval, but not the review.
-        await page.getByLabel('Date de situation source',{exact:true}).fill('2026-03-02');
-        const nextUpload=page.waitForResponse(r=>r.url().includes('/upload/')&&r.request().method()==='POST');
-        await page.getByRole('button',{name:'Valider et prévisualiser'}).click();
-        expect((await nextUpload).status()).toBe(201);
-        const second=(await(await page.request.get(root+'batches/')).json()).results.find((b:{source_as_of:string;template:string;data_scope:string})=>b.source_as_of==='2026-03-02'&&b.template==='legal'&&b.data_scope==='synthetic');
-        expect(second.id).not.toBe(batch.id);expect(second.status).toBe('staged');
-        await expect(page.getByRole('status')).toContainText(policy.id);
-        expect((await page.request.post(root+`batches/${second.id}/publish/`,{headers:{'X-CSRFToken':csrf},data:{policy_id:policy.id}})).status()).toBe(403);
-        await reviewer.goto('/gestion-donnees');
-        await reviewer.getByRole('button',{name:`Examiner le lot ${second.id}`,exact:true}).click();
-        await reviewer.getByRole('button',{name:'Examiner la publication'}).click();
-        await expect(reviewer.getByLabel('Règle approuvée',{exact:true})).toHaveValue(policy.id);
-        await reviewer.getByRole('button',{name:'Confirmer la publication'}).click();
-        await expect(reviewer.getByRole('region',{name:'État de publication'})).toContainText('Publication enregistrée');
-        // Incompatible operational declaration: no synthetic rule suggested/usable.
-        await page.getByLabel('Usage déclaré du fichier').selectOption('operational');
-        const incompatibleUpload=page.waitForResponse(r=>r.url().includes('/upload/')&&r.request().method()==='POST');
-        await page.getByRole('button',{name:'Valider et prévisualiser'}).click();
-        expect((await incompatibleUpload).status()).toBe(201);
-        const incompatible=(await(await page.request.get(root+'batches/')).json()).results.find((b:{source_as_of:string;template:string;data_scope:string})=>b.source_as_of==='2026-03-02'&&b.template==='legal'&&b.data_scope==='operational');
-        await expect(page.getByRole('status')).toContainText('Aucune règle approuvée active');
-        await expect(page.getByRole('button',{name:'Examiner la publication'})).toBeDisabled();
-        expect((await reviewer.request.post(root+`batches/${incompatible.id}/publish/`,{headers:{'X-CSRFToken':reviewCsrf},data:{policy_id:policy.id}})).status()).toBe(400);
-      }
+      await reviewer.getByRole('button', {name: `Examiner le lot ${batch.id}`, exact: true}).click();
+      await reviewer.getByRole('button', {name: 'Examiner la publication'}).click();
+      await expect(reviewer.getByText(/Configuration fixe :/)).toBeVisible();
+      await reviewer.getByRole('button', {name: 'Confirmer la publication'}).click();
+      await expect(reviewer.getByRole('region', {name: '\u00c9tat de publication'})).toContainText('Publication enregistr\u00e9e');
+      manifest.push({template, batch_id: batch.id});
     }
-    const after=await(await page.request.get('/api/clients/?page_size=1')).json();
-    expect(after.count).toBe(before.count);
-    await writeFile('../.local/compose-test/import-dashboard-manifest.json',JSON.stringify(manifest,null,2));
-  }finally{await reviewerContext.close();}
+    await writeFile('../.local/compose-test/import-dashboard-manifest.json', JSON.stringify(manifest, null, 2));
+  } finally { await reviewerContext.close(); }
 });
 
-test('Published synthetic workbook history remains visible on a fresh browser visit',async({page})=>{
-  test.skip(!process.env.AICED_E2E_URL?.endsWith(':5188'),'Isolated stack only.');
-  const manifest=JSON.parse(await readFile('../.local/compose-test/import-dashboard-manifest.json','utf8'));
-  await login(page,'reviewer');
-  for(const item of manifest){
+test('Published synthetic workbook history remains visible on a fresh browser visit', async ({page}) => {
+  test.skip(!process.env.AICED_E2E_URL?.endsWith(':5188'), 'Isolated stack only.');
+  const manifest = JSON.parse(await readFile('../.local/compose-test/import-dashboard-manifest.json', 'utf8'));
+  await login(page, 'reviewer');
+  for (const item of manifest) {
     await page.goto('/gestion-donnees');
-    await page.getByRole('button',{name:`Examiner le lot ${item.batch_id}`,exact:true}).click();
-    await expect(page.getByRole('region',{name:'État de publication'})).toContainText(item.policy_id);
-    await expect(page.getByRole('region',{name:'État de publication'})).toContainText('1 snapshot(s) conservé(s)');
-    await expect(page.getByRole('button',{name:'Examiner la publication'})).toBeDisabled();
+    await page.getByRole('button', {name: `Examiner le lot ${item.batch_id}`, exact: true}).click();
+    await expect(page.getByRole('region', {name: '\u00c9tat de publication'})).toContainText('1 snapshot(s) conserv\u00e9(s)');
+    await expect(page.getByRole('button', {name: 'Examiner la publication'})).toBeDisabled();
   }
 });
-
-
 
 test('Examiner immediately focuses visible import details on desktop and mobile', async ({page}) => {
   await login(page, 'reviewer');

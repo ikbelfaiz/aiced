@@ -11,7 +11,7 @@ from defusedxml.common import DefusedXmlException
 import openpyxl
 from openpyxl.utils.exceptions import InvalidFileException
 from rest_framework.exceptions import ValidationError
-from .templates import TEMPLATES
+from .templates import TEMPLATES, FIXED_CONFIGURATIONS
 
 MAX_BYTES = 10 * 1024 * 1024
 MAX_EXPANDED = 25 * 1024 * 1024
@@ -162,7 +162,7 @@ def parse(content, template, date_format="ISO"):
                             errors.append(
                                 f"colonne {position} : date {date_format} ou date Excel attendue"
                             )
-                keys = [values[str(p)] for p in spec["candidate_keys"]]
+                keys = [values[str(FIXED_CONFIGURATIONS[template]["key_column"])]]
                 if not any(isinstance(key, str) and key.strip() for key in keys):
                     errors.append(
                         "Identifiant texte manquant ; aucune conversion numérique implicite"
@@ -185,7 +185,7 @@ def parse(content, template, date_format="ISO"):
                 )
             if not rows:
                 fail("Classeur sans ligne de données.")
-            for position in spec["candidate_keys"]:
+            for position in [FIXED_CONFIGURATIONS[template]["key_column"]]:
                 counts = Counter(
                     row["cells"][str(position)]
                     for row in rows

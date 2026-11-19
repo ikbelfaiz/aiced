@@ -4,6 +4,54 @@
  */
 
 export interface paths {
+    "/api/agenda/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["agenda_retrieve"];
+        put?: never;
+        post: operations["agenda_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/agenda/{appointment_id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["agenda_retrieve_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["agenda_partial_update"];
+        trace?: never;
+    };
+    "/api/agenda/context/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["agenda_context_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/audit/": {
         parameters: {
             query?: never;
@@ -78,6 +126,54 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["auth_logout_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/campaigns/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["campaigns_retrieve"];
+        put?: never;
+        post: operations["campaigns_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/campaigns/{campaign_id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["campaigns_retrieve_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["campaigns_partial_update"];
+        trace?: never;
+    };
+    "/api/campaigns/context/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["campaigns_context_retrieve"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -244,6 +340,38 @@ export interface paths {
         patch: operations["clients_profile_partial_update"];
         trace?: never;
     };
+    "/api/clients/{party_id}/quality/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["clients_quality_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/clients/{party_id}/source-mapping-preview/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["clients_source_mapping_preview_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/clients/{party_id}/workspace/": {
         parameters: {
             query?: never;
@@ -252,6 +380,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["clients_workspace_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/clients/activity-report/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["clients_activity_report_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -286,6 +430,38 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["clients_create_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/clients/filter-options/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["clients_filter_options_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/clients/managerial-report/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["clients_managerial_report_retrieve"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -381,39 +557,7 @@ export interface paths {
         };
         get: operations["imports_policies_list"];
         put?: never;
-        post: operations["imports_policies_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/imports/{organization_id}/policies/{policy_id}/approve/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["imports_policies_approve_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/imports/{organization_id}/policies/{policy_id}/revoke/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["imports_policies_revoke_create"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -444,6 +588,38 @@ export interface paths {
             cookie?: never;
         };
         get: operations["imports_context_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/interactions/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["interactions_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/opportunities/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["opportunities_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -580,6 +756,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/prospects/follow-ups/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["prospects_follow_ups_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/session/": {
         parameters: {
             query?: never;
@@ -623,6 +815,79 @@ export interface components {
          * @enum {string}
          */
         AccessScopeEnum: "assigned" | "organization";
+        ActivityReport: {
+            /** Format: date */
+            date_from: string;
+            /** Format: date */
+            date_to: string;
+            /** Format: date */
+            business_date: string;
+            business_timezone: string;
+            /** Format: date-time */
+            generated_at: string;
+            kind: string | null;
+            interactions: {
+                [key: string]: unknown;
+            } | null;
+            appointments: {
+                [key: string]: unknown;
+            } | null;
+            followups: {
+                [key: string]: unknown;
+            } | null;
+        };
+        AgendaContext: {
+            organizations: {
+                [key: string]: unknown;
+            }[];
+            business_timezone: string;
+            /** Format: date */
+            business_date: string;
+        };
+        AgendaInput: {
+            /** Format: uuid */
+            organization_id: string;
+            title: string;
+            kind: components["schemas"]["InteractionKindEnum"];
+            notes?: string;
+            /** Format: date */
+            date: string;
+            start_time: string;
+            end_time: string;
+            version?: number;
+        };
+        AgendaPage: {
+            count: number;
+            /** Format: uri */
+            next: string | null;
+            /** Format: uri */
+            previous: string | null;
+            results: components["schemas"]["AppointmentOutput"][];
+            days: {
+                [key: string]: number;
+            };
+            month: string;
+            business_timezone: string;
+            /** Format: date */
+            business_date: string;
+        };
+        AppointmentOutput: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly organization_id: string;
+            title: string;
+            kind: components["schemas"]["InteractionKindEnum"];
+            notes?: string;
+            /** Format: date-time */
+            starts_at: string;
+            /** Format: date-time */
+            ends_at: string;
+            version?: number;
+            /** Format: date-time */
+            readonly updated_at: string;
+            readonly can_edit: boolean;
+        };
         Audit: {
             /** Format: uuid */
             readonly id: string;
@@ -650,6 +915,7 @@ export interface components {
             source_as_of: string;
             snapshot_kind?: string;
             date_format?: components["schemas"]["ImportDateFormatEnum"];
+            data_scope?: components["schemas"]["DataScopeEnum"];
             status?: string;
             /** Format: date-time */
             readonly created_at: string;
@@ -661,6 +927,7 @@ export interface components {
             published_at?: string | null;
             /** Format: uuid */
             readonly policy_id: string | null;
+            fixed_configuration_version?: number | null;
             readonly total: number;
             readonly rejected: number;
             readonly published_rows: number;
@@ -671,6 +938,79 @@ export interface components {
             notes: string;
             /** Format: date-time */
             updated_at: string;
+        };
+        CampaignContext: {
+            organizations: components["schemas"]["CampaignOrganization"][];
+            business_timezone: string;
+            /** Format: date */
+            business_date: string;
+        };
+        CampaignInput: {
+            /**
+             * Format: uuid
+             * @description Organisation à la création uniquement ; immuable ensuite.
+             */
+            organization_id: string;
+            name: string;
+            description?: string;
+            targeting_notes?: string;
+            /** Format: date */
+            planned_start?: string | null;
+            /** Format: date */
+            planned_end?: string | null;
+            version?: number;
+        };
+        CampaignOrganization: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        CampaignOutput: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            organization_id: string;
+            /** Format: uuid */
+            creator_id: string;
+            name: string;
+            description: string;
+            targeting_notes: string;
+            /** Format: date */
+            planned_start: string | null;
+            /** Format: date */
+            planned_end: string | null;
+            /** @description Toujours draft ; aucune activation disponible. */
+            status: string;
+            version: number;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            can_edit: boolean;
+        };
+        CampaignPage: {
+            count: number;
+            /** Format: uri */
+            next: string | null;
+            /** Format: uri */
+            previous: string | null;
+            results: components["schemas"]["CampaignOutput"][];
+            business_timezone: string;
+            /** Format: date */
+            business_date: string;
+        };
+        ClientFilterOptions: {
+            profession: components["schemas"]["SegmentOptions"];
+            sector: components["schemas"]["SegmentOptions"];
+            quality: {
+                [key: string]: unknown;
+            };
+            kind: {
+                [key: string]: unknown;
+            }[];
+            truncated: {
+                [key: string]: boolean;
+            };
         };
         CreateUser: {
             username: string;
@@ -684,6 +1024,13 @@ export interface components {
          * @enum {string}
          */
         CurrencyEnum: "TND";
+        /**
+         * @description * `legacy` - Non classifié
+         *     * `synthetic` - Synthétique
+         *     * `operational` - Opérationnel
+         * @enum {string}
+         */
+        DataScopeEnum: "legacy" | "synthetic" | "operational";
         ErrorDetail: {
             status: number;
             details: unknown;
@@ -697,6 +1044,20 @@ export interface components {
             source_as_of: string;
             product_label: string;
         };
+        FollowupPage: {
+            count: number;
+            /** Format: uri */
+            next: string | null;
+            /** Format: uri */
+            previous: string | null;
+            results: components["schemas"]["ProspectOutput"][];
+            /** Format: date */
+            business_date: string;
+            business_timezone: string;
+            buckets: {
+                [key: string]: number;
+            };
+        };
         Grant: {
             /** Format: uuid */
             membership_id: string;
@@ -708,6 +1069,31 @@ export interface components {
         };
         Health: {
             status: string;
+        };
+        HistoryItem: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly party_id: string;
+            party_name: string;
+            readonly is_prospect: boolean;
+            kind: components["schemas"]["InteractionKindEnum"];
+            subject: string;
+            notes?: string;
+            /** Format: date-time */
+            occurred_at: string;
+            /** Format: uuid */
+            readonly author_id: string;
+            author_name: string;
+            version?: number;
+        };
+        HistoryPage: {
+            count: number;
+            /** Format: uri */
+            next: string | null;
+            /** Format: uri */
+            previous: string | null;
+            results: components["schemas"]["HistoryItem"][];
         };
         IdentityInput: {
             version?: number;
@@ -756,6 +1142,30 @@ export interface components {
         Login: {
             username: string;
             password: string;
+        };
+        ManagerialReport: {
+            /** Format: date */
+            date_from: string;
+            /** Format: date */
+            date_to: string;
+            /** Format: date */
+            business_date: string;
+            business_timezone: string;
+            /** Format: date-time */
+            generated_at: string;
+            kind: string | null;
+            interactions: {
+                [key: string]: unknown;
+            } | null;
+            appointments: {
+                [key: string]: unknown;
+            } | null;
+            followups: {
+                [key: string]: unknown;
+            } | null;
+            portfolio: {
+                [key: string]: unknown;
+            };
         };
         Membership: {
             /** Format: uuid */
@@ -896,8 +1306,35 @@ export interface components {
          * @enum {string}
          */
         PartyKindEnum: "physical" | "legal";
+        PatchedAgendaInput: {
+            /** Format: uuid */
+            organization_id?: string;
+            title?: string;
+            kind?: components["schemas"]["InteractionKindEnum"];
+            notes?: string;
+            /** Format: date */
+            date?: string;
+            start_time?: string;
+            end_time?: string;
+            version?: number;
+        };
         PatchedCRMUpdate: {
             notes?: string;
+        };
+        PatchedCampaignInput: {
+            /**
+             * Format: uuid
+             * @description Organisation à la création uniquement ; immuable ensuite.
+             */
+            organization_id?: string;
+            name?: string;
+            description?: string;
+            targeting_notes?: string;
+            /** Format: date */
+            planned_start?: string | null;
+            /** Format: date */
+            planned_end?: string | null;
+            version?: number;
         };
         PatchedIdentityInput: {
             version?: number;
@@ -950,18 +1387,43 @@ export interface components {
             /** Format: date */
             next_action_date?: string | null;
         };
-        PolicyInput: {
-            template: components["schemas"]["TemplateEnum"];
-            key_column: number;
-            rationale: string;
-            /** @default ISO */
-            date_format: components["schemas"]["ImportDateFormatEnum"];
+        PipelineItem: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            party_id: string;
+            party_name: string;
+            title: string;
+            notes: string;
+            /** Format: decimal */
+            amount: string | null;
+            currency: string;
+            status: string;
+            /** Format: date */
+            due_date: string | null;
+            version: number;
+            /** Format: date-time */
+            updated_at: string;
+            can_edit: boolean;
+        };
+        PipelinePage: {
+            count: number;
+            /** Format: uri */
+            next: string | null;
+            /** Format: uri */
+            previous: string | null;
+            results: components["schemas"]["PipelineItem"][];
+            statuses: {
+                [key: string]: number;
+            };
         };
         PolicyOutput: {
             /** Format: uuid */
             readonly id: string;
             template: string;
             key_column: number;
+            template_version?: number;
+            data_scope?: components["schemas"]["DataScopeEnum"];
             date_format?: components["schemas"]["ImportDateFormatEnum"];
             rationale: string;
             /** Format: uuid */
@@ -982,6 +1444,17 @@ export interface components {
             phone: string;
             profession: string;
             sector: string;
+        };
+        ProfileQuality: {
+            available: boolean;
+            provisional: boolean;
+            fields: components["schemas"]["QualityField"][];
+            definition: string;
+            percentage: number | null;
+            missing_fields: components["schemas"]["QualityField"][];
+            ownership: {
+                [key: string]: string;
+            };
         };
         ProspectCreateInput: {
             version?: number;
@@ -1034,8 +1507,6 @@ export interface components {
             last_local_source_as_of: string | null;
         };
         PublishInput: {
-            /** Format: uuid */
-            policy_id: string;
             /** @default false */
             skip_rejected: boolean;
         };
@@ -1046,6 +1517,10 @@ export interface components {
             next_action?: string;
             /** Format: date */
             next_action_date?: string | null;
+        };
+        QualityField: {
+            key: string;
+            label: string;
         };
         /**
          * @description * `success` - Succès
@@ -1072,6 +1547,14 @@ export interface components {
             scopes: components["schemas"]["AccessScopeEnum"][];
             permissions: string[];
         };
+        SegmentOptions: {
+            values: components["schemas"]["SegmentValue"][];
+            missing_count: number;
+        };
+        SegmentValue: {
+            value: string;
+            count: number;
+        };
         SessionResponse: {
             /** Format: uuid */
             id: string;
@@ -1082,13 +1565,6 @@ export interface components {
          * @enum {string}
          */
         SynchronizationEnum: "not_connected";
-        /**
-         * @description * `physical` - physical
-         *     * `legal` - legal
-         *     * `accounts` - accounts
-         * @enum {string}
-         */
-        TemplateEnum: "physical" | "legal" | "accounts";
         WorkspaceOutput: {
             /** Format: uuid */
             readonly id: string;
@@ -1125,6 +1601,119 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    agenda_retrieve: {
+        parameters: {
+            query?: {
+                day?: string;
+                month?: string;
+                page?: number;
+                page_size?: number;
+                search?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgendaPage"];
+                };
+            };
+        };
+    };
+    agenda_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgendaInput"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppointmentOutput"];
+                };
+            };
+        };
+    };
+    agenda_retrieve_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appointment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppointmentOutput"];
+                };
+            };
+        };
+    };
+    agenda_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                appointment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedAgendaInput"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AppointmentOutput"];
+                };
+            };
+        };
+    };
+    agenda_context_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgendaContext"];
+                };
+            };
+        };
+    };
     audit_list: {
         parameters: {
             query?: {
@@ -1394,17 +1983,160 @@ export interface operations {
             };
         };
     };
+    campaigns_retrieve: {
+        parameters: {
+            query?: {
+                /**
+                 * @description * `-updated_at` - -updated_at
+                 *     * `updated_at` - updated_at
+                 *     * `name` - name
+                 *     * `-name` - -name
+                 *     * `planned_start` - planned_start
+                 *     * `-planned_start` - -planned_start
+                 */
+                ordering?: "-updated_at" | "updated_at" | "name" | "-name" | "planned_start" | "-planned_start";
+                page?: number;
+                page_size?: number;
+                search?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignPage"];
+                };
+            };
+        };
+    };
+    campaigns_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CampaignInput"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignOutput"];
+                };
+            };
+        };
+    };
+    campaigns_retrieve_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaign_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignOutput"];
+                };
+            };
+        };
+    };
+    campaigns_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaign_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedCampaignInput"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignOutput"];
+                };
+            };
+        };
+    };
+    campaigns_context_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignContext"];
+                };
+            };
+        };
+    };
     clients_list: {
         parameters: {
             query?: {
+                completeness_max?: number;
+                completeness_min?: number;
                 /** @description Type de personne ; filtrage dans le périmètre autorisé. */
                 kind?: "legal" | "physical";
+                /**
+                 * @description * `email` - email
+                 *     * `phone` - phone
+                 *     * `profession` - profession
+                 *     * `sector` - sector
+                 */
+                missing_field?: "email" | "phone" | "profession" | "sector";
+                /**
+                 * @description * `id` - id
+                 *     * `display_name` - display_name
+                 *     * `-display_name` - -display_name
+                 *     * `profession` - profession
+                 *     * `-profession` - -profession
+                 *     * `sector` - sector
+                 *     * `-sector` - -sector
+                 */
+                ordering?: "id" | "display_name" | "-display_name" | "profession" | "-profession" | "sector" | "-sector";
                 /** @description Un numéro de page de l'ensemble des résultats. */
                 page?: number;
                 /** @description Nombre de résultats à retourner par page. */
                 page_size?: number;
+                profession?: string;
+                profession_missing?: boolean;
                 /** @description Un terme de recherche. */
                 search?: string;
+                sector?: string;
+                sector_missing?: boolean;
             };
             header?: never;
             path?: never;
@@ -1792,6 +2524,52 @@ export interface operations {
             };
         };
     };
+    clients_quality_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                party_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileQuality"];
+                };
+            };
+        };
+    };
+    clients_source_mapping_preview_retrieve: {
+        parameters: {
+            query?: {
+                scenario?: "ambiguous" | "conflicting_identifiers" | "duplicate" | "missing" | "multiple_accounts" | "unique";
+            };
+            header?: never;
+            path: {
+                party_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
     clients_workspace_retrieve: {
         parameters: {
             query?: never;
@@ -1809,6 +2587,35 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WorkspaceOutput"];
+                };
+            };
+        };
+    };
+    clients_activity_report_retrieve: {
+        parameters: {
+            query?: {
+                date_from?: string;
+                date_to?: string;
+                /**
+                 * @description * `call` - call
+                 *     * `email` - email
+                 *     * `meeting` - meeting
+                 *     * `visit` - visit
+                 */
+                kind?: "call" | "email" | "meeting" | "visit";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivityReport"];
                 };
             };
         };
@@ -1853,6 +2660,54 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Party"];
+                };
+            };
+        };
+    };
+    clients_filter_options_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClientFilterOptions"];
+                };
+            };
+        };
+    };
+    clients_managerial_report_retrieve: {
+        parameters: {
+            query?: {
+                date_from?: string;
+                date_to?: string;
+                /**
+                 * @description * `call` - call
+                 *     * `email` - email
+                 *     * `meeting` - meeting
+                 *     * `visit` - visit
+                 */
+                kind?: "call" | "email" | "meeting" | "visit";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagerialReport"];
                 };
             };
         };
@@ -1931,7 +2786,7 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody: {
+        requestBody?: {
             content: {
                 "application/json": components["schemas"]["PublishInput"];
             };
@@ -1990,75 +2845,6 @@ export interface operations {
             };
         };
     };
-    imports_policies_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                organization_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PolicyInput"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PolicyOutput"];
-                };
-            };
-        };
-    };
-    imports_policies_approve_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                organization_id: string;
-                policy_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PolicyOutput"];
-                };
-            };
-        };
-    };
-    imports_policies_revoke_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                organization_id: string;
-                policy_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PolicyOutput"];
-                };
-            };
-        };
-    };
     imports_upload_create: {
         parameters: {
             query?: never;
@@ -2109,6 +2895,78 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    interactions_retrieve: {
+        parameters: {
+            query?: {
+                author_id?: string;
+                date_from?: string;
+                date_to?: string;
+                /**
+                 * @description * `call` - call
+                 *     * `email` - email
+                 *     * `meeting` - meeting
+                 *     * `visit` - visit
+                 */
+                kind?: "call" | "email" | "meeting" | "visit" | "";
+                page?: number;
+                page_size?: number;
+                party_id?: string;
+                search?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HistoryPage"];
+                };
+            };
+        };
+    };
+    opportunities_retrieve: {
+        parameters: {
+            query?: {
+                /**
+                 * @description * `-updated_at` - -updated_at
+                 *     * `updated_at` - updated_at
+                 *     * `title` - title
+                 *     * `-title` - -title
+                 *     * `due_date` - due_date
+                 *     * `-due_date` - -due_date
+                 */
+                ordering?: "-updated_at" | "updated_at" | "title" | "-title" | "due_date" | "-due_date";
+                page?: number;
+                page_size?: number;
+                search?: string;
+                /**
+                 * @description * `open` - open
+                 *     * `won` - won
+                 *     * `lost` - lost
+                 */
+                status?: "open" | "won" | "lost" | "";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PipelinePage"];
                 };
             };
         };
@@ -2664,6 +3522,53 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    prospects_follow_ups_retrieve: {
+        parameters: {
+            query?: {
+                /**
+                 * @description * `overdue` - overdue
+                 *     * `today` - today
+                 *     * `upcoming` - upcoming
+                 *     * `unscheduled` - unscheduled
+                 */
+                bucket?: "overdue" | "today" | "upcoming" | "unscheduled" | "";
+                date_from?: string;
+                date_to?: string;
+                /**
+                 * @description * `next_action_date` - next_action_date
+                 *     * `-next_action_date` - -next_action_date
+                 *     * `display_name` - display_name
+                 *     * `-display_name` - -display_name
+                 */
+                ordering?: "next_action_date" | "-next_action_date" | "display_name" | "-display_name";
+                page?: number;
+                page_size?: number;
+                search?: string;
+                /**
+                 * @description * `contact` - contact
+                 *     * `qualified` - qualified
+                 *     * `discussion` - discussion
+                 *     * `follow_up` - follow_up
+                 *     * `closed` - closed
+                 */
+                status?: "contact" | "qualified" | "discussion" | "follow_up" | "closed" | "";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowupPage"];
                 };
             };
         };

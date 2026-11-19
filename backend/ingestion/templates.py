@@ -121,3 +121,11 @@ TEMPLATES = {
         "version": 1,
     },
 }
+
+# Versioned server-owned publication configurations. These keys identify source
+# snapshots only; they do not establish any relationship to a CRM client.
+FIXED_CONFIGURATIONS = {
+    "physical": {"version": 1, "key_column": 2},
+    "legal": {"version": 1, "key_column": 2},
+    "accounts": {"version": 1, "key_column": 5},
+}

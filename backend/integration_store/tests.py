@@ -49,6 +49,9 @@ class IsolatedApplicationTests(SimpleTestCase):
             for route in manifest["routes"]
             if route["path"].startswith("/api/imports/")
         ]
+        expected = [dict(route, methods=[m for m in route["methods"] if m != "POST"])
+                    if route["path"] == "/api/imports/<uuid:organization_id>/policies/" else route
+                    for route in expected]
         actual = []
         for pattern in get_resolver().url_patterns:
             if not str(pattern.pattern).startswith("api/imports/"):

@@ -72,6 +72,7 @@ export type Batch = {
   published_at: string | null;
   published_by_id: string | null;
   policy_id: string | null;
+  fixed_configuration_version: number | null;
   total: number;
   rejected: number;
   published_rows: number;
@@ -159,6 +160,7 @@ export const importApi = {
         batch: Batch;
         headers: (string | null)[];
         history: { action: string; timestamp: string }[];
+        legacy_rule_unique?: boolean;
         policy_match: {status: string; reason: string; policy: Policy | null; legacy_policies?: Policy[]; configuration?: Policy; detail_code?: string};
       }
     >(
@@ -172,11 +174,9 @@ export const importApi = {
   publish: (
     org: string,
     id: string,
-    policy_id: string,
     skip_rejected: boolean,
   ) =>
     mutate<Batch>(root(org) + `batches/${id}/publish/`, {
-      policy_id,
       skip_rejected,
     }),
   upload: async (

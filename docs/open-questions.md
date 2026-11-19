@@ -79,6 +79,10 @@
 - Première tranche commerciale historique : prospects, interactions et opportunités. S12 ajoute l'agenda personnel ; S14 ajoute les brouillons privés de campagnes. Ciblage, activation, communications, agenda collectif et pilotage managérial restent à cadrer/développer.
 - Les statuts de prospect sont des qualifications manuelles, sans score ni transition automatique. La définition de conversion, les indicateurs managériaux, les règles de qualification et l'affectation/réaffectation commerciale restent à valider avant automatisation.
 
+## Décision utilisateur du 19 novembre 2026
+
+- Pour le classeur des personnes physiques, utiliser la colonne B comme identifiant pour la règle d'import. Cette décision ne précise pas le sens de la colonne AC, la portée d'unicité entre sources, ni les liens avec les clients AICED ou les comptes. Elle n'approuve pas automatiquement une règle opérationnelle ni les lots existants.
+
 ## Bloquants de validation métier
 - Client 360 / Data Management : staging et snapshots immuables disponibles ; confirmer le sens des deux Identifiant physiques, la relation compte/tiers et la propriété champ par champ avant toute publication vers les clients/comptes. Le choix ISO/DMY est désormais explicite et doit correspondre à une règle revue ; aucun ordre jour/mois n'est autodétecté. Les rôles operator/reviewer et les règles synthétiques de test ne constituent pas une approbation métier production.
 - Résolu pour cette phase : les 16 maquettes sont dans `references/interface_aiced 2/`. Connexion, Tableau de bord et Panorama Clients ont été inspectés visuellement ; comparaison et limites dans `frontend-design-system.md`. Les 13 autres écrans restent à inspecter avant implémentation.
@@ -92,7 +96,7 @@
   Connexion locale, CSRF, throttling partagé et révocation de périmètre sont implémentés en Phase 1. Validation des seuils, purge des buckets et consultation opérateur des audits globaux à organiser avant production.
 
 ## Questions issues des classeurs
-- `Tier Personnes Physiques.xlsx`, feuille `Tier`, contient deux en-têtes `Identifiant` (B et AC). Sens et unicité à confirmer ; pas de dictionnaire basé uniquement sur le libellé.
+- `Tier Personnes Physiques.xlsx`, feuille `Tier`, contient deux en-têtes `Identifiant` (B et AC). B est choisi pour la règle d'import ; le sens de AC et la portée d'unicité restent à confirmer. Pas de dictionnaire basé uniquement sur le libellé.
 - Les premières colonnes des trois classeurs sont sans libellé. Les ignorer uniquement après validation du modèle d'import.
 - La feuille des personnes morales comporte des champs Sexe, Civilité, Etat Civil et Pays de naissance. Ne pas appliquer les règles des personnes physiques automatiquement.
 - Confirmer la relation entre Identifiant du compte et tiers ; le détenteur et le nom ne prouvent pas une identité.

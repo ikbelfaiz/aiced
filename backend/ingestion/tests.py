@@ -12,7 +12,7 @@ from clients.models import Party, FinancialAccount
 from .models import ImportBatch, ImportPolicy, SourceSnapshot, StagingRow
 from .templates import TEMPLATES
 from .parser import parse
-from .services import stage, create_policy, approve_policy, publish
+from .services import stage, create_policy, approve_policy, publish, publish_fixed
 import openpyxl
 
 
@@ -39,6 +39,58 @@ def workbook(template="legal", ids=("SYNTH-001",), mutate=None):
 
 
 class ImportTests(TestCase):
+    def test_fixed_publication_detects_all_types_and_preserves_audit(self):
+        from audit.models import AuditEvent
+        for template, position in (("physical", 2), ("legal", 2), ("accounts", 5)):
+            with self.subTest(template=template):
+                batch, created = stage(self.reader, self.org_a.pk, None, date(2026, 1, 1),
+                                       "partial", workbook(template=template), data_scope="synthetic")
+                self.assertTrue(created)
+                self.assertEqual(batch.template, template)
+                with self.assertRaises(PermissionDenied):
+                    publish_fixed(self.reader, self.org_a.pk, batch.pk)
+                publish_fixed(self.manager, self.org_a.pk, batch.pk)
+                batch.refresh_from_db()
+                self.assertEqual(batch.fixed_configuration_version, 1)
+                self.assertIsNone(batch.policy_id)
+                self.assertEqual(batch.rows.first().sourcesnapshot.external_key,
+                                 batch.rows.first().cells[str(position)])
+                event = AuditEvent.objects.filter(action="imports.published", target_id=batch.pk).first()
+                self.assertIsNotNone(event)
+                self.assertEqual(event.context["key_column"], position)
+
+    def test_legacy_publication_requires_one_approved_compatible_rule(self):
+        batch = self.staged()
+        with self.assertRaises(ValidationError):
+            publish_fixed(self.manager, self.org_a.pk, batch.pk)
+        rule = self.policy()
+        publish_fixed(self.manager, self.org_a.pk, batch.pk)
+        batch.refresh_from_db()
+        self.assertEqual(batch.policy_id, rule.pk)
+        self.assertIsNone(batch.fixed_configuration_version)
+
+    def test_ambiguous_legacy_rules_require_reclassification(self):
+        batch = self.staged()
+        self.policy()
+        second = create_policy(self.reader, self.org_a.pk, "legal", 2,
+                               "Second historical synthetic rule with separate provenance")
+        approve_policy(self.manager, self.org_a.pk, second.pk)
+        with self.assertRaises(ValidationError):
+            publish_fixed(self.manager, self.org_a.pk, batch.pk)
+        batch.refresh_from_db()
+        self.assertEqual(batch.status, "staged")
+
+    def test_fixed_publication_api_rejects_rule_modification_and_substitution(self):
+        batch = self.scoped_batch()
+        root = f"/api/imports/{self.org_a.pk}/"
+        self.login_as(self.reader)
+        self.assertEqual(self.client.post(root + "policies/", {}, content_type="application/json").status_code, 405)
+        self.login_as(self.manager)
+        self.assertEqual(self.client.post(root + f"batches/{batch.pk}/publish/",
+                                          {"policy_id": str(batch.pk)}, content_type="application/json").status_code, 400)
+        self.assertEqual(self.client.post(root + f"batches/{batch.pk}/publish/",
+                                          {}, content_type="application/json").status_code, 200)
+
     def test_review_diagnostics_distinguish_pending_revoked_and_date_mismatch(self):
         from .matching import policy_match
         from .views import PolicyOutput

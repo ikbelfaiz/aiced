@@ -11,7 +11,7 @@ ImportBatch, StagingRow, SourceSnapshot, ImportPolicy = [
     model(name)
     for name in ("ImportBatch", "StagingRow", "SourceSnapshot", "ImportPolicy")
 ]
-from .templates import TEMPLATES
+from .templates import TEMPLATES, FIXED_CONFIGURATIONS
 from .parser import parse
 
 
@@ -27,6 +27,21 @@ def stage(
     data_scope="legacy",
 ):
     authorize(actor, organization_id, "imports.upload")
+    if not template:
+        matches = []
+        for candidate in TEMPLATES:
+            try:
+                parsed = parse(content, candidate, date_format)
+            except ValidationError:
+                continue
+            matches.append((candidate, parsed))
+        if len(matches) != 1:
+            record("imports.file_rejected", actor=actor, organization_id=organization_id,
+                   result="denied", request=request)
+            raise ValidationError("Structure Excel non reconnue ou ambiguë.")
+        template, detected_rows = matches[0]
+    else:
+        detected_rows = None
     if (
         template not in TEMPLATES
         or snapshot_kind not in ["partial", "complete"]
@@ -51,7 +66,7 @@ def stage(
     if existing:
         return existing, False
     try:
-        rows = parse(content, template, date_format)
+        rows = detected_rows if detected_rows is not None else parse(content, template, date_format)
     except ValidationError:
         record(
             "imports.file_rejected",
@@ -86,7 +101,7 @@ def stage(
             {
                 row["cells"][str(position)]
                 for row in rows
-                for position in TEMPLATES[template]["candidate_keys"]
+                for position in [FIXED_CONFIGURATIONS[template]["key_column"]]
                 if isinstance(row["cells"][str(position)], str)
             }
         )
@@ -102,7 +117,7 @@ def stage(
                 ).values_list("external_key", flat=True)
             )
         for row in rows:
-            for position in TEMPLATES[template]["candidate_keys"]:
+            for position in [FIXED_CONFIGURATIONS[template]["key_column"]]:
                 if row["cells"][str(position)] in known:
                     row["warnings"].append(
                         f"Clé candidate colonne {position} déjà publiée : nouvelle version source à examiner, aucun rapprochement automatique"
@@ -221,7 +236,7 @@ def approve_policy(actor, organization_id, policy_id, revoke=False, request=None
 
 @transaction.atomic
 def publish(
-    actor, organization_id, batch_id, policy_id, skip_rejected=False, request=None
+    actor, organization_id, batch_id, policy_id=None, skip_rejected=False, request=None
 ):
     authorize(actor, organization_id, "imports.approve", lock=True, request=request)
     batch = get_object_or_404(
@@ -287,4 +302,47 @@ def publish(
             "mode": "immutable_snapshots_only",
         },
     )
+    return batch
+
+
+@transaction.atomic
+def publish_fixed(actor, organization_id, batch_id, skip_rejected=False, request=None):
+    authorize(actor, organization_id, "imports.approve", lock=True, request=request)
+    batch = get_object_or_404(ImportBatch.objects.select_for_update(), pk=batch_id, organization_id=organization_id)
+    if batch.uploaded_by_id == actor.pk:
+        raise PermissionDenied("Le déposant ne peut pas publier son lot.")
+    if batch.status == "published":
+        return batch
+    if batch.data_scope == "legacy":
+        policies = list(ImportPolicy.objects.filter(
+            organization_id=organization_id, template=batch.template,
+            template_version=batch.template_version, date_format=batch.date_format,
+            data_scope="legacy", approved_at__isnull=False, revoked_at__isnull=True,
+        ).order_by("id")[:2])
+        if len(policies) != 1:
+            raise ValidationError("Aucune règle historique unique approuvée : redéposez le fichier avec une classification explicite pour le revalider.")
+        return publish(actor, organization_id, batch_id, policies[0].pk, skip_rejected, request)
+    configuration = FIXED_CONFIGURATIONS.get(batch.template)
+    if not configuration or batch.template_version != TEMPLATES[batch.template]["version"]:
+        raise ValidationError("Configuration ou version de modèle non prise en charge.")
+    rows = list(batch.rows.all())
+    rejected = [row for row in rows if row.errors]
+    if rejected and not skip_rejected:
+        raise ValidationError("Lignes rejetées : exclusion explicite requise.")
+    accepted = [row for row in rows if not row.errors]
+    if not accepted:
+        raise ValidationError("Aucune ligne publiable.")
+    keys = [row.cells.get(str(configuration["key_column"])) for row in accepted]
+    if any(not isinstance(key, str) or not key.strip() or key != key.strip() or len(key) > 160 for key in keys) or len(keys) != len(set(keys)):
+        raise ValidationError("Clé fixe manquante ou dupliquée ; aucune publication.")
+    SourceSnapshot.objects.bulk_create([SourceSnapshot(row=row, external_key=key) for row, key in zip(accepted, keys)], batch_size=500)
+    batch.status = "published"
+    batch.fixed_configuration_version = configuration["version"]
+    batch.published_by = actor
+    batch.published_at = timezone.now()
+    batch.save(update_fields=["status", "fixed_configuration_version", "published_by", "published_at"])
+    record("imports.published", actor=actor, organization_id=organization_id, target_id=batch.pk, request=request,
+           context={"accepted": len(accepted), "excluded": len(rejected), "configuration": batch.template,
+                    "configuration_version": configuration["version"], "key_column": configuration["key_column"],
+                    "mode": "immutable_snapshots_only"})
     return batch

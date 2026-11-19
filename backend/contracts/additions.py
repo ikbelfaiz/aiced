@@ -16,6 +16,19 @@ def assert_openapi_compatible(actual, baseline):
         return re.sub(r'<uuid:([^>]+)>',r'{\1}',path)
     assert set(candidate['paths'])-set(baseline['paths']) == {schema_path(route['path']) for route in ADDITIONAL_ROUTES}
     for route in ADDITIONAL_ROUTES: candidate['paths'].pop(schema_path(route['path']))
+    # Reviewed breaking change: rule creation is retired and publication no
+    # longer accepts a caller-selected policy. Preserve the frozen baseline as
+    # evidence, while checking the new contract explicitly before comparison.
+    policy_path = '/api/imports/{organization_id}/policies/'
+    assert 'post' not in candidate['paths'][policy_path]
+    candidate['paths'][policy_path]['post'] = copy.deepcopy(baseline['paths'][policy_path]['post'])
+    for action in ('approve', 'revoke'):
+        retired = '/api/imports/{organization_id}/policies/{policy_id}/' + action + '/'
+        assert retired not in candidate['paths']
+        candidate['paths'][retired] = copy.deepcopy(baseline['paths'][retired])
+    publish_body = candidate['paths']['/api/imports/{organization_id}/batches/{batch_id}/publish/']['post']['requestBody']
+    assert not publish_body.get('required', False)
+    publish_body['required'] = baseline['paths']['/api/imports/{organization_id}/batches/{batch_id}/publish/']['post']['requestBody']['required']
     # S10 allows only these optional query parameters on the frozen list operation.
     operation=candidate['paths']['/api/clients/']['get']
     additions={'profession','sector','profession_missing','sector_missing','ordering','completeness_min','completeness_max','missing_field'}
@@ -26,9 +39,18 @@ def assert_openapi_compatible(actual, baseline):
     operation['parameters']=[p for p in parameters if p['name'] not in additions]
     schemas=candidate.get('components',{}).get('schemas',{})
     original=baseline.get('components',{}).get('schemas',{})
+    fixed = schemas['BatchOutput']['properties'].pop('fixed_configuration_version')
+    assert fixed['type'] == 'integer' and fixed.get('nullable') is True
+    schemas['BatchOutput']['required'] = [f for f in schemas['BatchOutput'].get('required', []) if f != 'fixed_configuration_version']
+    assert 'policy_id' not in schemas['PublishInput']['properties']
+    schemas['PublishInput'] = copy.deepcopy(original['PublishInput'])
+    assert 'PolicyInput' not in schemas
+    schemas['PolicyInput'] = copy.deepcopy(original['PolicyInput'])
+    if 'TemplateEnum' not in schemas and 'TemplateEnum' in original:
+        schemas['TemplateEnum'] = copy.deepcopy(original['TemplateEnum'])
     # Reusable publication rules: additive outputs and optional creation fields.
     scope_enums = set()
-    for name, fields in {'BatchOutput': {'data_scope'}, 'PolicyOutput': {'data_scope','template_version'}, 'PolicyInput': {'data_scope','template_version'}}.items():
+    for name, fields in {'BatchOutput': {'data_scope'}, 'PolicyOutput': {'data_scope','template_version'}}.items():
         for field in fields:
             assert field in schemas[name]['properties']
             if field == 'data_scope':

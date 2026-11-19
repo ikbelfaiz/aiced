@@ -68,7 +68,11 @@ class ConsumerContractChecks(SecurityFixtures):
                 if m not in ("head", "options") and hasattr(view, m)
             )
             routes.append({"path": "/" + str(pattern.pattern), "methods": methods})
-        self.assertEqual(routes, manifest["routes"] + ADDITIONAL_ROUTES)
+        expected = manifest["routes"] + ADDITIONAL_ROUTES
+        expected = [dict(route, methods=[method for method in route["methods"] if method != "POST"])
+                    if route["path"] == "/api/imports/<uuid:organization_id>/policies/" else route
+                    for route in expected]
+        self.assertEqual(routes, expected)
         for filename, digest in manifest["historical_migrations"].items():
             self.assertEqual(
                 hashlib.sha256((settings.BASE_DIR / filename).read_text(encoding='utf-8').encode('utf-8')).hexdigest(),
@@ -262,7 +266,7 @@ class ConsumerContractChecks(SecurityFixtures):
         root = f"/api/imports/{self.org_a.pk}/"
         upload = (
             root
-            + "upload/?template=legal&source_as_of=2026-01-01&date_format=ISO&snapshot_kind=partial"
+            + "upload/?source_as_of=2026-01-01&date_format=ISO&snapshot_kind=partial&data_scope=synthetic"
         )
         response = self.client.post(
             upload, content, content_type="application/octet-stream"
@@ -292,23 +296,17 @@ class ConsumerContractChecks(SecurityFixtures):
             },
             format="json",
         )
-        self.assertEqual(policy.status_code, 201, policy.data)
-        policy_id = policy.data["id"]
+        self.assertEqual(policy.status_code, 405)
         self.assertIsInstance(self.client.get(root + "policies/").data, list)
+        self.assertEqual(self.client.post(url + "publish/", {"skip_rejected": True}, format="json").status_code, 403)
         self.login_as(self.other)
-        self.assertEqual(
-            self.client.post(root + f"policies/{policy_id}/approve/").status_code, 200
-        )
         self.assertEqual(
             self.client.post(
                 url + "publish/",
-                {"policy_id": str(policy_id), "skip_rejected": True},
+                {"skip_rejected": True},
                 format="json",
             ).data["published_rows"],
             1,
-        )
-        self.assertEqual(
-            self.client.post(root + f"policies/{policy_id}/revoke/").status_code, 200
         )
 
     def test_denial_fields_and_counts_cannot_be_widened_by_consumers(self):

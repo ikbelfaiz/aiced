@@ -18,8 +18,8 @@ from .runtime import adapter, model, record
 
 ImportBatch, ImportPolicy = model("ImportBatch"), model("ImportPolicy")
 DATE_FORMAT_CHOICES = ImportBatch._meta.get_field("date_format").choices
-from .services import authorize, stage, create_policy, approve_policy, publish
-from .templates import TEMPLATES
+from .services import authorize, stage, publish_fixed
+from .templates import TEMPLATES, FIXED_CONFIGURATIONS
 from .parser import MAX_BYTES
 
 
@@ -55,6 +55,7 @@ class BatchOutput(serializers.ModelSerializer):
             "published_by_id",
             "published_at",
             "policy_id",
+            "fixed_configuration_version",
             "total",
             "rejected",
             "published_rows",
@@ -99,7 +100,6 @@ class PolicyInput(StrictSerializer):
 
 
 class PublishInput(StrictSerializer):
-    policy_id = serializers.UUIDField()
     skip_rejected = serializers.BooleanField(default=False)
 
 
@@ -195,8 +195,17 @@ class BatchView(APIView):
         )
         response.data["batch"] = BatchOutput(batch).data
         response.data["headers"] = TEMPLATES[batch.template]["headers"]
+        configuration = FIXED_CONFIGURATIONS.get(batch.template)
+        response.data["fixed_configuration"] = configuration
         from .matching import policy_match
         response.data["policy_match"] = policy_match(batch, PolicyOutput)
+        if batch.data_scope == "legacy":
+            compatible = ImportPolicy.objects.filter(
+                organization_id=organization_id, template=batch.template,
+                template_version=batch.template_version, date_format=batch.date_format,
+                data_scope="legacy", approved_at__isnull=False, revoked_at__isnull=True,
+            ).order_by("id")[:2]
+            response.data["legacy_rule_unique"] = len(list(compatible)) == 1
 
         response.data["history"] = [
             {
@@ -293,38 +302,14 @@ class PoliciesView(APIView):
             ).data
         )
 
-    @extend_schema(request=PolicyInput, responses={201: PolicyOutput})
-    def post(self, request, organization_id):
-        serializer = PolicyInput(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        return Response(
-            PolicyOutput(
-                create_policy(
-                    request.user,
-                    organization_id,
-                    **serializer.validated_data,
-                    request=request,
-                )
-            ).data,
-            status=201,
-        )
-
-
 class PolicyApproveView(APIView):
     permission_classes = [IsAuthenticated]
     revoke = False
 
-    @extend_schema(request=None, responses={200: PolicyOutput})
+    @extend_schema(exclude=True)
     def post(self, request, organization_id, policy_id):
-        if request.data:
-            raise ValidationError("Aucun champ autorisé.")
-        return Response(
-            PolicyOutput(
-                approve_policy(
-                    request.user, organization_id, policy_id, self.revoke, request
-                )
-            ).data
-        )
+        from rest_framework.exceptions import MethodNotAllowed
+        raise MethodNotAllowed("POST")
 
 
 class PolicyRevokeView(PolicyApproveView):
@@ -340,7 +325,7 @@ class PublishView(APIView):
         serializer = PublishInput(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
-            batch = publish(
+            batch = publish_fixed(
                 request.user,
                 organization_id,
                 batch_id,

@@ -197,7 +197,7 @@ test("Data Management malformed upload, preview, duplicate replay, independent a
     buffer: Buffer.from("not xlsx"),
   });
   await page.getByRole("button", { name: "Valider et prévisualiser" }).click();
-  await expect(page.getByRole("alert")).toContainText("invalide");
+  await expect(page.getByRole("alert")).toContainText("Structure Excel");
   await page
     .getByLabel("Fichier XLSX", { exact: true })
     .setInputFiles("../.local/ui-review/synthetic-legal.xlsx");
@@ -250,55 +250,14 @@ test("Data Management malformed upload, preview, duplicate replay, independent a
     path: "../.local/ui-review/screens/data-upload.png",
     fullPage: true,
   });
-  await page
-    .getByRole("button", { name: "Règles de publication", exact: true })
-    .click();
-  const importContext = await (await page.request.get('/api/imports/context/')).json();
-  const importOrg = importContext.organizations[0].id;
-  const prior = await (await page.request.get(`/api/imports/${importOrg}/policies/?view=available`)).json();
-  // Approval/revocation is performed by the independent reviewer below.
-  await page.getByRole("button", { name: "Proposer une règle" }).click();
-  await expect(
-    page.getByLabel("Interprétation des dates à approuver"),
-  ).toHaveValue("DMY");
-  const rationale = `Règle synthétique navigateur ${Date.now()} : colonne 2, snapshots immuables, aucune fusion.`;
-  await page
-    .getByLabel(
-      "Justification de propriété et d’unicité (20 caractères minimum)",
-    )
-    .fill(rationale);
-  await page.getByRole("button", { name: "Enregistrer", exact: true }).click();
-  await expect(page.getByText(rationale, { exact: true })).toBeVisible();
   await logout(page);
   await login(page, "reviewer");
-  await page
-    .getByRole("link", { name: "Gestion des données", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Règles de publication", exact: true })
-    .click();
-  const ruleCsrf = (await (await page.request.get('/api/auth/csrf/')).json()).csrfToken;
-  for (const previous of prior.filter((p:{template:string;date_format:string;data_scope:string;approved_at:string|null}) => p.template==='legal' && p.date_format==='DMY' && p.data_scope==='synthetic' && p.approved_at)) {
-    expect((await page.request.post(`/api/imports/${importOrg}/policies/${previous.id}/revoke/`, {headers:{'X-CSRFToken':ruleCsrf},data:{}})).status()).toBe(200);
-  }
-  await page.getByLabel("Afficher les r\u00e8gles").selectOption("pending");
-  const rule = page
-    .locator(".policy-list article")
-    .filter({ hasText: rationale });
-  await rule
-    .getByRole("button", { name: "Approuver la règle", exact: true })
-    .click();
-  await page.getByRole("button", { name: "Confirmer la décision" }).click();
-  await expect(rule.getByText("Approuvée", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Imports & historique" }).click();
+  await page.goto("/gestion-donnees");
   await page
     .getByRole("button", { name: /Examiner le lot/ })
     .first()
     .click();
   await page.getByRole("button", { name: "Examiner la publication" }).click();
-  await page
-    .getByLabel("Règle approuvée", { exact: true })
-    .selectOption({ label: `Colonne 2 · ${rationale.slice(0, 70)}` });
   await expect(
     page.getByRole("button", { name: "Confirmer la publication" }),
   ).toBeDisabled();
