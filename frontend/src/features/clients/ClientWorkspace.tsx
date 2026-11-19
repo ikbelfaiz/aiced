@@ -1,5 +1,6 @@
 import { ProfileQuality } from './ProfileQuality';
 import { SourceMappingPreview } from './SourceMappingPreview';
+import { SyntheticImport } from './SyntheticImport';
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams, useSearchParams } from "react-router-dom";
@@ -453,7 +454,7 @@ function ClientWorkspacePage({ id }: { id: string }) {
       </nav>
       {tab === "overview" ? (
         <>
-          <ProfileQuality id={id} version={client.crm.version}/>{!client.is_prospect&&<SourceMappingPreview id={id} allowed={!!permissions?.view_accounts&&auth.can('imports.view')}/>}<div className="client-overview-grid">
+          <ProfileQuality id={id} version={client.crm.version}/>{!client.is_prospect&&<SyntheticImport id={id} allowed={!!permissions?.view_accounts}/>} {!client.is_prospect&&<SourceMappingPreview id={id} allowed={!!permissions?.view_accounts&&auth.can('imports.view')}/>}<div className="client-overview-grid">
             <section className="card workspace-card">
               <h2>Profil client</h2>
               <div className="profile-data">

@@ -10,6 +10,10 @@ from internal_api.serve import ThreadedServer, TLSHandler
 
 def main():
     app = get_wsgi_application()
+    worker = None
+    if os.environ.get('AICED_SYNTHETIC_WORKER') == '1':
+        from clients.synthetic_worker import start
+        worker = start()
     private = make_server(
         "0.0.0.0", 8446, app, server_class=ThreadedServer, handler_class=TLSHandler
     )
@@ -22,6 +26,9 @@ def main():
     try:
         public.serve_forever()
     finally:
+        if worker:
+            worker[0].set()
+            worker[1].join(timeout=10)
         private.shutdown()
         private.server_close()
         public.server_close()

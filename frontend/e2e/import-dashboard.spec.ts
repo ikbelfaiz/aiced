@@ -14,19 +14,30 @@ test('Home dashboard uses authorized persisted CRM counts and hides failed sourc
   const clients=await(await page.request.get('/api/clients/?page_size=1')).json();
   const opportunities=await(await page.request.get('/api/opportunities/?page_size=1')).json();
   await expect(page.getByRole('article',{name:'Clients accessibles'}).locator('strong')).toHaveText(new Intl.NumberFormat('fr-FR').format(clients.count));
-  await expect(page.getByRole('region',{name:'Opportunités actuelles'}).locator('.report-total')).toHaveText(String(opportunities.count));
-  await expect(page.getByRole('img',{name:'Graphique quotidien des interactions et rendez-vous'})).toBeVisible();
-  await expect(page.getByText('Valorisations et définition financière approuvée indisponibles.')).toBeVisible();
+  await expect(page.getByRole('region',{name:'Opportunités actuelles'})).toContainText(`${opportunities.count} opportunité(s)`);
+  await expect(page.getByRole('img',{name:'Graphique des interactions enregistrées par jour'})).toBeVisible();
+  await expect(page.getByText('Valorisations financières indisponibles')).toBeVisible();
   await page.route('**/api/opportunities/?page_size=1',route=>route.fulfill({status:503,contentType:'application/json',body:'{}'}));
-  await page.getByRole('button',{name:'Actualiser les rapports'}).click();
-  await expect(page.getByRole('region',{name:'Opportunités actuelles'}).locator('.report-total')).toHaveCount(0);
-  await expect(page.getByRole('region',{name:'Interactions de la période'})).toBeVisible();
+  await page.getByRole('button',{name:'Actualiser',exact:true}).click();
+  await expect(page.getByRole('region',{name:'Opportunités actuelles'})).toContainText('Données indisponibles');
+  await expect(page.getByRole('img',{name:'Graphique des interactions enregistrées par jour'})).toBeVisible();
   await page.unroute('**/api/opportunities/?page_size=1');
-  await page.getByRole('button',{name:'Actualiser les rapports'}).click();
-  await expect(page.getByRole('region',{name:'Opportunités actuelles'}).locator('.report-total')).toHaveText(String(opportunities.count));
+  await page.getByRole('button',{name:'Actualiser',exact:true}).click();
+  await expect(page.getByRole('region',{name:'Opportunités actuelles'})).toContainText(`${opportunities.count} opportunité(s)`);
+  await page.screenshot({path:'../.local/ui-review/screens/live-dashboard-desktop.png',fullPage:true});
   await page.setViewportSize({width:390,height:844});
   await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   await page.screenshot({path:'../.local/ui-review/screens/live-dashboard-mobile.png',fullPage:true});
+});
+
+test('Dashboard does not fetch business reports without permissions', async ({page}) => {
+  const forbiddenRequests: string[] = [];
+  page.on('request', request => {
+    if (/\/api\/(clients\/(?:managerial-report\/|\?)|opportunities\/|campaigns\/)/.test(request.url())) forbiddenRequests.push(request.url());
+  });
+  await login(page, 'it');
+  await expect(page.getByRole('article', {name: 'Clients accessibles'})).toContainText('Accès non autorisé');
+  expect(forbiddenRequests).toEqual([]);
 });
 
 test('All three synthetic workbooks use fixed configurations and independent review', async ({page, browser}) => {
@@ -64,6 +75,7 @@ test('All three synthetic workbooks use fixed configurations and independent rev
       await expect(reviewer.getByText(/Configuration fixe :/)).toBeVisible();
       await reviewer.getByRole('button', {name: 'Confirmer la publication'}).click();
       await expect(reviewer.getByRole('region', {name: '\u00c9tat de publication'})).toContainText('Publication enregistr\u00e9e');
+      if (template !== 'accounts') await expect(reviewer.getByRole('status').filter({hasText: 'Synchronisation terminée'})).toBeVisible({timeout: 30000});
       manifest.push({template, batch_id: batch.id});
     }
     await writeFile('../.local/compose-test/import-dashboard-manifest.json', JSON.stringify(manifest, null, 2));
@@ -80,6 +92,36 @@ test('Published synthetic workbook history remains visible on a fresh browser vi
     await expect(page.getByRole('region', {name: '\u00c9tat de publication'})).toContainText('1 snapshot(s) conserv\u00e9(s)');
     await expect(page.getByRole('button', {name: 'Examiner la publication'})).toBeDisabled();
   }
+});
+
+test('Synthetic imported client displays published source fields', async ({page}) => {
+  test.skip(!process.env.AICED_E2E_URL?.endsWith(':5188'), 'Isolated stack only.');
+  const manifest = JSON.parse(await readFile('../.local/compose-test/import-dashboard-manifest.json', 'utf8'));
+  await login(page, 'operator');
+  const context = await (await page.request.get('/api/imports/context/')).json();
+  const org = context.organizations[0].id;
+  const batch = manifest.find((item: {template: string}) => item.template === 'physical');
+  const imported = await (await page.request.get(`/api/imports/${org}/batches/${batch.batch_id}/`)).json();
+  const sourceId = imported.results[0].cells['2'];
+  const clients = await (await page.request.get('/api/clients/?search=PERSONNE%20SYNTHETIQUE&page_size=50')).json();
+  let clientId = '';
+  for (const client of clients.results) {
+    const source = await (await page.request.get(`/api/clients/${client.id}/synthetic-import/`)).json();
+    if (source.source?.source_id === sourceId) { clientId = client.id; break; }
+  }
+  expect(clientId).not.toBe('');
+  await page.goto(`/clients/${clientId}`);
+  await expect(page.getByRole('heading', {name: 'Import synthétique · lecture seule'})).toBeVisible();
+  await expect(page.getByText(sourceId, {exact: false}).first()).toBeVisible();
+});
+
+test('Synthetic account appears under its client', async ({page}) => {
+  test.skip(!process.env.AICED_E2E_URL?.endsWith(':5188'), 'Isolated stack only.');
+  const manifest = JSON.parse(await readFile('../.local/compose-test/background-sync-manifest.json', 'utf8'));
+  await login(page, 'operator');
+  await page.goto(`/clients/${manifest.client_id}`);
+  await expect(page.getByRole('heading', {name: 'Import synthétique · lecture seule'})).toBeVisible();
+  await expect(page.getByText(`TEST · Compte ${manifest.account_id}`, {exact: false})).toBeVisible();
 });
 
 test('Examiner immediately focuses visible import details on desktop and mobile', async ({page}) => {

@@ -1,12 +1,38 @@
 # Client 360° et Gestion des données
 
+## Démonstration synthétique : liaison des personnes et sociétés
+
+Dans la base locale marquée `aiced-s7-synthetic-only` et en DEBUG uniquement,
+un traitement en arrière-plan découvre les lots `synthetic` publiés et les
+synchronise par pages vers Client & CRM, indépendamment du navigateur.
+L'identité de source est la colonne B, distincte par organisation et type de
+fichier. Une nouvelle identité crée un client de test ; une identité déjà liée
+met à jour uniquement la copie source en lecture seule. Aucun rapprochement par
+nom ni modification des champs CRM n'est effectué. Le dossier affiche les champs
+source au personnel autorisé à consulter le client, ses données financières et
+les imports. Les snapshots et leur provenance restent dans Integration.
+
+La publication et la synchronisation sont deux étapes : l'état du traitement et
+le nombre de lignes traitées sont visibles dans l'examen du lot ; le traitement
+reprend automatiquement après une interruption. Chaque page est transactionnelle
+et peut être rejouée sans doublon. Pour les comptes synthétiques, E est l'identifiant
+du compte et D celui de son détenteur. Le lien est limité à la même organisation ;
+un détenteur absent ou ambigu, ou un changement de détenteur, bloque la page sans
+rapprochement incertain. Le traitement réessaie automatiquement. Les données
+opérationnelles ne sont pas liées. Les données source anciennes ne remplacent pas
+une situation plus récente. Cette fonction n'approuve aucune règle réelle.
+Le transport interne limite chaque page ; une ligne dont les champs dépassent
+48 000 octets une fois sérialisés bloque sa synchronisation et reste consultable
+dans son lot publié. Cette limite ne modifie pas les snapshots déjà publiés.
+La fiche affiche au maximum les 50 premiers comptes synthétiques liés à un client.
+
 ## Périmètre livré
 
 `/clients/:id` : fiche backend réelle, identité et origine, profil CRM, comptes source en lecture seule, interactions et opportunités paginées. Création de personnes physiques/morales AICED depuis le panorama, modification d’identité AICED non liée à une source, email/téléphone/profession/secteur/notes CRM, création et modification des interactions réalisées et estimations commerciales. Aucun score, agrégat financier ou contenu IA inventé. Estimations commerciales actuellement saisies en TND, décimal à trois places ; jamais assimilées aux encours source.
 
 `/gestion-donnees` : contexte des organisations autorisées, dépôt XLSX brut avec CSRF, modèles versionnés, choix explicite de date, preview paginée par position, erreurs et avertissements, rapport CSV, historique des lots et audit, proposition/approbation/révocation des règles et revue de publication. Voir `import-templates.md` pour le schéma réellement inspecté et les limites.
 
-**La publication ne synchronise pas les clients ni les comptes : elle publie des snapshots source immuables.** Le sens du double Identifiant et la relation comptes/tiers n’ont pas été approuvés. Aucun domaine Carthago n’est modifié. Aucune interface Carthago externe n’est inventée ou activée. Le statut UI reste « non connecté », avec dernière situation locale autorisée si disponible.
+**La publication opérationnelle ne synchronise pas les clients ni les comptes : elle publie des snapshots source immuables.** La démonstration synthétique ci-dessus constitue une exception locale limitée. La relation de comptes D/E a été confirmée pour la démonstration ; les autres règles opérationnelles et le sens du second Identifiant restent à confirmer. Aucun domaine Carthago n’est modifié. Aucune interface Carthago externe n’est inventée ou activée. Le statut UI reste « non connecté », avec dernière situation locale autorisée si disponible.
 
 ## Autorisations
 

@@ -63,6 +63,7 @@ services:
     volumes: ['./.local/s7/tls/client:/run/tls:ro']
     env_file: .local/s7/client.env
     environment:
+      AICED_SYNTHETIC_WORKER: '1'
       CLIENT_TLS_CERT: /run/tls/client.pem
       CLIENT_TLS_KEY: /run/tls/client-key.pem
     command: [python, -m, iam_consumer.serve]

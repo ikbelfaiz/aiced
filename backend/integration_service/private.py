@@ -125,3 +125,9 @@ urlpatterns = [
 ]
 from .source_mapping import MappingPreview
 urlpatterns += [path('internal/v1/source-mapping/preview', MappingPreview.as_view())]
+from .source_mapping import SyntheticBatchPage, SyntheticRead, SyntheticWorkerPage, SyntheticWorkerDiscovery, SyntheticJobAccess
+urlpatterns += [path('internal/v1/source-mapping/synthetic-batch', SyntheticBatchPage.as_view())]
+urlpatterns += [path('internal/v1/source-mapping/synthetic-read', SyntheticRead.as_view())]
+urlpatterns += [path('internal/v1/source-mapping/synthetic-worker-page', SyntheticWorkerPage.as_view())]
+urlpatterns += [path('internal/v1/source-mapping/synthetic-worker-discovery', SyntheticWorkerDiscovery.as_view())]
+urlpatterns += [path('internal/v1/source-mapping/synthetic-job-access', SyntheticJobAccess.as_view())]

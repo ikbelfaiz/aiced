@@ -74,3 +74,7 @@ urlpatterns = [
 ]
 from clients.source_mapping import SourceMappingPreviewView
 urlpatterns += [path('api/clients/<uuid:party_id>/source-mapping-preview/', SourceMappingPreviewView.as_view())]
+from clients.synthetic_imports import SyntheticImportSyncView, SyntheticImportDetailView, SyntheticJobStatusView
+urlpatterns += [path('api/clients/synthetic-import-sync/', SyntheticImportSyncView.as_view())]
+urlpatterns += [path('api/clients/<uuid:party_id>/synthetic-import/', SyntheticImportDetailView.as_view())]
+urlpatterns += [path('api/clients/synthetic-import-jobs/<uuid:batch_id>/', SyntheticJobStatusView.as_view())]

@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { request } from '../../lib/api';
 import { useAuth } from '../auth/AuthProvider';
 import { Badge, Button, StatePanel } from '../../components/ui';
+import { Plus,Search } from 'lucide-react';
 
 const historySchema = z.object({
   count: z.number(), next: z.string().nullable(), previous: z.string().nullable(),
@@ -13,6 +14,7 @@ const historySchema = z.object({
 });
 const kinds: Record<string,string> = {call:'Appel',email:'Email',meeting:'Réunion / rendez-vous réalisé',visit:'Visite'};
 const date = (value:string) => new Date(value).toLocaleString('fr-FR',{timeZone:'Africa/Tunis',dateStyle:'short',timeStyle:'short'});
+const reportSchema=z.object({date_from:z.string(),date_to:z.string(),interactions:z.object({total:z.number(),by_kind:z.record(z.string(),z.number())}).nullable()});
 
 export function InteractionHistory() {
   const auth=useAuth();
@@ -26,6 +28,7 @@ export function InteractionHistory() {
     queryFn:async({signal})=>historySchema.parse(await request(`/api/interactions/?${params}`,{signal})),
     enabled:allowed,retry:false,
   });
+  const report=useQuery({queryKey:['history-summary',auth.identity?.session.id],queryFn:async({signal})=>reportSchema.parse(await request('/api/clients/activity-report/',{signal})),enabled:allowed,retry:false});
   function filter(key:string,value:string){
     const next=new URLSearchParams(params); next.delete('page');
     if(value)next.set(key,value);else next.delete(key);
@@ -36,11 +39,12 @@ export function InteractionHistory() {
   return <>
     <div className="page-heading"><div><p className="page-eyebrow">AMEN INVEST · AICED</p>
       <h1>Historique des interactions</h1><p className="page-subtitle">Retrouvez les échanges enregistrés avec les clients et prospects de votre périmètre.</p>
-    </div><Link className="button button-primary" to="/clients">Ajouter depuis une fiche</Link></div>
+    </div><Link className="button button-primary" to="/clients"><Plus size={16}/>Ajouter depuis une fiche</Link></div>
+    <section className="primary-metrics interaction-metrics" aria-label="Synthèse des interactions">{[{label:'Interactions enregistrées',value:report.data?.interactions?.total},{label:'Appels',value:report.data?.interactions?.by_kind.call},{label:'Emails',value:report.data?.interactions?.by_kind.email},{label:'Rendez-vous et visites',value:report.data?.interactions?((report.data.interactions.by_kind.meeting??0)+(report.data.interactions.by_kind.visit??0)):undefined}].map(item=><article className="card metric-card" key={item.label}><p>{item.label}</p><strong>{report.isError||item.value===undefined?'—':item.value}</strong><span className="muted">{report.isError?'Source indisponible':report.data?`${report.data.date_from.split('-').reverse().join('/')} – ${report.data.date_to.split('-').reverse().join('/')} · périmètre autorisé`:'Chargement…'}</span></article>)}</section>
     <section className="client-filters history-filters" aria-label="Filtres des interactions">
       <form onSubmit={e=>{e.preventDefault();filter('search',draft);}} className="history-search">
-        <label htmlFor="history-search">Rechercher par client, objet ou compte rendu</label>
-        <div><input id="history-search" value={draft} maxLength={200} onChange={e=>setDraft(e.target.value)}/><Button type="submit">Rechercher</Button></div>
+        <label className="sr-only" htmlFor="history-search">Rechercher par client, objet ou compte rendu</label>
+        <div><div className="pipeline-search-input"><Search size={16}/><input id="history-search" placeholder="Rechercher par client, objet ou compte rendu…" value={draft} maxLength={200} onChange={e=>setDraft(e.target.value)}/></div><Button type="submit">Rechercher</Button></div>
       </form>
       <div className="history-filter-fields">
         <label>Type d’interaction<select aria-label="Type d’interaction" value={params.get('kind')??''} onChange={e=>filter('kind',e.target.value)}><option value="">Tous les types</option>{Object.entries(kinds).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select></label>

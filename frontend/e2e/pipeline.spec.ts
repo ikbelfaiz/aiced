@@ -2,6 +2,21 @@ import { test,expect } from '@playwright/test';
 import { pipelineDiagnostics } from './pipeline-diagnostics';
 pipelineDiagnostics();
 
+test('Pipeline layout presents the available statuses on desktop and mobile',async({page})=>{
+  await page.goto('/opportunites');
+  await page.getByLabel('Identifiant professionnel').fill('synthetic.operator.a');
+  await page.getByLabel('Mot de passe',{exact:true}).fill(process.env.AICED_E2E_PASSWORD!);
+  await page.getByRole('button',{name:'Connexion',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'Pipeline des opportunités'})).toBeVisible();
+  await expect(page.getByRole('region',{name:'Ouvertes'})).toBeVisible();
+  await expect(page.getByRole('region',{name:'Gagnées'})).toBeVisible();
+  await expect(page.getByRole('region',{name:'Perdues'})).toBeVisible();
+  await page.screenshot({path:'../.local/ui-review/screens/pipeline-desktop.png',fullPage:true});
+  await page.setViewportSize({width:390,height:844});
+  await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  await page.screenshot({path:'../.local/ui-review/screens/pipeline-layout-mobile.png',fullPage:true});
+});
+
 test('Pipeline persists existing creation/status workflow and rejects a concurrent stale edit',async({page})=>{
   await page.goto('/clients');
   await page.getByLabel('Identifiant professionnel').fill('synthetic.operator.a');

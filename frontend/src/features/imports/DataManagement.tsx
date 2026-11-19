@@ -119,8 +119,7 @@ function ImportWorkspace({
   const [dataScope, setDataScope] = useState("");
   const [tab, setTab] = useState("imports"),
     [sourceDate, setSourceDate] = useState(today()),
-    [snapshot, setSnapshot] = useState("partial"),
-    [dateFormat, setDateFormat] = useState("ISO");
+    [snapshot, setSnapshot] = useState("partial");
   const [file, setFile] = useState<File | null>(null),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
@@ -147,6 +146,13 @@ function ImportWorkspace({
     enabled: !!batch,
   });
   const selected = preview.data?.batch ?? batch;
+  const job = useQuery({
+    queryKey: ['synthetic-import-job', auth.identity?.session.id, org.id, selected?.id],
+    queryFn: () => importApi.syntheticJob(org.id, selected!.id),
+    enabled: !!selected && selected.status === 'published' && selected.data_scope === 'synthetic',
+    refetchInterval: query => query.state.data?.status === 'complete' ? false : 3000,
+    retry: false,
+  });
   const publicationBlocks = selected?.status === 'staged' ? [
     ...(selected.data_scope === 'legacy' && !preview.data?.legacy_rule_unique ? ['Aucune règle historique approuvée unique : redéposez le fichier en choisissant explicitement son usage pour le revalider.'] : []),
     ...(!org.approve ? ['Votre habilitation ne permet pas la publication. Un réviseur autorisé doit intervenir.'] : []),
@@ -168,6 +174,7 @@ function ImportWorkspace({
       await operation();
       await refresh();
     } catch (failure) {
+      await refresh();
       setError(
         failure instanceof Error ? failure.message : "Opération impossible.",
       );
@@ -192,16 +199,14 @@ function ImportWorkspace({
             Publication contrôlée · snapshots immuables uniquement
           </strong>
           <p>
-            Aucun fichier ne modifie un client ou un compte Carthago. Aucune
-            fusion par nom. Le rapprochement métier reste bloqué sans règle
-            approuvée.
+            Les imports synthétiques sont synchronisés en arrière-plan après
+            publication. Les données opérationnelles restent séparées du CRM.
           </p>
         </div>
       </div>
       <nav className="workspace-tabs" aria-label="Gestion des données">
         {[
           ["imports", "Imports & historique"],
-          ["policies", "Règles de publication"],
           ["templates", "Modèles Excel"],
         ].map(([key, label]) => (
           <button
@@ -242,7 +247,7 @@ function ImportWorkspace({
                       "",
                       sourceDate,
                       snapshot,
-                      dateFormat,
+                      "DMY",
                       dataScope,
                     );
                     choose(result);
@@ -269,19 +274,6 @@ function ImportWorkspace({
                     <option value="partial">Partiel</option>
                     <option value="complete">
                       Complet déclaré (sans suppression)
-                    </option>
-                  </select>
-                </label>
-                <label>
-                  Format des dates source
-                  <select
-                    aria-label="Format des dates source"
-                    value={dateFormat}
-                    onChange={(event) => setDateFormat(event.target.value)}
-                  >
-                    <option value="ISO">ISO · année-mois-jour</option>
-                    <option value="DMY">
-                      Jour/mois/année · choix explicite
                     </option>
                   </select>
                 </label>
@@ -445,9 +437,10 @@ function ImportWorkspace({
               </div>
               <section className="source-rule-notice" aria-label="État de publication">
                 <div><strong>{selected.status === 'published' ? 'Publication enregistrée' : !preview.isFetching && !preview.isPending && publicationBlocks.length > 0 ? 'Publication bloquée' : 'En staging : données conservées, en attente de revue'}</strong>
-                  {selected.status === 'published' ? <p>Publié le {selected.published_at ? formatDate(selected.published_at) : '—'} · réviseur : {selected.published_by_id} · règle : {selected.policy_id}. {selected.published_rows} snapshot(s) conservé(s), sans création de client ni de compte.</p> : <><p>La validation technique ne vaut pas approbation métier. Le dépôt n’est jamais publié automatiquement.</p>{publicationBlocks.length > 0 ? <ul>{publicationBlocks.map(reason=><li key={reason}>{reason}</li>)}</ul> : <p>La configuration fixe est disponible. Un réviseur autorisé peut examiner puis confirmer explicitement la publication.</p>}</>}
+                  {selected.status === 'published' ? <p>Publié le {selected.published_at ? formatDate(selected.published_at) : '—'} · réviseur : {selected.published_by_id} · règle : {selected.policy_id}. {selected.published_rows} snapshot(s) conservé(s). {selected.data_scope === 'synthetic' ? 'La synchronisation de test est suivie ci-dessous.' : 'Aucun compte ni client opérationnel créé.'}</p> : <><p>La validation technique ne vaut pas approbation métier. Le dépôt n’est jamais publié automatiquement.</p>{publicationBlocks.length > 0 ? <ul>{publicationBlocks.map(reason=><li key={reason}>{reason}</li>)}</ul> : <p>La configuration fixe est disponible. Un réviseur autorisé peut examiner puis confirmer explicitement la publication.</p>}</>}
                 </div>
               </section>
+              {selected.status === 'published' && selected.data_scope === 'synthetic' && <p role="status" className="availability-note">{job.isError ? 'État de synchronisation indisponible.' : job.data?.status === 'complete' ? `Synchronisation terminée · ${job.data.processed} ligne(s) traitée(s).` : job.data?.status === 'blocked' ? `Synchronisation en attente · ${job.data.last_error} Une nouvelle tentative sera effectuée automatiquement.` : `Synchronisation en cours ou en attente · ${job.data?.processed ?? 0} ligne(s) traitée(s).`}</p>}
               <div className="preview-actions">
                 <label>
                   <input
@@ -627,6 +620,7 @@ function ImportWorkspace({
             {selected.total} lignes, {selected.rejected} rejet(s). Source :{" "}
             {templateLabels[selected.template]} au {selected.source_as_of}.
           </p>
+          {selected.data_scope === 'synthetic' && <p>Après publication, les données de test seront synchronisées en arrière-plan par identifiant source.</p>}
           <p className="source-rule-notice">
             Cette action publie des snapshots immuables. Aucun attribut de
             client ou compte Carthago n’est remplacé. Aucune absence ne provoque

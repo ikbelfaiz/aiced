@@ -40,11 +40,11 @@ for template,spec in TEMPLATES.items():
     for position in spec['candidate_keys']:
         row[position-1]='SYNTH-REVIEW-'+uuid.uuid4().hex
     if template=='physical':
-        row[2]='SYNTHETIQUE';row[3]='PERSONNE';row[8]='2000-01-02'
+        row[2]='SYNTHETIQUE';row[3]='PERSONNE';row[8]='02/01/2000'
     elif template=='legal': row[3]='SOCIETE SYNTHETIQUE SANS DONNEE REELLE'
     else:
         row[3]='DETENTEUR SYNTHETIQUE NON RAPPROCHE'
-        row[8]='2024-01-02'
+        row[8]='02/01/2024'
     sheet.append(row)
     book.save(dest/f'synthetic-review-{template}.xlsx')
     expected[template]={'cells':{str(i+1):value for i,value in enumerate(row)},'digest':hashlib.sha256((dest/f'synthetic-review-{template}.xlsx').read_bytes()).hexdigest()}

@@ -85,6 +85,35 @@ class ExternalIdentity(models.Model):
         constraints = [models.UniqueConstraint(fields=['source', 'external_id'], name='external_identity_unique')]
 
 
+class SyntheticImportProjection(models.Model):
+    """A client-side copy of an explicitly synthetic published source row."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization = models.ForeignKey(getattr(settings, 'BUSINESS_ORGANIZATION_MODEL', 'identity.Organization'), on_delete=models.PROTECT)
+    party = models.ForeignKey(Party, on_delete=models.PROTECT, related_name='synthetic_imports')
+    template = models.CharField(max_length=16)
+    source_id = models.CharField(max_length=160)
+    batch_id = models.UUIDField()
+    row_id = models.UUIDField()
+    source_as_of = models.DateField()
+    published_at = models.DateTimeField()
+    cells = models.JSONField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['organization', 'template', 'source_id'], name='synthetic_import_source_unique')]
+
+
+class SyntheticImportJob(models.Model):
+    batch_id = models.UUIDField(primary_key=True)
+    organization_id = models.UUIDField()
+    template = models.CharField(max_length=16)
+    status = models.CharField(max_length=16, default='pending')
+    next_offset = models.PositiveIntegerField(default=0)
+    processed = models.PositiveIntegerField(default=0)
+    attempts = models.PositiveIntegerField(default=0)
+    last_error = models.CharField(max_length=300, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
 class FinancialAccount(models.Model):
     # Local source-owned projection only. No API writer or integration in Phase 1.
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

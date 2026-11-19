@@ -1,5 +1,27 @@
 # Stratégie frontend
 
+Agenda : la maquette « 08 · Agenda commercial » a été inspectée visuellement.
+L'interface propose une semaine sur sept jours, un calendrier mensuel et les
+rendez-vous personnels existants. Le tableau s'étend aux horaires réellement
+enregistrés ; au-delà de trois chevauchements ou de 50 rendez-vous par jour,
+la liste paginée reste accessible. Le calendrier défile horizontalement sur
+mobile. Aucun agenda collectif, rappel urgent ou statut réalisé n'est inventé.
+
+Pipeline : la maquette « 07 · Pipeline des opportunités » a été inspectée
+visuellement. La page reprend ses colonnes gris clair, cartes blanches, badges,
+montants, échéances et filtres, adaptés au mobile. Elle conserve les trois
+statuts réellement disponibles (ouvertes, gagnées, perdues), la pagination et
+les estimations existantes ; aucun nouveau stade commercial ou total financier
+n'est déduit de la maquette.
+
+Tableau de bord API : après inspection visuelle de la maquette « 02 · Tableau de
+bord », la grille de cartes et de graphiques utilise les données CRM autorisées :
+clients par type, statuts d'opportunités, interactions quotidiennes, relances et
+brouillons personnels. La courbe représente les interactions des 30 derniers
+jours, pas une évolution du nombre de clients. Les segments métier, encours et
+taux de rétention restent explicitement indisponibles ; aucune valeur ni règle
+financière n'est inventée. Les sources échouées n'affichent pas de valeurs périmées.
+
 Tranche prospects du 14 novembre 2026 : PDF 06 rendu (`.local/ui-review/06-1.png`) puis inspecté visuellement. `/prospects` reprend sidebar, titre, bouton vert, grille de quatre cartes, recherche/filtres et table. Comparaison des captures desktop 1440 px et mobile 390 px ; correction du chevron de filtre et de l'espacement de 24 px entre filtres et table. Responsive adapté sans maquette mobile ; aucun score de fidélité pixel revendiqué. Les valeurs proviennent uniquement de l'API et des fixtures synthétiques, jamais des personnes illustrées dans le PDF. Les scores, taux de conversion, export et filtres métier non approuvés ne sont pas simulés comme fonctionnalités. La qualification manuelle, la prochaine action, la fiche, les interactions et les opportunités sont fonctionnelles dans le périmètre autorisé.
 
 Extension suivante livrée : Client 360° (`/clients/:id`) et Gestion des données (`/gestion-donnees`), création et édition CRM AICED. La page 04 Karim a été rendue et comparée aux captures ; les onglets/champs source indisponibles restent explicites. La portée actuelle et ses limites sont dans `client-360-data-management-status.md` ; les descriptions « futures/non implémentées » ci-dessous concernent la phase des trois premiers écrans.

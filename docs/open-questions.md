@@ -1,5 +1,28 @@
 # Questions ouvertes et décisions provisoires
 
+## Démonstration synthétique — liaison des imports
+
+- Décision utilisateur : pour les imports synthétiques de personnes et de sociétés,
+  après revue et publication, créer un client AICED si son identifiant source est
+  nouveau ; sinon actualiser uniquement les données source en lecture seule.
+  Les données CRM éditables restent distinctes. Cette décision ne s'applique pas
+  aux données opérationnelles et ne constitue pas une approbation Carthago.
+- Pour cette démonstration uniquement, la colonne B identifie la personne ou la
+  société dans l'organisation et le type de fichier ; les espaces de noms des
+  personnes physiques et morales sont distincts. Un client existant créé à la
+  main n'est jamais lié sur la seule base de son nom. Pour les données réelles,
+  la portée d'unicité et les règles de conflit restent à approuver.
+- Décision utilisateur pour la démonstration : D « Détenteur du compte » est
+  l'identifiant du client ; E « Numéro de compte » est l'identifiant unique du
+  compte. AH reste non interprétée. D doit correspondre exactement à une seule
+  personne ou société synthétique de la même organisation ; si aucune ou plusieurs
+  correspondent, la page attend une revue. Les changements de détenteur ne sont
+  pas appliqués automatiquement.
+- L'import reste possédé par Integration et les clients par Client & CRM. Dans la
+  base locale explicitement marquée synthétique, le traitement Client découvre les
+  lots publiés, persiste sa progression et réessaie les pages interrompues. Ce
+  mécanisme ne constitue pas une autorisation pour les données opérationnelles.
+
 ## Réutilisation des règles de publication
 
 - AMEN INVEST doit confirmer les politiques opérationnelles de chaque source,

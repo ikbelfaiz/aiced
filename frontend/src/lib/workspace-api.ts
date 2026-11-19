@@ -146,6 +146,9 @@ export const workspaceApi = {
     >(client(id) + `accounts/?page=${page}`, { signal }),
 };
 export const importApi = {
+  syntheticJob: (organizationId: string, batchId: string) => request<{status: 'pending' | 'complete' | 'blocked'; processed: number; last_error: string}>(`/api/clients/synthetic-import-jobs/${encodeURIComponent(batchId)}/?organization_id=${encodeURIComponent(organizationId)}`),
+  syncSyntheticPage: (organization_id: string, batch_id: string, offset: number) =>
+    mutate<{ next_offset: number | null; processed: number }>("/api/clients/synthetic-import-sync/", { organization_id, batch_id, offset }),
   context: () =>
     request<{
       organizations: ImportOrganization[];
