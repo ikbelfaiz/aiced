@@ -1,6 +1,6 @@
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.conf import settings
@@ -44,8 +44,13 @@ class HealthView(APIView):
 
 
 class SessionView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     @extend_schema(responses={200: SessionResponseSerializer, **ERROR_RESPONSES})
     def get(self, request):
+        if not request.user.is_authenticated:
+            return Response(
+                {'error': {'status': 403, 'details': 'Session not authenticated.'}},
+                status=403,
+            )
         return Response(SessionResponseSerializer(request.user).data)
