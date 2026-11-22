@@ -1,4 +1,5 @@
 from django.urls import path
+from identity.registration_views import RegisterView, RegistrationListView, RegistrationReviewView
 from core.views import SessionView
 from identity.views import (
     CsrfView,
@@ -28,6 +29,9 @@ from iam_service.private import (
 )
 
 urlpatterns = [
+    path('api/auth/register/', RegisterView.as_view()),
+    path('api/organizations/<uuid:organization_id>/registrations/', RegistrationListView.as_view()),
+    path('api/organizations/<uuid:organization_id>/registrations/<uuid:registration_id>/', RegistrationReviewView.as_view()),
     path("api/session/", SessionView.as_view()),
     path("api/auth/csrf/", CsrfView.as_view()),
     path("api/auth/login/", LoginView.as_view()),

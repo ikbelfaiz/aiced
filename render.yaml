@@ -1,0 +1,28 @@
+databases:
+  - name: aiced-demo-db
+    databaseName: aiced_demo
+    plan: free
+
+services:
+  - type: web
+    name: aiced-demo
+    runtime: docker
+    dockerfilePath: ./Dockerfile.render
+    plan: free
+    healthCheckPath: /api/health/
+    preDeployCommand: python manage.py migrate --noinput && python manage.py seed_synthetic --confirm-synthetic && python manage.py seed_workspace --confirm-synthetic
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: "0"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: AICED_SYNTHETIC_DEMO
+        value: "1"
+      - key: AICED_SEED_PASSWORD
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: aiced-demo-db
+          property: connectionString

@@ -18,6 +18,6 @@ export const previewTrend = [
   { month: 'Août', clients: 1250, activity: 290 }, { month: 'Sept.', clients: 1280, activity: 312 },
 ];
 export const previewSegments = [
-  { name: 'Particuliers', value: 762, color: '#1d4695' }, { name: 'VIP', value: 274, color: '#299d49' },
-  { name: 'Institutionnels', value: 112, color: '#1d3c79' }, { name: 'Personnel AMEN BANK', value: 100, color: '#b8c9eb' },
+  { name: 'Particuliers', value: 762, color: '#2d8798' }, { name: 'VIP', value: 274, color: '#e27162' },
+  { name: 'Institutionnels', value: 112, color: '#17263a' }, { name: 'Personnel AMEN BANK', value: 100, color: '#aebac8' },
 ];

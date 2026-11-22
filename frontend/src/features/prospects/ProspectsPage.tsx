@@ -89,7 +89,7 @@ export function ProspectsPage() {
     <>
       <div className="page-heading">
         <div>
-          <p className="page-eyebrow">AMEN INVEST · AICED</p>
+          <p className="page-eyebrow">AICED · COMMERCIAL</p>
           <h1>Prospects</h1>
           <p className="page-subtitle">
             Qualifiez les nouveaux contacts et préparez les prochaines étapes de

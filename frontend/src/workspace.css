@@ -543,7 +543,7 @@
 .agenda-month-label input { min-height:38px; padding:0 10px; border:1px solid var(--border); border-radius:7px; background:white; color:#566176; }
 .agenda-view-switch { display:flex; gap:18px; border-bottom:1px solid #e4e7ec; }
 .agenda-view-switch button { padding:10px 2px; border-bottom:2px solid transparent; color:#778397; font-size:12px; }
-.agenda-view-switch button.selected { border-color:#299d49; color:#299d49; font-weight:600; }
+.agenda-view-switch button.selected { border-color:var(--green); color:var(--green); font-weight:600; }
 .agenda-layout { display:grid; grid-template-columns:minmax(0,1fr) 280px; gap:16px; align-items:start; margin:20px 0; }
 .agenda-layout .agenda-calendar { min-width:0; margin:0; padding:18px; }
 .agenda-week-scroll { max-width:100%; overflow-x:auto; }
@@ -551,14 +551,14 @@
 .agenda-week-table { min-width:780px; }
 .agenda-week-header { display:grid; grid-template-columns:42px repeat(7,minmax(0,1fr)); align-items:center; margin-bottom:16px; }
 .agenda-week-header button { padding:14px 4px; color:#6b778c; font-size:11px; font-weight:600; text-transform:capitalize; border-radius:8px; }
-.agenda-week-header button.today { background:#edf3fc; color:#1d4695; }
+.agenda-week-header button.today { background:#edf5f7; color:var(--blue); }
 .agenda-week-body { display:grid; grid-template-columns:42px repeat(7,minmax(0,1fr)); }
 .agenda-hours { position:relative; color:#8190a4; font-size:10px; }
 .agenda-hours span { position:absolute; left:0; transform:translateY(-4px); }
 .agenda-day-column { position:relative; min-width:0; border-left:1px solid #e1e5ec; background-image:linear-gradient(to bottom,#e1e5ec 1px,transparent 1px); }
 .agenda-day-column.today { background-color:#f6f8fc; }
-.agenda-event { position:absolute; overflow:hidden; display:flex; flex-direction:column; align-items:flex-start; gap:3px; padding:7px; border-left:3px solid #1d4695; border-radius:6px; background:#edf2fb; color:#1d4695; text-align:left; }
-.agenda-event-meeting,.agenda-event-visit { background:#eaf7ee; border-color:#299d49; color:#218d45; }
+.agenda-event { position:absolute; overflow:hidden; display:flex; flex-direction:column; align-items:flex-start; gap:3px; padding:7px; border-left:3px solid var(--blue); border-radius:6px; background:#edf5f7; color:var(--blue); text-align:left; }
+.agenda-event-meeting,.agenda-event-visit { background:#edf7f4; border-color:var(--success); color:#24765a; }
 .agenda-event:disabled { cursor:default; opacity:1; }
 .agenda-event span { font-size:9px; font-weight:600; }
 .agenda-event strong { max-width:100%; overflow:hidden; color:#263248; font-size:10px; text-overflow:ellipsis; white-space:nowrap; }
@@ -566,14 +566,14 @@
 .agenda-more { position:absolute; z-index:2; bottom:0; left:0; right:0; background:#fff4df; color:#885500; font-size:9px; }
 .agenda-legend { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:20px; font-size:10px; color:#66758a; }
 .agenda-legend span { padding:7px 9px; border-radius:6px; background:#eaf7ee; color:#218d45; }
-.agenda-legend span:nth-child(2) { background:#edf2fb; color:#1d4695; }
+.agenda-legend span:nth-child(2) { background:#edf5f7; color:var(--blue); }
 .agenda-sidebar { display:grid; gap:16px; }
 .agenda-side-card { padding:20px; }
 .agenda-side-card h2 { display:flex; gap:8px; align-items:center; font-size:15px; }
-.agenda-side-card h2 svg { color:#299d49; }
+.agenda-side-card h2 svg { color:var(--green); }
 .agenda-side-card .muted { margin-top:14px; font-size:11px; line-height:1.6; }
 .agenda-today-list { display:grid; gap:18px; margin-top:22px; }
-.agenda-today-list strong { color:#1d4695; font-size:11px; }
+.agenda-today-list strong { color:var(--blue); font-size:11px; }
 .agenda-today-list p { margin:5px 0; font-size:12px; font-weight:600; }
 .agenda-today-list span { color:#7a8698; font-size:10px; }
 .agenda-month-total { display:block; margin-top:22px; font-size:24px; }
@@ -600,17 +600,17 @@
 .opportunity-board .pipeline-column { padding:12px; border-radius:12px; background:#ebedf2; min-height:280px; }
 .pipeline-column-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; }
 .opportunity-board .pipeline-column h2 { margin:0; font-size:14px; font-weight:600; }
-.pipeline-count { min-width:26px; padding:5px 8px; border-radius:6px; background:#e5edf9; color:#1d4695; text-align:center; font-size:11px; font-weight:600; }
-.pipeline-column-won .pipeline-count,.pipeline-column-won .pipeline-badge { background:#eaf8ee; color:#219653; }
+.pipeline-count { min-width:26px; padding:5px 8px; border-radius:6px; background:#e7f1f4; color:var(--blue); text-align:center; font-size:11px; font-weight:600; }
+.pipeline-column-won .pipeline-count,.pipeline-column-won .pipeline-badge { background:#edf7f4; color:var(--success); }
 .pipeline-column-lost .pipeline-count,.pipeline-column-lost .pipeline-badge { background:#fceced; color:#c73d3d; }
 .pipeline-column-caption { margin:10px 0 14px; color:#7a8699; font-size:11px; }
 .opportunity-board .pipeline-card { display:block; min-height:0; margin:0 0 12px; padding:16px; border:1px solid #e0e4eb; border-radius:12px; background:#fff; box-shadow:0 2px 5px rgba(28,46,75,.04); }
 .pipeline-card-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:17px; }
-.pipeline-badge { padding:6px 9px; border-radius:6px; background:#eaf0fa; color:#1d4695; font-size:10px; font-weight:600; }
+.pipeline-badge { padding:6px 9px; border-radius:6px; background:#eaf4f6; color:var(--blue); font-size:10px; font-weight:600; }
 .pipeline-open-icon { display:inline-flex; padding:4px; color:#718099; }
 .opportunity-board .pipeline-card h3 { margin:0 0 6px; font-size:13px; font-weight:600; color:#202633; }
 .opportunity-board .pipeline-card .pipeline-card-title { margin:0; color:#768399; font-size:11px; }
-.opportunity-board .pipeline-card .pipeline-card-amount { margin:20px 0 18px; color:#1d4695; font-size:19px; font-weight:600; }
+.opportunity-board .pipeline-card .pipeline-card-amount { margin:20px 0 18px; color:var(--blue); font-size:19px; font-weight:600; }
 .pipeline-card-notes { color:#6b7280; font-size:11px; margin:0 0 14px; }
 .pipeline-card-date { display:flex; align-items:center; gap:6px; color:#748196; font-size:10px; }
 .pipeline-empty { padding:12px 4px; color:#788499; font-size:11px; }
@@ -626,7 +626,7 @@
 .report-counts { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; font-size: 12px; }
 .report-counts dd { font-weight: 700; margin: 0; }
 .report-chart { height: 280px; width: 100%; min-width: 0; font-size: 11px; }
-.report-total { display: block; font-size: 28px; color: #1d4695; margin: 12px 0; }
+.report-total { display: block; font-size: 28px; color: var(--blue); margin: 12px 0; }
 
 /* Campaign and interaction summaries use the same presentation as the commercial workspace. */
 .interaction-metrics,.campaign-metrics { margin-bottom: 24px; }

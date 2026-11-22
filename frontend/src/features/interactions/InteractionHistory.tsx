@@ -37,7 +37,7 @@ export function InteractionHistory() {
   function go(value:number){const next=new URLSearchParams(params);next.set('page',String(value));setParams(next);}
   if(!allowed)return <StatePanel kind="denied" title="Historique des interactions non autorisé">Les habilitations clients et interactions sont requises.</StatePanel>;
   return <>
-    <div className="page-heading"><div><p className="page-eyebrow">AMEN INVEST · AICED</p>
+    <div className="page-heading"><div><p className="page-eyebrow">AICED · ACTIVITÉ</p>
       <h1>Historique des interactions</h1><p className="page-subtitle">Retrouvez les échanges enregistrés avec les clients et prospects de votre périmètre.</p>
     </div><Link className="button button-primary" to="/clients"><Plus size={16}/>Ajouter depuis une fiche</Link></div>
     <section className="primary-metrics interaction-metrics" aria-label="Synthèse des interactions">{[{label:'Interactions enregistrées',value:report.data?.interactions?.total},{label:'Appels',value:report.data?.interactions?.by_kind.call},{label:'Emails',value:report.data?.interactions?.by_kind.email},{label:'Rendez-vous et visites',value:report.data?.interactions?((report.data.interactions.by_kind.meeting??0)+(report.data.interactions.by_kind.visit??0)):undefined}].map(item=><article className="card metric-card" key={item.label}><p>{item.label}</p><strong>{report.isError||item.value===undefined?'—':item.value}</strong><span className="muted">{report.isError?'Source indisponible':report.data?`${report.data.date_from.split('-').reverse().join('/')} – ${report.data.date_to.split('-').reverse().join('/')} · périmètre autorisé`:'Chargement…'}</span></article>)}</section>

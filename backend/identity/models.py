@@ -73,3 +73,21 @@ class InternalNonce(models.Model):
     # Only digest + expiry, never request bodies, sessions or credentials.
     digest = models.CharField(max_length=64, primary_key=True)
     expires_at = models.DateTimeField(db_index=True)
+
+
+class RegistrationRequest(models.Model):
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'En attente'
+        APPROVED = 'approved', 'Approuvée'
+        REJECTED = 'rejected', 'Refusée'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.OneToOneField(User, on_delete=models.PROTECT)
+    organization = models.ForeignKey(Organization, on_delete=models.PROTECT)
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.PROTECT, related_name='reviewed_registrations')
+
+    class Meta:
+        constraints = [models.CheckConstraint(condition=models.Q(status__in=['pending', 'approved', 'rejected']), name='registration_status_valid')]

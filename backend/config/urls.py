@@ -4,6 +4,7 @@ from commercial.pipeline_contract import PipelineContractView
 from clients.agenda import AgendaView,AppointmentView,AgendaContextView
 from commercial.campaign_contract import CampaignContractView,CampaignContextContractView,CampaignDetailContractView
 from django.urls import path
+from django.urls import re_path
 from drf_spectacular.views import SpectacularAPIView
 from rest_framework.permissions import IsAuthenticated
 from core.views import HealthView, SessionView
@@ -18,8 +19,13 @@ from clients.quality import ClientQualityView
 from clients.reporting import CommercialActivityView
 from clients.managerial_reporting import ManagerialCRMView
 from ingestion.views import ImportContextView, BatchListView, UploadView, BatchView, RejectionsView, PoliciesView, PolicyApproveView, PolicyRevokeView, PublishView
+from core.views import SPAView
+from identity.registration_views import RegisterView, RegistrationListView, RegistrationReviewView
 
 urlpatterns = [
+    path('api/auth/register/', RegisterView.as_view()),
+    path('api/organizations/<uuid:organization_id>/registrations/', RegistrationListView.as_view()),
+    path('api/organizations/<uuid:organization_id>/registrations/<uuid:registration_id>/', RegistrationReviewView.as_view()),
     path('api/prospects/', ProspectsView.as_view()),
     path('api/prospects/context/', ProspectContextView.as_view()),
     path('api/prospects/<uuid:party_id>/', ProspectView.as_view()),
@@ -78,3 +84,4 @@ from clients.synthetic_imports import SyntheticImportSyncView, SyntheticImportDe
 urlpatterns += [path('api/clients/synthetic-import-sync/', SyntheticImportSyncView.as_view())]
 urlpatterns += [path('api/clients/<uuid:party_id>/synthetic-import/', SyntheticImportDetailView.as_view())]
 urlpatterns += [path('api/clients/synthetic-import-jobs/<uuid:batch_id>/', SyntheticJobStatusView.as_view())]
+urlpatterns += [re_path(r'^.*$', SPAView.as_view())]

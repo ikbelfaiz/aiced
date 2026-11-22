@@ -23,10 +23,16 @@ class ManagerialReportingTests(TransactionTestCase):
         data=self.get().json()
         self.assertEqual(data['portfolio']['quality']['total'],1)
         self.assertEqual(data['portfolio']['by_kind'],{'physical':1,'legal':0})
+        self.assertEqual(data['portfolio']['team'],[])
         self.assertEqual(data['portfolio']['quality']['missing_counts'],dict.fromkeys(['email','phone','profession','sector'],1))
         self.assertIsNone(data['interactions']);self.assertIsNone(data['followups']);self.assertIsNone(data['appointments'])
         self.login_as(self.manager)
-        self.assertEqual(self.get().json()['portfolio']['quality']['total'],2)
+        data=self.get().json()
+        self.assertEqual(data['portfolio']['quality']['total'],2)
+        team={row['username']:row for row in data['portfolio']['team']}
+        self.assertEqual(team['synthetic.reader']['clients'],1)
+        self.assertEqual(team['synthetic.other']['clients'],1)
+        self.assertIn('interactions',team['synthetic.reader'])
         # reports.view_global never grants object visibility or extra organizations.
         RoleAssignment.objects.create(membership=self.reader_m,role=fixtures.role('SYNTHETIC report-only',['reports.view_global']),scope='organization')
         self.login_as(self.reader)

@@ -1,6 +1,7 @@
 import os
 import json
 import re
+from urllib.parse import urlparse
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
 from zoneinfo import ZoneInfo,ZoneInfoNotFoundError
@@ -31,17 +32,31 @@ if len(SECRET_KEY) < 32:
     raise ImproperlyConfigured('DJANGO_SECRET_KEY must contain at least 32 characters.')
 DEBUG = os.environ.get('DJANGO_DEBUG', '0') == '1'
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '').split(',')
+    if origin.strip()
+]
+if os.environ.get('RENDER_EXTERNAL_HOSTNAME'):
+    hostname = os.environ['RENDER_EXTERNAL_HOSTNAME']
+    if hostname not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(hostname)
+    origin = f'https://{hostname}'
+    if origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(origin)
 AICED_GATEWAY_KEY = os.environ.get('AICED_GATEWAY_KEY', '')
 if AICED_GATEWAY_KEY and (len(AICED_GATEWAY_KEY) < 32 or not all(
         c.isascii() and (c.isalnum() or c in '_-') for c in AICED_GATEWAY_KEY)):
     raise ImproperlyConfigured('AICED_GATEWAY_KEY requires at least 32 URL-safe characters.')
 INSTALLED_APPS = [
     'django.contrib.auth', 'django.contrib.contenttypes', 'django.contrib.sessions',
+    'django.contrib.staticfiles',
     'rest_framework', 'drf_spectacular', 'identity', 'core', 'clients', 'audit', 'ingestion',
 ]
 MIDDLEWARE = [
     'core.middleware.GatewayMetadataMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'core.middleware.RequestContextMiddleware',
     'core.import_gate_middleware.ImportGateMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -52,15 +67,28 @@ MIDDLEWARE = [
 ]
 ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'
-DATABASES = {'default': {
-    'ENGINE': 'django.db.backends.postgresql',
-    'NAME': os.environ.get('POSTGRES_DB', 'aiced'),
-    'USER': os.environ.get('POSTGRES_USER', 'aiced'),
-    'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
-    'HOST': os.environ.get('POSTGRES_HOST', 'db'),
-    'PORT': os.environ.get('POSTGRES_PORT', '5432'),
-    'CONN_MAX_AGE': 60,
-}}
+database_url = os.environ.get('DATABASE_URL', '')
+if database_url:
+    parsed = urlparse(database_url)
+    DATABASES = {'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': parsed.path.lstrip('/'),
+        'USER': parsed.username or '',
+        'PASSWORD': parsed.password or '',
+        'HOST': parsed.hostname or '',
+        'PORT': parsed.port or '5432',
+        'CONN_MAX_AGE': 60,
+    }}
+else:
+    DATABASES = {'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('POSTGRES_DB', 'aiced'),
+        'USER': os.environ.get('POSTGRES_USER', 'aiced'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
+        'HOST': os.environ.get('POSTGRES_HOST', 'db'),
+        'PORT': os.environ.get('POSTGRES_PORT', '5432'),
+        'CONN_MAX_AGE': 60,
+    }}
 AUTH_USER_MODEL = 'identity.User'
 AICED_INTERNAL_KEYS = json.loads(os.environ.get('AICED_INTERNAL_KEYS', '{}'))
 if not isinstance(AICED_INTERNAL_KEYS,dict):
@@ -89,6 +117,13 @@ TIME_ZONE = 'Africa/Tunis'
 USE_I18N = True
 USE_TZ = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [BASE_DIR / 'frontend_dist'] if (BASE_DIR / 'frontend_dist').is_dir() else []
+STORAGES = {
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
+}
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SECURE = not DEBUG
@@ -97,6 +132,7 @@ SESSION_COOKIE_AGE = 1800
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SECURE_SSL_REDIRECT = not DEBUG
 SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 API_MAX_JSON_BYTES = positive_int_env('API_MAX_JSON_BYTES', str(64 * 1024))

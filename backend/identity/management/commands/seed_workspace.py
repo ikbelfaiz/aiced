@@ -24,8 +24,10 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
-        if not settings.DEBUG or not options["confirm_synthetic"]:
-            raise CommandError("DEBUG et confirmation synthétique requis.")
+        if not options["confirm_synthetic"] or (
+            not settings.DEBUG and os.environ.get("AICED_SYNTHETIC_DEMO") != "1"
+        ):
+            raise CommandError("Mode démo synthétique explicite et confirmation synthétique requis.")
         password = os.environ.get("AICED_SEED_PASSWORD", "")
         validate_password(password)
         org = Organization.objects.get(code="SYNTHETIC-A")

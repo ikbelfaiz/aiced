@@ -100,7 +100,7 @@ export function AppShell() {
       >
         <div className="sidebar-logo">
           <strong>AICED</strong>
-          <span>AMEN INVEST · CRM</span>
+          <span>CRM · EXPLORATION & PILOTAGE</span>
           <button
             className="mobile-close icon-button"
             aria-label="Fermer la navigation"
@@ -136,6 +136,7 @@ export function AppShell() {
               Clients
             </button>
           )}
+          {auth.can("users.manage") && <NavLink to="/administration/comptes" className={({isActive}) => `nav-item ${isActive ? "nav-active" : ""}`}>Demandes de compte</NavLink>}
           {futureNavigation.map((name) =>
             name === 'Pilotage' && auth.can('clients.view') ? (
               <NavLink key={name} to="/pilotage-crm" className={({isActive})=>'nav-item '+(isActive?'nav-active':'')}>Pilotage CRM</NavLink>
@@ -210,8 +211,8 @@ export function AppShell() {
             <strong>Espace sécurisé</strong>
             <span>Accès professionnel</span>
           </div>
-          <strong className="sidebar-amen">AMEN INVEST</strong>
-          <p>Clients · Exploitation · Développement</p>
+          <strong className="sidebar-amen">AICED</strong>
+          <p>Relation client · Activité · Pilotage</p>
         </div>
       </aside>
       <div className="workspace" inert={menu}>
@@ -307,7 +308,7 @@ export function AppShell() {
           <Outlet />
           <footer className="app-footer">
             <span>
-              AICED – AMEN INVEST Clients Exploitation &amp; Développement
+              AICED · Relation client et pilotage commercial
             </span>
             <span>
               {preview

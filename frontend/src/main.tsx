@@ -10,6 +10,8 @@ import '@fontsource/inter/latin-700.css';
 import './styles.css';
 import './workspace.css';
 
+document.documentElement.dataset.theme = 'aiced-mineral';
+
 const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode><QueryClientProvider client={queryClient}><BrowserRouter><App /></BrowserRouter></QueryClientProvider></React.StrictMode>,

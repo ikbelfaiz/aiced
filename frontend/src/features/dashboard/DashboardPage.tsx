@@ -15,9 +15,9 @@ function ChartPlaceholder({ children }: { children: string }) { return <div clas
 function TrendChart({ activity = false }: { activity?: boolean }) {
   return <div className={activity ? 'activity-plot' : 'trend-plot'} role="img" aria-label={activity ? 'Illustration fictive : tendance des interactions d’avril à septembre 2026' : 'Illustration fictive : évolution du nombre de clients d’avril à septembre 2026'}>
     <ResponsiveContainer width="100%" height="100%"><LineChart data={previewTrend} margin={{ top: 18, right: 8, left: -24, bottom: 14 }}>
-      <CartesianGrid stroke="#e1e5ee" vertical={false} /><XAxis dataKey="month" axisLine={false} tickLine={false} tickMargin={18} tick={{ fontSize: 10, fill: '#6b7280' }} />
+      <CartesianGrid stroke="#e1e7ea" vertical={false} /><XAxis dataKey="month" axisLine={false} tickLine={false} tickMargin={18} tick={{ fontSize: 10, fill: '#66727f' }} />
       <YAxis domain={activity ? [180, 320] : [980, 1300]} ticks={activity ? [200, 240, 280, 320] : [1000, 1100, 1200, 1300]} axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: '#6b7280' }} tickFormatter={formatNumber} />
-      <Line type="monotone" dataKey={activity ? 'activity' : 'clients'} stroke="#1d4695" strokeWidth={3} dot={false} isAnimationActive={false} />
+      <Line type="monotone" dataKey={activity ? 'activity' : 'clients'} stroke="#2d8798" strokeWidth={3} dot={false} isAnimationActive={false} />
     </LineChart></ResponsiveContainer>
   </div>;
 }
@@ -44,7 +44,7 @@ function PreviewDashboard() {
     { title: 'Campagnes en cours', value: '4', caption: '312 clients ciblés' }, { title: 'Clients à risque de désengagement', value: '12', caption: '3 à risque élevé' },
   ];
   return <>
-    <div className="page-heading"><div><p className="page-eyebrow">AMEN INVEST · AICED</p><h1>Tableau de bord</h1><p className="page-subtitle">Bonjour{preview ? ' Leïla' : ''}, voici l’essentiel de votre activité et les priorités du jour.</p></div><div className="heading-actions"><Button disabled title="Le filtrage des indicateurs par période n’est pas disponible"><CalendarDays size={16} />{preview ? 'Septembre 2026' : 'Période non disponible'}</Button><Button disabled title="L’API d’export n’est pas disponible"><Download size={17} />Exporter</Button></div></div>
+    <div className="page-heading"><div><p className="page-eyebrow">AICED · PILOTAGE</p><h1>Tableau de bord</h1><p className="page-subtitle">Bonjour{preview ? ' Leïla' : ''}, voici l’essentiel de votre activité et les priorités du jour.</p></div><div className="heading-actions"><Button disabled title="Le filtrage des indicateurs par période n’est pas disponible"><CalendarDays size={16} />{preview ? 'Septembre 2026' : 'Période non disponible'}</Button><Button disabled title="L’API d’export n’est pas disponible"><Download size={17} />Exporter</Button></div></div>
     {canClients && clients.isPending && <StatePanel kind="loading" title="Chargement du tableau de bord…" />}
     {canClients && clients.isError ? <StatePanel kind="error" title="Impossible de charger le tableau de bord" retry={() => void clients.refetch()}>{clients.error.message}</StatePanel> : (!clients.isPending || !canClients) && <>
       <section className="primary-metrics" aria-label="Indicateurs principaux">{primaryCards.map((card) => <article className="card metric-card" key={card.title}><p>{card.title}</p><strong>{card.value}</strong><span className={preview ? 'positive' : 'muted'}>{card.caption}</span></article>)}</section>

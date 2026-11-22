@@ -1,8 +1,3 @@
-const ProspectFollowups = lazy(() => import('../features/prospects/ProspectFollowups').then(module=>({default:module.ProspectFollowups})));
-const OpportunityPipeline = lazy(() => import('../features/opportunities/OpportunityPipeline').then(module=>({default:module.OpportunityPipeline})));
-const AgendaPage=lazy(()=>import('../features/agenda/AgendaPage').then(module=>({default:module.AgendaPage})));
-const CampaignsPage=lazy(()=>import('../features/campaigns/CampaignsPage').then(module=>({default:module.CampaignsPage})));
-const CommercialActivity=lazy(()=>import('../features/reporting/CommercialActivity').then(module=>({default:module.CommercialActivity})));
 import { useEffect, lazy, Suspense } from "react";
 import {
   Link,
@@ -15,9 +10,16 @@ import {
 import { AppShell } from "../components/layout/AppShell";
 import { StatePanel } from "../components/ui";
 import { AuthProvider, useAuth } from "../features/auth/AuthProvider";
+import { RegisterPage } from "../features/auth/RegisterPage";
+import { RegistrationReviewPage } from "../features/auth/RegistrationReviewPage";
 import { LoginPage } from "../features/auth/LoginPage";
 import { DashboardPage } from "../features/dashboard/DashboardPage";
 import { ClientsPage } from "../features/clients/ClientsPage";
+const ProspectFollowups = lazy(() => import('../features/prospects/ProspectFollowups').then(module=>({default:module.ProspectFollowups})));
+const OpportunityPipeline = lazy(() => import('../features/opportunities/OpportunityPipeline').then(module=>({default:module.OpportunityPipeline})));
+const AgendaPage=lazy(()=>import('../features/agenda/AgendaPage').then(module=>({default:module.AgendaPage})));
+const CampaignsPage=lazy(()=>import('../features/campaigns/CampaignsPage').then(module=>({default:module.CampaignsPage})));
+const CommercialActivity=lazy(()=>import('../features/reporting/CommercialActivity').then(module=>({default:module.CommercialActivity})));
 const InteractionHistory = lazy(() => import('../features/interactions/InteractionHistory').then(module=>({default:module.InteractionHistory})));
 const ClientWorkspace = lazy(() =>
   import("../features/clients/ClientWorkspace").then((module) => ({
@@ -84,7 +86,7 @@ function ClientsGate() {
 function PageTitle() {
   const location = useLocation();
   useEffect(() => {
-    document.title = `${location.pathname === "/activite-commerciale" ? "Activit\u00e9 commerciale" : location.pathname === "/campagnes" ? "Mes brouillons de campagnes" : location.pathname === "/agenda" ? "Mon agenda" : location.pathname === "/opportunites" ? "Pipeline des opportunit\u00e9s" : location.pathname === "/prospects/relances" ? "Relances prospects" : location.pathname === "/interactions" ? "Historique des interactions" : location.pathname === "/prospects" ? "Prospects" : location.pathname === "/connexion" ? "Connexion" : location.pathname === "/clients" ? "Panorama Clients" : location.pathname.startsWith("/clients/") ? "Client 360°" : location.pathname === "/gestion-donnees" ? "Gestion des données" : "Tableau de bord"} · AICED`;
+    document.title = `${location.pathname === "/inscription" || location.pathname === "/register" ? "Inscription" : location.pathname === "/administration/comptes" ? "Demandes de compte" : location.pathname === "/activite-commerciale" ? "Activit\u00e9 commerciale" : location.pathname === "/campagnes" ? "Mes brouillons de campagnes" : location.pathname === "/agenda" ? "Mon agenda" : location.pathname === "/opportunites" ? "Pipeline des opportunit\u00e9s" : location.pathname === "/prospects/relances" ? "Relances prospects" : location.pathname === "/interactions" ? "Historique des interactions" : location.pathname === "/prospects" ? "Prospects" : location.pathname === "/connexion" ? "Connexion" : location.pathname === "/clients" ? "Panorama Clients" : location.pathname.startsWith("/clients/") ? "Client 360°" : location.pathname === "/gestion-donnees" ? "Gestion des données" : "Tableau de bord"} · AICED`;
   }, [location.pathname]);
   return null;
 }
@@ -98,7 +100,10 @@ export function App() {
       </a>
       <Routes>
         <Route path="/connexion" element={<LoginPage />} />
+        <Route path="/inscription" element={<RegisterPage />} />
+        <Route path="/register" element={<Navigate to="/inscription" replace />} />
         <Route element={<AuthGate />}>
+          <Route path="/administration/comptes" element={<RegistrationReviewPage />} />
           <Route path="/activite-commerciale" element={<Suspense fallback={<StatePanel kind="loading" title="Chargement des rapports…"/>}><CommercialActivity/></Suspense>}/>
           <Route path="/pilotage-crm" element={<Suspense fallback={<StatePanel kind="loading" title="Chargement du pilotage CRM…"/>}><CommercialActivity managerial/></Suspense>}/>
           <Route path="/agenda" element={<Suspense fallback={<StatePanel kind="loading" title="Chargement de l’agenda"/>}><AgendaPage/></Suspense>}/>

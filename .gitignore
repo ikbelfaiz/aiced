@@ -12,3 +12,6 @@ dist/
 *.sqlite3
 coverage/
 media/
+.vite/
+backend/staticfiles/
+backend/frontend_dist/

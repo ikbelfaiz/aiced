@@ -46,6 +46,8 @@ with connect() as c:
         campaign_apply(config)
         from publication_rules_migrate import apply as publication_apply
         publication_apply(config)
+        from registration_migrate import apply as registration_apply
+        registration_apply(config)
         print('Existing synthetic data retained; explicit Client agenda and Commercial draft migrations checked; no seeds repeated.')
         sys.exit(0)
     if c.execute("SELECT count(*) FROM pg_tables WHERE schemaname='public'").fetchone()[0]:
@@ -114,4 +116,6 @@ from agenda_migrate import apply
 apply(config)
 from campaign_migrate import apply as campaign_apply
 campaign_apply(config)
+from registration_migrate import apply as registration_apply
+registration_apply(config)
 print('S7 synthetic initialization completed; independent schema histories and restricted runtime roles installed.')

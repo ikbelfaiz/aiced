@@ -1,5 +1,17 @@
 # Questions ouvertes et décisions provisoires
 
+## Inscription — décision du 22 novembre 2026
+
+- Décision utilisateur : demande de compte, puis accord du responsable avant activation.
+- La demande exige un code d'institution communiqué en interne ; aucun annuaire public.
+  L'approbation utilise `users.manage` au périmètre organisation, sans rôle automatique.
+- L'email n'est pas vérifié ni notifié automatiquement. Le responsable doit vérifier
+  l'identité par un canal interne. Définir une politique de rétention et de nouvelle
+  demande après refus avant déploiement réel.
+- Les anciennes procédures de transfert S5 ne couvrent pas la nouvelle table de
+  demandes : aucune bascule/rollback historique ne doit être exécutée avec des
+  demandes réelles sans étendre et valider leur inventaire.
+
 ## Démonstration synthétique — liaison des imports
 
 - Décision utilisateur : pour les imports synthétiques de personnes et de sociétés,
