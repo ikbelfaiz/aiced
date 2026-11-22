@@ -19,7 +19,7 @@ from clients.quality import ClientQualityView
 from clients.reporting import CommercialActivityView
 from clients.managerial_reporting import ManagerialCRMView
 from ingestion.views import ImportContextView, BatchListView, UploadView, BatchView, RejectionsView, PoliciesView, PolicyApproveView, PolicyRevokeView, PublishView
-from core.views import SPAView
+from core.views import FrontendAssetView, SPAView
 from identity.registration_views import RegisterView, RegistrationListView, RegistrationReviewView
 
 urlpatterns = [
@@ -84,4 +84,5 @@ from clients.synthetic_imports import SyntheticImportSyncView, SyntheticImportDe
 urlpatterns += [path('api/clients/synthetic-import-sync/', SyntheticImportSyncView.as_view())]
 urlpatterns += [path('api/clients/<uuid:party_id>/synthetic-import/', SyntheticImportDetailView.as_view())]
 urlpatterns += [path('api/clients/synthetic-import-jobs/<uuid:batch_id>/', SyntheticJobStatusView.as_view())]
+urlpatterns += [re_path(r'^assets/(?P<path>.+)$', FrontendAssetView.as_view())]
 urlpatterns += [re_path(r'^.*$', SPAView.as_view())]
