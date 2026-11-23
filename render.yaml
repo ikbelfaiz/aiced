@@ -10,7 +10,7 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     healthCheckPath: /api/health/
-    preDeployCommand: python manage.py migrate --noinput && python manage.py seed_synthetic --confirm-synthetic && python manage.py seed_workspace --confirm-synthetic
+    # Free Docker services initialize through Dockerfile CMD (prepare_render).
     envVars:
       - key: DJANGO_SECRET_KEY
         generateValue: true

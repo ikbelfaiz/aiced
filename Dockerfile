@@ -18,4 +18,4 @@ RUN DJANGO_SECRET_KEY=build-only-secret-key-not-used-in-runtime-123456 \
 RUN useradd --create-home app && chown -R app:app /app
 USER app
 EXPOSE 10000
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:10000", "--workers", "2", "--timeout", "120"]
+CMD ["sh", "-c", "python manage.py prepare_render && exec gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-10000} --workers 2 --timeout 120"]
