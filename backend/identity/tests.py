@@ -371,6 +371,11 @@ class SecurityTests(SecurityFixtures, TestCase):
             counts = (User.objects.count(), Membership.objects.count(), Party.objects.count(), FinancialAccount.objects.count(), RoleAssignment.objects.count())
             user = User.objects.get(username='synthetic.reader.a')
             encoded = user.password
+            supervisor = User.objects.get(username='synthetic.supervisor.a')
+            supervisor_assignment = RoleAssignment.objects.get(membership__user=supervisor)
+            self.assertEqual(supervisor_assignment.scope, 'organization')
+            self.assertIn('users.manage', supervisor_assignment.role.permissions.values_list('code', flat=True))
+            self.assertIn('clients.view_financial', supervisor_assignment.role.permissions.values_list('code', flat=True))
             call_command('seed_synthetic', confirm_synthetic=True, stdout=StringIO())
             self.assertEqual(counts, (User.objects.count(), Membership.objects.count(), Party.objects.count(), FinancialAccount.objects.count(), RoleAssignment.objects.count()))
             user.refresh_from_db()

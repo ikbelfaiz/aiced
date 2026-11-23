@@ -11,8 +11,11 @@ from identity.models import Capability, Organization, Role, Membership, RoleAssi
 
 CAPABILITIES = [
     'clients.view', 'clients.create', 'clients.update_crm', 'clients.view_financial',
-    'opportunities.manage', 'imports.upload', 'imports.approve',
-    'reconciliation.view', 'reconciliation.resolve', 'users.manage', 'reports.view_global', 'audit.view',
+    'clients.update_identity', 'prospects.view', 'prospects.manage',
+    'interactions.view', 'interactions.manage', 'opportunities.view', 'opportunities.manage',
+    'imports.view', 'imports.upload', 'imports.approve', 'imports.policy_manage',
+    'reconciliation.view', 'reconciliation.resolve', 'users.manage', 'reports.view_global',
+    'audit.view',
 ]
 
 
@@ -39,6 +42,7 @@ class Command(BaseCommand):
             'synthetic-reader': ['clients.view', 'clients.update_crm'],
             'synthetic-manager': ['clients.view', 'clients.update_crm', 'clients.view_financial', 'users.manage', 'audit.view'],
             'synthetic-it': ['users.manage'],
+            'synthetic-supervisor': CAPABILITIES,
         }
         roles = {}
         for code, capabilities in role_codes.items():
@@ -68,5 +72,22 @@ class Command(BaseCommand):
                     CRMProfile.objects.get_or_create(party=party)
                     FinancialAccount.objects.get_or_create(source='SYNTHETIC_ONLY', external_id=f'DEMO-ACCOUNT-{suffix}',
                         defaults={'party': party, 'source_as_of': timezone.now(), 'product_label': 'Compte de démonstration sans encours'})
+
+        org_a = Organization.objects.get(code='SYNTHETIC-A')
+        supervisor, created = User.objects.get_or_create(username='synthetic.supervisor.a')
+        if created:
+            supervisor.set_password(password)
+            supervisor.save(update_fields=['password'])
+        supervisor_member, _ = Membership.objects.get_or_create(user=supervisor, organization=org_a)
+        supervisor_assignment, created = RoleAssignment.objects.get_or_create(
+            membership=supervisor_member,
+            role=roles['synthetic-supervisor'],
+            scope=RoleAssignment.Scope.ORGANIZATION,
+        )
+        if created:
+            record('seed.supervisor_granted', organization_id=org_a.pk, target_id=supervisor_assignment.pk)
         record('seed.completed')
-        self.stdout.write(self.style.SUCCESS('Données SYNTHÉTIQUES préparées. Comptes synthetic.{reader,manager,it}.{a,b}. Aucun mot de passe existant remplacé.'))
+        self.stdout.write(self.style.SUCCESS(
+            'Données SYNTHÉTIQUES préparées. Comptes synthetic.{reader,manager,it}.{a,b} '
+            'et synthetic.supervisor.a. Aucun mot de passe existant remplacé.'
+        ))

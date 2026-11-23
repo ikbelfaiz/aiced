@@ -5,6 +5,9 @@
 - Décision utilisateur : demande de compte, puis accord du responsable avant activation.
 - La demande exige un code d'institution communiqué en interne ; aucun annuaire public.
   L'approbation utilise `users.manage` au périmètre organisation, sans rôle automatique.
+- Pour la démonstration synthétique, `synthetic.supervisor.a` dispose d'un rôle
+  démonstratif regroupant les capacités AICED disponibles, limité à SYNTHETIC-A.
+  Ce rôle n'est pas un modèle de production ni une approbation des droits réels.
 - L'email n'est pas vérifié ni notifié automatiquement. Le responsable doit vérifier
   l'identité par un canal interne. Définir une politique de rétention et de nouvelle
   demande après refus avant déploiement réel.
