@@ -37,12 +37,8 @@ class Command(BaseCommand):
     def bootstrap_demo(self):
         if os.environ.get('AICED_SYNTHETIC_DEMO') != '1':
             return
-        from identity.models import Organization, User
-        from clients.models import Party
         with transaction.atomic():
-            # Never reseed an existing installation or silently extend its grants.
-            if User.objects.exists() or Organization.objects.exists() or Party.objects.exists():
-                self.stdout.write('Base existante conservée ; aucune donnée de démonstration ajoutée.')
-                return
+            # Replay is safe: the synthetic seed creates only missing demo
+            # objects and never resets passwords or existing role assignments.
             call_command('seed_synthetic', confirm_synthetic=True, stdout=self.stdout)
             call_command('seed_workspace', confirm_synthetic=True, stdout=self.stdout)

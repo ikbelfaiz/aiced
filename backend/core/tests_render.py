@@ -30,12 +30,12 @@ class RenderBootstrapTests(TestCase):
             Command(stdout=StringIO()).bootstrap_demo()
             seed.assert_not_called()
 
-    def test_existing_accounts_are_not_reseeded(self):
+    def test_existing_accounts_allow_missing_synthetic_replay(self):
         from identity.models import User
         User.objects.create_user('synthetic.existing', password='Synthetic-Test-Only-5468!')
         with patch.dict(os.environ, {'AICED_SYNTHETIC_DEMO': '1'}), patch('core.management.commands.prepare_render.call_command') as seed:
             Command(stdout=StringIO()).bootstrap_demo()
-            seed.assert_not_called()
+            self.assertEqual([call.args[0] for call in seed.call_args_list], ['seed_synthetic', 'seed_workspace'])
 
     def test_fresh_demo_runs_both_seeds(self):
         with patch.dict(os.environ, {'AICED_SYNTHETIC_DEMO': '1'}), patch('core.management.commands.prepare_render.call_command') as seed:
