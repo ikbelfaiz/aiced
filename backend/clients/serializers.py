@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from core.serializers import StrictSerializer
-from .models import Party, FinancialAccount
+from .models import Party, FinancialAccount, OperationalAccountProjection
 
 
 class PartySerializer(serializers.ModelSerializer):
@@ -25,3 +25,9 @@ class FinancialAccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = FinancialAccount
         fields = ['id', 'source', 'external_id', 'source_as_of', 'product_label']
+
+
+class OperationalAccountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OperationalAccountProjection
+        fields = ['id', 'source_id', 'source_as_of']

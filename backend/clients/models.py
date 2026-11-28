@@ -114,6 +114,62 @@ class SyntheticImportJob(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
+class OperationalPersonProjection(models.Model):
+    """Latest applied physical-person observation, separate from CRM fields."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization_id = models.UUIDField()
+    party = models.OneToOneField(Party, on_delete=models.PROTECT, related_name='operational_person')
+    source_id = models.CharField(max_length=160)
+    batch_id = models.UUIDField()
+    row_id = models.UUIDField()
+    source_as_of = models.DateField()
+    published_at = models.DateTimeField()
+    birth_date = models.DateField(null=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['organization_id', 'source_id'], name='operational_person_source_unique')]
+
+
+class OperationalImportJob(models.Model):
+    batch_id = models.UUIDField(primary_key=True)
+    organization_id = models.UUIDField()
+    template = models.CharField(max_length=16, default='physical')
+    next_offset = models.PositiveIntegerField(default=0)
+    processed = models.PositiveIntegerField(default=0)
+    status = models.CharField(max_length=16, default='pending')
+    last_error = models.CharField(max_length=300, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class OperationalCompanyProjection(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization_id = models.UUIDField()
+    party = models.OneToOneField(Party, on_delete=models.PROTECT, related_name='operational_company')
+    source_id = models.CharField(max_length=160)
+    batch_id = models.UUIDField()
+    row_id = models.UUIDField()
+    source_as_of = models.DateField()
+    published_at = models.DateTimeField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['organization_id', 'source_id'], name='operational_company_source_unique')]
+
+
+class OperationalAccountProjection(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    organization_id = models.UUIDField()
+    party = models.ForeignKey(Party, on_delete=models.PROTECT, related_name='operational_accounts')
+    source_id = models.CharField(max_length=160)
+    holder_id = models.CharField(max_length=160)
+    batch_id = models.UUIDField()
+    row_id = models.UUIDField()
+    source_as_of = models.DateField()
+    published_at = models.DateTimeField()
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['organization_id', 'source_id'], name='operational_account_source_unique')]
+
+
 class FinancialAccount(models.Model):
     # Local source-owned projection only. No API writer or integration in Phase 1.
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from core.views import HealthView, SessionView
 from identity.views import (CsrfView, LoginView, LogoutView, AccessView, UserListView,
                             MembershipStateView, RoleAssignmentView, RevokeRoleView, RoleCatalogueView)
-from clients.views import ClientListView, ClientDetailView, CRMUpdateView, AccountListView
+from clients.views import ClientListView, ClientDetailView, CRMUpdateView, AccountListView, OperationalAccountListView
 from audit.views import AuditListView
 from clients.history import InteractionHistoryView
 from clients.prospects import ProspectsView, ProspectView, ProspectContextView
@@ -58,6 +58,7 @@ urlpatterns = [
     path('api/clients/<uuid:party_id>/', ClientDetailView.as_view()),
     path('api/clients/<uuid:party_id>/crm/', CRMUpdateView.as_view()),
     path('api/clients/<uuid:party_id>/accounts/', AccountListView.as_view()),
+    path('api/clients/<uuid:party_id>/operational-accounts/', OperationalAccountListView.as_view()),
     path('api/organizations/<uuid:organization_id>/users/', UserListView.as_view()),
     path('api/organizations/<uuid:organization_id>/memberships/<uuid:membership_id>/', MembershipStateView.as_view()),
     path('api/organizations/<uuid:organization_id>/role-assignments/', RoleAssignmentView.as_view()),
@@ -84,5 +85,7 @@ from clients.synthetic_imports import SyntheticImportSyncView, SyntheticImportDe
 urlpatterns += [path('api/clients/synthetic-import-sync/', SyntheticImportSyncView.as_view())]
 urlpatterns += [path('api/clients/<uuid:party_id>/synthetic-import/', SyntheticImportDetailView.as_view())]
 urlpatterns += [path('api/clients/synthetic-import-jobs/<uuid:batch_id>/', SyntheticJobStatusView.as_view())]
+from clients.operational_imports import OperationalJobStatusView
+urlpatterns += [path('api/clients/operational-import-jobs/<uuid:batch_id>/', OperationalJobStatusView.as_view())]
 urlpatterns += [re_path(r'^assets/(?P<path>.+)$', FrontendAssetView.as_view())]
 urlpatterns += [re_path(r'^.*$', SPAView.as_view())]

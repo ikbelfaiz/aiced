@@ -13,6 +13,7 @@ import openpyxl
 from ingestion.templates import TEMPLATES
 import uuid
 import hashlib
+from datetime import datetime
 
 cfg=json.loads((PRIVATE/'config.json').read_text())
 dest=ROOT/'.local/ui-review'
@@ -41,13 +42,24 @@ for template,spec in TEMPLATES.items():
         row[position-1]='SYNTH-REVIEW-'+uuid.uuid4().hex
     if template=='physical':
         row[2]='SYNTHETIQUE';row[3]='PERSONNE';row[8]='02/01/2000'
-    elif template=='legal': row[3]='SOCIETE SYNTHETIQUE SANS DONNEE REELLE'
+        row[11]='+21612345678';row[14]='synth-'+uuid.uuid4().hex+'@example.test'
+    elif template=='legal': row[3]='SOCIETE SYNTHETIQUE SANS DONNEE REELLE '+uuid.uuid4().hex[:12];row[6]='+21611111111'
     else:
-        row[3]='DETENTEUR SYNTHETIQUE NON RAPPROCHE'
+        row[3]=expected['physical']['cells']['2']
         row[8]='02/01/2024'
     sheet.append(row)
     book.save(dest/f'synthetic-review-{template}.xlsx')
     expected[template]={'cells':{str(i+1):value for i,value in enumerate(row)},'digest':hashlib.sha256((dest/f'synthetic-review-{template}.xlsx').read_bytes()).hexdigest()}
+book=openpyxl.Workbook()
+sheet=book.active
+sheet.title=TEMPLATES['physical']['sheet']
+sheet.append(TEMPLATES['physical']['headers'])
+row=[None]*len(TEMPLATES['physical']['headers'])
+row[1]='SYNTH-NO-NAME-'+uuid.uuid4().hex
+row[8]=datetime(2000,1,2)
+sheet.append(row)
+book.save(dest/'synthetic-review-physical-no-name.xlsx')
+expected['physical_no_name']={'cells':{'2':row[1]}}
 (PRIVATE/'import-dashboard-expected.json').write_text(json.dumps(expected,indent=2),encoding='utf-8')
 development='--development' in sys.argv
 parser=argparse.ArgumentParser(add_help=False)

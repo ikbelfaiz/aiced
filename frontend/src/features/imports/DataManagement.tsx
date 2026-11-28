@@ -147,9 +147,9 @@ function ImportWorkspace({
   });
   const selected = preview.data?.batch ?? batch;
   const job = useQuery({
-    queryKey: ['synthetic-import-job', auth.identity?.session.id, org.id, selected?.id],
-    queryFn: () => importApi.syntheticJob(org.id, selected!.id),
-    enabled: !!selected && selected.status === 'published' && selected.data_scope === 'synthetic',
+    queryKey: ['import-job', auth.identity?.session.id, org.id, selected?.id, selected?.data_scope],
+    queryFn: () => selected!.data_scope === 'synthetic' ? importApi.syntheticJob(org.id, selected!.id) : importApi.operationalJob(org.id, selected!.id),
+    enabled: !!selected && selected.status === 'published' && (selected.data_scope === 'synthetic' || (selected.data_scope === 'operational' && ['physical', 'legal', 'accounts'].includes(selected.template))),
     refetchInterval: query => query.state.data?.status === 'complete' ? false : 3000,
     retry: false,
   });
@@ -196,11 +196,10 @@ function ImportWorkspace({
         <ShieldCheck size={20} />
         <div>
           <strong>
-            Publication contrôlée · snapshots immuables uniquement
+            Publication contrôlée · snapshots immuables
           </strong>
           <p>
-            Les imports synthétiques sont synchronisés en arrière-plan après
-            publication. Les données opérationnelles restent séparées du CRM.
+            Après publication, les personnes physiques et morales sont synchronisées vers les clients. Les comptes sont liés aux personnes physiques par l'identifiant de détenteur confirmé.
           </p>
         </div>
       </div>
@@ -437,10 +436,10 @@ function ImportWorkspace({
               </div>
               <section className="source-rule-notice" aria-label="État de publication">
                 <div><strong>{selected.status === 'published' ? 'Publication enregistrée' : !preview.isFetching && !preview.isPending && publicationBlocks.length > 0 ? 'Publication bloquée' : 'En staging : données conservées, en attente de revue'}</strong>
-                  {selected.status === 'published' ? <p>Publié le {selected.published_at ? formatDate(selected.published_at) : '—'} · réviseur : {selected.published_by_id} · règle : {selected.policy_id}. {selected.published_rows} snapshot(s) conservé(s). {selected.data_scope === 'synthetic' ? 'La synchronisation de test est suivie ci-dessous.' : 'Aucun compte ni client opérationnel créé.'}</p> : <><p>La validation technique ne vaut pas approbation métier. Le dépôt n’est jamais publié automatiquement.</p>{publicationBlocks.length > 0 ? <ul>{publicationBlocks.map(reason=><li key={reason}>{reason}</li>)}</ul> : <p>La configuration fixe est disponible. Un réviseur autorisé peut examiner puis confirmer explicitement la publication.</p>}</>}
+                  {selected.status === 'published' ? <p>Publié le {selected.published_at ? formatDate(selected.published_at) : '—'} · réviseur : {selected.published_by_id} · règle : {selected.policy_id}. {selected.published_rows} snapshot(s) conservé(s). {selected.data_scope === 'synthetic' || (selected.data_scope === 'operational' && ['physical', 'legal', 'accounts'].includes(selected.template)) ? 'La synchronisation est suivie ci-dessous.' : 'Aucune synchronisation de ce lot historique.'}</p> : <><p>La validation technique ne vaut pas approbation métier. Le dépôt n’est jamais publié automatiquement.</p>{publicationBlocks.length > 0 ? <ul>{publicationBlocks.map(reason=><li key={reason}>{reason}</li>)}</ul> : <p>La configuration fixe est disponible. Un réviseur autorisé peut examiner puis confirmer explicitement la publication.</p>}</>}
                 </div>
               </section>
-              {selected.status === 'published' && selected.data_scope === 'synthetic' && <p role="status" className="availability-note">{job.isError ? 'État de synchronisation indisponible.' : job.data?.status === 'complete' ? `Synchronisation terminée · ${job.data.processed} ligne(s) traitée(s).` : job.data?.status === 'blocked' ? `Synchronisation en attente · ${job.data.last_error} Une nouvelle tentative sera effectuée automatiquement.` : `Synchronisation en cours ou en attente · ${job.data?.processed ?? 0} ligne(s) traitée(s).`}</p>}
+              {selected.status === 'published' && (selected.data_scope === 'synthetic' || (selected.data_scope === 'operational' && ['physical', 'legal', 'accounts'].includes(selected.template))) && <p role="status" className="availability-note">{job.isError ? 'État de synchronisation indisponible.' : job.data?.status === 'complete' ? `Synchronisation terminée · ${job.data.processed} ligne(s) traitée(s).` : job.data?.status === 'blocked' ? `Synchronisation en attente · ${job.data.last_error} Une nouvelle tentative sera effectuée automatiquement.` : `Synchronisation en cours ou en attente · ${job.data?.processed ?? 0} ligne(s) traitée(s).`}</p>}
               <div className="preview-actions">
                 <label>
                   <input

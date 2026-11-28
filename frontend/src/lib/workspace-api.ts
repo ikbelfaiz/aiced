@@ -144,9 +144,12 @@ export const workspaceApi = {
         product_label: string;
       }>
     >(client(id) + `accounts/?page=${page}`, { signal }),
+  operationalAccounts: (id: string, page: number, signal?: AbortSignal) =>
+    request<Page<{id: string; source_id: string; source_as_of: string}>>(client(id) + `operational-accounts/?page=${page}`, {signal}),
 };
 export const importApi = {
   syntheticJob: (organizationId: string, batchId: string) => request<{status: 'pending' | 'complete' | 'blocked'; processed: number; last_error: string}>(`/api/clients/synthetic-import-jobs/${encodeURIComponent(batchId)}/?organization_id=${encodeURIComponent(organizationId)}`),
+  operationalJob: (organizationId: string, batchId: string) => request<{status: 'pending' | 'complete' | 'blocked'; processed: number; last_error: string}>(`/api/clients/operational-import-jobs/${encodeURIComponent(batchId)}/?organization_id=${encodeURIComponent(organizationId)}`),
   syncSyntheticPage: (organization_id: string, batch_id: string, offset: number) =>
     mutate<{ next_offset: number | null; processed: number }>("/api/clients/synthetic-import-sync/", { organization_id, batch_id, offset }),
   context: () =>

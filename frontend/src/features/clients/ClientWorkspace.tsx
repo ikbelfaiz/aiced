@@ -80,7 +80,8 @@ function ClientWorkspacePage({ id }: { id: string }) {
   } | null>(null);
   const [interactionPage, setInteractionPage] = useState(1),
     [opportunityPage, setOpportunityPage] = useState(1),
-    [accountPage, setAccountPage] = useState(1);
+    [accountPage, setAccountPage] = useState(1),
+    [operationalAccountPage, setOperationalAccountPage] = useState(1);
   const detail = useQuery({
     queryKey: ["workspace", auth.identity?.session.id, id],
     queryFn: ({ signal }) => workspaceApi.get(id, signal),
@@ -108,6 +109,11 @@ function ClientWorkspacePage({ id }: { id: string }) {
     queryFn: ({ signal }) => workspaceApi.accounts(id, accountPage, signal),
     enabled: !!permissions?.view_accounts,
   });
+  const operationalAccounts = useQuery({
+    queryKey: ['workspace-operational-accounts', auth.identity?.session.id, id, operationalAccountPage],
+    queryFn: ({signal}) => workspaceApi.operationalAccounts(id, operationalAccountPage, signal),
+    enabled: !!permissions?.view_accounts,
+  });
   const refresh = async () => {
     await Promise.all(
       [
@@ -115,6 +121,7 @@ function ClientWorkspacePage({ id }: { id: string }) {
         "interactions",
         "opportunities",
         "workspace-accounts",
+        "workspace-operational-accounts",
         "clients",
       ].map((key) => queryClient.invalidateQueries({ queryKey: [key] })),
     );
@@ -261,7 +268,7 @@ function ClientWorkspacePage({ id }: { id: string }) {
         {accounts.error.message}
       </StatePanel>
     ) : !accounts.data?.count ? (
-      <StatePanel kind="empty" title="Aucun compte source disponible" />
+      <StatePanel kind="empty" title="Aucun autre compte source disponible" />
     ) : (
       <>
         <ul className="account-list">
@@ -283,6 +290,18 @@ function ClientWorkspacePage({ id }: { id: string }) {
         />
       </>
     );
+  const operationalAccountList = () => !client.permissions.view_accounts ? null : operationalAccounts.isError ? (
+    <StatePanel kind="error" title="Comptes importés inaccessibles" retry={() => void operationalAccounts.refetch()} />
+  ) : operationalAccounts.data?.count ? (
+    <section aria-label="Comptes importés">
+      <h3>Comptes importés</h3>
+      <ul className="account-list">{operationalAccounts.data.results.map(account => <li key={account.id}>
+        <strong>Compte {account.source_id}</strong>
+        <span>Situation source : {account.source_as_of}</span><Badge>Lecture seule</Badge>
+      </li>)}</ul>
+      <Pager page={operationalAccountPage} count={operationalAccounts.data.count} set={setOperationalAccountPage}/>
+    </section>
+  ) : null;
   let fields: Field[] = [],
     initial: Record<string, string> = {};
   if (editor?.section === "profile") {
@@ -458,6 +477,10 @@ function ClientWorkspacePage({ id }: { id: string }) {
             <section className="card workspace-card">
               <h2>Profil client</h2>
               <div className="profile-data">
+                {client.identity.birth_date && <div>
+                  <small>Date de naissance · source</small>
+                  <p>{client.identity.birth_date}</p>
+                </div>}
                 <div>
                   <small>Profession · CRM AICED</small>
                   <p>{client.crm.profession || "Non renseignée"}</p>
@@ -511,6 +534,7 @@ function ClientWorkspacePage({ id }: { id: string }) {
                 {date(client.provenance.last_local_source_as_of)}
               </p>
               {accountList()}
+              {operationalAccountList()}
               <p className="muted micro mt-5">
                 Les comptes et attributs source ne peuvent pas être modifiés
                 depuis AICED.
@@ -600,6 +624,7 @@ function ClientWorkspacePage({ id }: { id: string }) {
         <section className="card workspace-card">
           <h2>Comptes source · lecture seule</h2>
           {accountList()}
+          {operationalAccountList()}
         </section>
       ) : tab === "interactions" || tab === "opportunities" ? (
         <section className="card workspace-card">

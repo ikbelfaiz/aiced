@@ -9,8 +9,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from identity.policies import grants
 from .policies import client_queryset
-from .models import FinancialAccount
-from .serializers import PartySerializer, CRMUpdateSerializer, FinancialAccountSerializer, CRMProfileResponseSerializer
+from .models import FinancialAccount, OperationalAccountProjection
+from .serializers import PartySerializer, CRMUpdateSerializer, FinancialAccountSerializer, CRMProfileResponseSerializer, OperationalAccountSerializer
 from core.serializers import ERROR_RESPONSES
 from .services import update_crm
 from .pagination import ClientPagination
@@ -74,3 +74,17 @@ class AccountListView(generics.ListAPIView):
         financial = client_queryset(user, 'clients.view_financial').filter(pk__in=visible.values('pk'))
         party = get_object_or_404(financial, pk=self.kwargs['party_id'])
         return FinancialAccount.objects.filter(party=party).order_by('id')
+
+
+class OperationalAccountListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = OperationalAccountSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        require_client_permission(user, 'clients.view')
+        require_client_permission(user, 'clients.view_financial')
+        visible = client_queryset(user, 'clients.view')
+        financial = client_queryset(user, 'clients.view_financial').filter(pk__in=visible.values('pk'))
+        party = get_object_or_404(financial, pk=self.kwargs['party_id'])
+        return OperationalAccountProjection.objects.filter(party=party, organization_id=party.organization_id).order_by('id')

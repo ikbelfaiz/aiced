@@ -131,3 +131,7 @@ urlpatterns += [path('internal/v1/source-mapping/synthetic-read', SyntheticRead.
 urlpatterns += [path('internal/v1/source-mapping/synthetic-worker-page', SyntheticWorkerPage.as_view())]
 urlpatterns += [path('internal/v1/source-mapping/synthetic-worker-discovery', SyntheticWorkerDiscovery.as_view())]
 urlpatterns += [path('internal/v1/source-mapping/synthetic-job-access', SyntheticJobAccess.as_view())]
+from .operational_person import OperationalPersonDiscovery, OperationalPersonPage, OperationalPersonStatusAccess
+urlpatterns += [path('internal/v1/operational-person/discovery', OperationalPersonDiscovery.as_view())]
+urlpatterns += [path('internal/v1/operational-person/page', OperationalPersonPage.as_view())]
+urlpatterns += [path('internal/v1/operational-person/status-access', OperationalPersonStatusAccess.as_view())]

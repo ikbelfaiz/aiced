@@ -133,6 +133,10 @@ class WorkspaceView(APIView):
             if party.kind == "physical"
             else {"legal_name": party.legalentity.legal_name}
         )
+        if party.origin == 'OPERATIONAL_IMPORT' and party.kind == 'physical':
+            source = getattr(party, 'operational_person', None)
+            if source and source.organization_id == party.organization_id and source.birth_date:
+                identity['birth_date'] = source.birth_date.isoformat()
         return Response(
             {
                 **PartySerializer(party).data,

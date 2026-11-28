@@ -27,6 +27,10 @@ def apply(config):
             c.execute(sql.SQL('REVOKE ALL ON public.clients_syntheticimportjob FROM PUBLIC'))
             c.execute(sql.SQL('REVOKE ALL ON public.clients_syntheticimportjob FROM {}').format(sql.Identifier(config['client']['POSTGRES_USER'])))
             c.execute(sql.SQL('GRANT SELECT,INSERT,UPDATE ON public.clients_syntheticimportjob TO {}').format(sql.Identifier(config['client']['POSTGRES_USER'])))
+            for table in ('clients_operationalpersonprojection', 'clients_operationalcompanyprojection', 'clients_operationalaccountprojection', 'clients_operationalimportjob'):
+                c.execute(sql.SQL('REVOKE ALL ON public.{} FROM PUBLIC').format(sql.Identifier(table)))
+                c.execute(sql.SQL('REVOKE ALL ON public.{} FROM {}').format(sql.Identifier(table), sql.Identifier(config['client']['POSTGRES_USER'])))
+                c.execute(sql.SQL('GRANT SELECT,INSERT,UPDATE ON public.{} TO {}').format(sql.Identifier(table), sql.Identifier(config['client']['POSTGRES_USER'])))
     print('Client agenda migration applied; restricted Client-only table credentials retained.')
 
 
